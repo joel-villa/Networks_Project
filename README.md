@@ -38,8 +38,9 @@ ideas are as follows (input-pending):
         1. Distance: how does it affect latency and bandwidth? (requires location
           tracking)
         2. Distance with devices in between (this is a more measurable extension of
-          idea (iv.))
-
+          idea (iv.)
+5. Publish open-source code for these data tests/see if any already exist
+    1. Something akin to Speedtest and Traceroute, but for Mesh?
 ### Relevant work
 - [Post-Disaster Communications: Enabling Technologies, Architectures, and Open Challenges]([url](https://ieeexplore.ieee.org/abstract/document/9832657))
 - [Designing delay constrained hybrid ad hoc network infrastructure for post-disaster communication]([url](https://www.sciencedirect.com/science/article/abs/pii/S1570870514001802))
