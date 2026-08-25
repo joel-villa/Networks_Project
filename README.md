@@ -42,6 +42,7 @@ ideas are as follows (input-pending):
            extension of idea (iv.)
 5. Publish open-source code for these data tests/see if any already exist
     1. Something akin to Speedtest and Traceroute, but for Mesh?
+6. Penetration Testing
 ### Relevant work
 - [Post-Disaster Communications: Enabling Technologies, Architectures, and Open Challenges]([url](https://ieeexplore.ieee.org/abstract/document/9832657))
 - [Designing delay constrained hybrid ad hoc network infrastructure for post-disaster communication]([url](https://www.sciencedirect.com/science/article/abs/pii/S1570870514001802))
