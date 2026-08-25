@@ -38,16 +38,6 @@ ideas are as follows (input-pending):
 6. Penetration Testing
 
 ## Relevant work
-
-### Joel's
-
-- S. C. Ng, G. Mao and B. D. O. Anderson, "On the Properties of One-Dimensional Infrastructure-Based Wireless Multi-Hop Networks," in IEEE Transactions on Wireless Communications, vol. 11, no. 7, pp. 2606-2615, July 2012, doi: 10.1109/TWC.2012.052412.111561.
-keywords: {Ad hoc networks;Base stations;Wireless communication;Spread spectrum communication;Wireless sensor networks;Australia;Approximation methods;Wireless networks;1-D networks;random geometric graph;connectivity;clusters},
-    - https://ieeexplore.ieee.org/abstract/document/627224
-
-- R. Bruno, M. Conti and E. Gregori, "Mesh networks: commodity multihop ad hoc networks," in IEEE Communications Magazine, vol. 43, no. 3, pp. 123-131, March 2005, doi: 10.1109/MCOM.2005.1404606.
-keywords: {Mesh networks;Spread spectrum communication;Ad hoc networks;Wireless mesh networks;IP networks;Intelligent transportation systems;Mobile ad hoc networks;Wireless LAN;Buildings;Testing},
-    - https://ieeexplore.ieee.org/abstract/document/1404606
  
 ### Natalie's
 
@@ -61,4 +51,14 @@ keywords: {Computer architecture;Wireless communication;Satellites;Ad hoc networ
 
 - El Gemayel, C.; El Gemayel, J.; Constantin, J. HERMES: Metric-Driven Multi-Transport Routing for Civilian Messaging During Connectivity Disruption. Network 2026, 6, 64. https://doi.org/10.3390/network6030064
     - https://www.mdpi.com/2673-8732/6/3/64
+
+### Joel's
+
+- S. C. Ng, G. Mao and B. D. O. Anderson, "On the Properties of One-Dimensional Infrastructure-Based Wireless Multi-Hop Networks," in IEEE Transactions on Wireless Communications, vol. 11, no. 7, pp. 2606-2615, July 2012, doi: 10.1109/TWC.2012.052412.111561.
+keywords: {Ad hoc networks;Base stations;Wireless communication;Spread spectrum communication;Wireless sensor networks;Australia;Approximation methods;Wireless networks;1-D networks;random geometric graph;connectivity;clusters},
+    - https://ieeexplore.ieee.org/abstract/document/627224
+
+- R. Bruno, M. Conti and E. Gregori, "Mesh networks: commodity multihop ad hoc networks," in IEEE Communications Magazine, vol. 43, no. 3, pp. 123-131, March 2005, doi: 10.1109/MCOM.2005.1404606.
+keywords: {Mesh networks;Spread spectrum communication;Ad hoc networks;Wireless mesh networks;IP networks;Intelligent transportation systems;Mobile ad hoc networks;Wireless LAN;Buildings;Testing},
+    - https://ieeexplore.ieee.org/abstract/document/1404606
 
