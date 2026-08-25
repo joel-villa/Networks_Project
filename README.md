@@ -43,7 +43,20 @@ ideas are as follows (input-pending):
 5. Publish open-source code for these data tests/see if any already exist
     1. Something akin to Speedtest and Traceroute, but for Mesh?
 6. Penetration Testing
+
+### Keywords to Help Research:
+
+- Multi-hop, infrastructure-based Wireless Networks
+
 ### Relevant work
+
+#### Infrastructure Related
+
+S. C. Ng, G. Mao and B. D. O. Anderson, "On the Properties of One-Dimensional Infrastructure-Based Wireless Multi-Hop Networks," in IEEE Transactions on Wireless Communications, vol. 11, no. 7, pp. 2606-2615, July 2012, doi: 10.1109/TWC.2012.052412.111561.
+keywords: {Ad hoc networks;Base stations;Wireless communication;Spread spectrum communication;Wireless sensor networks;Australia;Approximation methods;Wireless networks;1-D networks;random geometric graph;connectivity;clusters},
+
+#### Emergency Related
+
 - [Post-Disaster Communications: Enabling Technologies, Architectures, and Open Challenges]([url](https://ieeexplore.ieee.org/abstract/document/9832657))
 - [Designing delay constrained hybrid ad hoc network infrastructure for post-disaster communication]([url](https://www.sciencedirect.com/science/article/abs/pii/S1570870514001802))
 - [Context-Aware Self-Adaptive Routing for Delay Tolerant Network in Disaster Scenarios]([url](https://www.sciencedirect.com/science/article/abs/pii/S1570870519301507))
