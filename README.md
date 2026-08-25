@@ -32,13 +32,14 @@ ideas are as follows (input-pending):
     1. Communication latency (how quick data travels from point a to point b)
     2. Communication bandwidth (how much data can be sent)
     3. Communication ordering (the order in which messages are sent and recieved)
-    4. Measure of how adding more devices affects latency + bandwidth (this could
-      help argue for a larger scale project, if measurable improvements are seen)
-    5. Some ideas with privacy concerns:
+    4. Measure of how adding more devices (repeaters) affects latency + bandwidth
+       (this could help argue for a larger scale project, if measurable
+       improvements are seen)
+    6. Some ideas with privacy concerns:
         1. Distance: how does it affect latency and bandwidth? (requires location
           tracking)
-        2. Distance with devices in between (this is a more measurable extension of
-          idea (iv.)
+        2. Distance with devices(repeaters) in between (this is a more measurable
+           extension of idea (iv.)
 5. Publish open-source code for these data tests/see if any already exist
     1. Something akin to Speedtest and Traceroute, but for Mesh?
 ### Relevant work
