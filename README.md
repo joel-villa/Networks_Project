@@ -1,12 +1,5 @@
 # Non-Internet Based Communication
 
-## Current Hardware Ideas
-
-- Mesh
-- Bluetooth
-- Ultrasonic (Wavest): https://github.com/bennjordan/Wavest
-
-
 ## Project Goals (Work In Progress):
 
 1. Compilation of literature on methods of communication in emergency contexts
@@ -44,26 +37,28 @@ ideas are as follows (input-pending):
     1. Something akin to Speedtest and Traceroute, but for Mesh?
 6. Penetration Testing
 
-### Keywords to Help Research:
+## Relevant work
 
-- Multi-hop, infrastructure based Wireless Networks
-
-### Relevant work
-
-#### Infrastructure Related
+### Joel's
 
 - S. C. Ng, G. Mao and B. D. O. Anderson, "On the Properties of One-Dimensional Infrastructure-Based Wireless Multi-Hop Networks," in IEEE Transactions on Wireless Communications, vol. 11, no. 7, pp. 2606-2615, July 2012, doi: 10.1109/TWC.2012.052412.111561.
 keywords: {Ad hoc networks;Base stations;Wireless communication;Spread spectrum communication;Wireless sensor networks;Australia;Approximation methods;Wireless networks;1-D networks;random geometric graph;connectivity;clusters},
+    - https://ieeexplore.ieee.org/abstract/document/627224
 
 - R. Bruno, M. Conti and E. Gregori, "Mesh networks: commodity multihop ad hoc networks," in IEEE Communications Magazine, vol. 43, no. 3, pp. 123-131, March 2005, doi: 10.1109/MCOM.2005.1404606.
 keywords: {Mesh networks;Spread spectrum communication;Ad hoc networks;Wireless mesh networks;IP networks;Intelligent transportation systems;Mobile ad hoc networks;Wireless LAN;Buildings;Testing},
+    - https://ieeexplore.ieee.org/abstract/document/1404606
+ 
+### Natalie's
 
+- M. Matracia, N. Saeed, M. A. Kishk and M. -S. Alouini, "Post-Disaster Communications: Enabling Technologies, Architectures, and Open Challenges," in IEEE Open Journal of the Communications Society, vol. 3, pp. 1177-1205, 2022, doi: 10.1109/OJCOMS.2022.3192040.
+keywords: {Computer architecture;Wireless communication;Satellites;Ad hoc networks;Routing;Mesh networks;Coverage;stochastic geometry;non-terrestrial networks;resilience;backhaul;6G},
+    - https://ieeexplore.ieee.org/abstract/document/9832657
+- Sujoy Saha, Subrata Nandi, Partha Sarathi Paul, Vijay K. Shah, Akash Roy, Sajal K. Das, Designing delay constrained hybrid ad hoc network infrastructure for post-disaster communication, Ad Hoc Networks, Volume 25, Part B, 2015, Pages 406-429, ISSN 1570-8705, https://doi.org/10.1016/j.adhoc.2014.08.009.
+    - https://www.sciencedirect.com/science/article/pii/S1570870514001802
+- Erika Rosas, Felipe Garay, Nicolas Hidalgo, Context-aware self-adaptive routing for delay tolerant network in disaster scenarios, Ad Hoc Networks, Volume 102, 2020, 102095, ISSN 1570-8705, https://doi.org/10.1016/j.adhoc.2020.102095.
+    - https://www.sciencedirect.com/science/article/abs/pii/S1570870519301507
 
-
-#### Emergency Related
-
-- [Post-Disaster Communications: Enabling Technologies, Architectures, and Open Challenges]([url](https://ieeexplore.ieee.org/abstract/document/9832657))
-- [Designing delay constrained hybrid ad hoc network infrastructure for post-disaster communication]([url](https://www.sciencedirect.com/science/article/abs/pii/S1570870514001802))
-- [Context-Aware Self-Adaptive Routing for Delay Tolerant Network in Disaster Scenarios]([url](https://www.sciencedirect.com/science/article/abs/pii/S1570870519301507))
-- [HERMES: Metric-Driven Multi-Transport Routing for Civilian Messaging During Connectivity Disruption]([url](https://www.mdpi.com/2673-8732/6/3/64?))
+- El Gemayel, C.; El Gemayel, J.; Constantin, J. HERMES: Metric-Driven Multi-Transport Routing for Civilian Messaging During Connectivity Disruption. Network 2026, 6, 64. https://doi.org/10.3390/network6030064
+    - https://www.mdpi.com/2673-8732/6/3/64
 
