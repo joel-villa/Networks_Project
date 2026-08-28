@@ -5,10 +5,9 @@
 1. Compilation of literature on methods of communication in emergency contexts
   i.e. **NO** internet connection
 2. Build the network (acquire hardware, setup, etc.)
-3. Educate the class on how to use mesh or some other form of
-  communication. With the goal of answering the following questions:
-    1. What is mesh (or other method)? Non internet based method of local 
-    communication 
+3. Educate the class on how to use mesh with the goal of answering the
+   following questions:
+    1. What is mesh?
     2. How expensive is the hardware? 
     3. Where to buy?
     4. How to setup?
@@ -20,22 +19,47 @@
     11. What kind of information/files can be sent?
     12. Why would this stay up in a scenario when the internet goes down?
     13. How are messages prioratized? In what order are messages recieved?
-4. Collect data about the chosen networking hardware. Some potential data 
-ideas are as follows (input-pending):
-    1. Communication latency (how quick data travels from point a to point b)
-    2. Communication bandwidth (how much data can be sent)
-    3. Communication ordering (the order in which messages are sent and recieved)
-    4. Measure of how adding more devices (repeaters) affects latency + bandwidth
-       (this could help argue for a larger scale project, if measurable
-       improvements are seen)
-    6. Some ideas with privacy concerns:
-        1. Distance: how does it affect latency and bandwidth? (requires location
-          tracking)
-        2. Distance with devices(repeaters) in between (this is a more measurable
-           extension of idea (iv.)
-5. Publish open-source code for these data tests/see if any already exist
-    1. Something akin to Speedtest and Traceroute, but for Mesh?
-6. Penetration Testing
+
+### Further Goals (Feel Free to Suggest/Add To This):
+
+#### Network Benchmarking
+
+Collect data about the chosen networking hardware. Some potential data ideas 
+are as follows (input-pending):
+
+1. Communication latency (how quick data travels from point a to point b)
+2. Communication bandwidth (how much data can be sent)
+3. Communication ordering (the order in which messages are sent and recieved)
+4. Measure of how adding more devices (repeaters) affects latency + bandwidth
+5. Distance, Line of Sight, and Elevation: how do they affect communication 
+   speeds?
+6. Distance with devices (repeaters) in between (this is a more measurable
+   extension of idea (4.)
+
+Could also look into efficacy of writing programs which could do these tests
+(I'm thinking something akin to SpeedTest or TraceRoute--Mesh has Traceroute
+though)
+
+#### Security Testing/Bolstering
+
+I doubt we'd be able to make any meaningful additions in terms of security, 
+but it may be interesting to look into what penetration testing looks like 
+in the context of a non-Internet-based network
+
+#### Application Development
+
+Take this idea with a grain of salt, I don't know how feasible it is, but we 
+could look into the capacity of making Apps for Mesh to do cool things such as
+but not limited to:
+
+1. File Transfer
+2. Mesh-Networked Gameplay (something simple like Pong, idk)
+
+This also may be swaying too much from the prime goal which is reliable 
+communication in times of crisis (people playing games over network would 
+unneccessarily use up resources)
+
+#### Your Idea Here
 
 ## Relevant work
  
