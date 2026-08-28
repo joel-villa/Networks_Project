@@ -20,6 +20,10 @@
     12. Why would this stay up in a scenario when the internet goes down?
     13. How are messages prioratized? In what order are messages recieved?
 
+4. It’s worth noting that MeshCore is open source, which gives us opportunities to do many cool things
+    - https://meshcore.io
+    - https://github.com/meshcore-dev/meshcore
+
 ### Further Goals (Feel Free to Suggest/Add To This):
 
 #### Network Benchmarking
