@@ -4,7 +4,7 @@
 
 1. Compilation of literature on methods of communication in emergency contexts
   i.e. **NO** internet connection
-2. Inhouse testing of things (acquire hardware, setup, etc.)
+2. Build the network (acquire hardware, setup, etc.)
 3. Educate the class on how to use mesh or some other form of
   communication. With the goal of answering the following questions:
     1. What is mesh (or other method)? Non internet based method of local 
