@@ -10,5 +10,5 @@ question mundane. I'd read a book, that was my answer. But for many peole
 across the globe it is a question with a lot more weight. For countries such 
 as x, y, and many more, rolling blackouts is the day-to-day. As climate 
 change forces more and more countries to grapple with the reality that 
-constant internet access may not always be a garuntee, we must take weight in
+constant internet access may not always be a guarantee, we must take weight in
 the question: How would we communicate if the internet goes down? 
