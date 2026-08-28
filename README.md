@@ -6,7 +6,7 @@
   i.e. **NO** internet connection
 2. Build the network (acquire hardware, setup, etc.)
 3. Educate the class on how to use mesh with the goal of answering the
-   following questions:
+   following questions (add questions you want answered):
     1. What is mesh?
     2. How expensive is the hardware? 
     3. Where to buy?
