@@ -89,4 +89,7 @@ keywords: {Ad hoc networks;Base stations;Wireless communication;Spread spectrum 
 - R. Bruno, M. Conti and E. Gregori, "Mesh networks: commodity multihop ad hoc networks," in IEEE Communications Magazine, vol. 43, no. 3, pp. 123-131, March 2005, doi: 10.1109/MCOM.2005.1404606.
 keywords: {Mesh networks;Spread spectrum communication;Ad hoc networks;Wireless mesh networks;IP networks;Intelligent transportation systems;Mobile ad hoc networks;Wireless LAN;Buildings;Testing},
     - https://ieeexplore.ieee.org/abstract/document/1404606
+ 
+- Chambers, Benjamin Avery. The grid roofnet: a rooftop ad hoc wireless network. Diss. Massachusetts Institute of Technology, 2002.
+    - https://dspace.mit.edu/entities/publication/123f8f1d-02e1-4b50-8e85-11c090ba817e
 
