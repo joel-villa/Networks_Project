@@ -2,20 +2,20 @@
 
 R. Bruno, M. Conti and E. Gregori, "Mesh networks: commodity multihop ad hoc networks," in IEEE Communications Magazine, vol. 43, no. 3, pp. 123-131, March 2005, doi: 10.1109/MCOM.2005.1404606. keywords: {Mesh networks;Spread spectrum communication;Ad hoc networks;Wireless mesh networks;IP networks;Intelligent transportation systems;Mobile ad hoc networks;Wireless LAN;Buildings;Testing},
 
-[[https://ieeexplore.ieee.org/abstract/document/1404606|Text]]
+Text: https://ieeexplore.ieee.org/abstract/document/1404606
 
 ## Definitions
 
 1. Ad Hoc Network: "A wireless network that allows easy connection 
    establishment between wireless client devices in the same physical area 
    without the use of an infrastructure device, such as an access point or a 
-   base station." [[https://csrc.nist.gov/glossary/term/ad_hoc_network|Source]]
+   base station." https://csrc.nist.gov/glossary/term/ad_hoc_network
 2. Network Diameter: "is the longest shortest path between any two nodes in a 
    graph. In plain terms, it tells you the worst-case communication distance 
    inside a network, whether that network is a LAN, a WAN, a social graph, or 
    a biological system. If you need a fast way to judge how “wide” a network 
    really is, this is the metric to start with." 
-   [[https://www.ituonline.com/tech-definitions/what-is-network-diameter/|Source]]
+   https://www.ituonline.com/tech-definitions/what-is-network-diameter/
 3. Beamforming: "beamforming creates an effective antenna pattern at the 
    receiver with high gain in the direction of the desired signal and low gain 
    in all other directions." from this paper
@@ -68,7 +68,7 @@ if this is possible) and see how slow things go...
 > "The company has developed its own wireless routing protocol, called Predictive Wireless Routing Protocol (PWRP), that does not rely only on hop count to detect transmission paths, but compares packet error rates and other network conditions to determine the best path at a given moment"
 
 I wonder what MeshCore's path finding algorithm is? Couldn't find anything on 
-this in [[https://docs.meshcore.io/faq/|Mesh FAQs]]
+this in https://docs.meshcore.io/faq/
 
 > "In practice, this simplification will undoubtedly lead to the well-known scalability limits of ad hoc networks due to the dramatic degradation of throughput and delay performance as the network diameter increases [5]"
 
