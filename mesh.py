@@ -18,18 +18,17 @@ async def main():
     contacts = result.payload
     print(f"Found {len(contacts)} contacts")
     
-    # Send a message to the first contact
-    # if contacts:
-    #     # Get the first contact
-    #     contact = next(iter(contacts.items()))[1]
+    if contacts:
+        # Get the first contact
+        contact = next(iter(contacts.items()))[1]
         
-    #     # Pass the contact object directly to send_msg
-    #     result = await meshcore.commands.send_msg(contact, "Hello from Python!")
+        # Pass the contact object directly to send_msg
+        result = await meshcore.commands.send_msg(contact, "Hello QCNJ")
         
-    #     if result.type == EventType.ERROR:
-    #         print(f"Error sending message: {result.payload}")
-    #     else:
-    #         print("Message sent successfully!")
+        if result.type == EventType.ERROR:
+            print(f"Error sending message: {result.payload}")
+        else:
+            print("Message sent successfully!")
     
     await meshcore.disconnect()
 
