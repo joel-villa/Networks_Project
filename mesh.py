@@ -1,11 +1,11 @@
 import asyncio
 from meshcore import MeshCore, EventType
 
+meshcore = MeshCore.create_serial("/dev/ttyUSB0")
+
 async def main():
-    # Connect to your device
-    meshcore = await MeshCore.create_serial("/dev/ttyUSB0")
     
-    # Get your contacts
+
     result = await meshcore.commands.get_contacts()
     if result.type == EventType.ERROR:
         print(f"Error getting contacts: {result.payload}")
@@ -31,5 +31,14 @@ async def main():
             print("Message sent successfully!")
     
     await meshcore.disconnect()
+
+
+async def handle_message(event):
+    data = event.payload
+    print(f"Message from {data['pubkey_prefix']}: {data['text']}")
+    
+subscription = meshcore.subscribe(EventType.CONTACT_MSG_RECV, handle_message)
+
+meshcore.unsubscribe(subscription)
 
 asyncio.run(main())
