@@ -6,7 +6,7 @@ Meshcore is an open source protocol of communication that implements an ad hoc n
 
 ## Motivation
 
-The internet has become an essential part of our daily lives as it facilitates communication and access to information. Currently, an ISP is required to access the internet. ISPs use this necessity to their advantage to collect user data on every single user, which can be sold to other companies. This data is often used for targeted marketing and to influence a user's online behavior. According to the \href{https://www.un.org/en/about-us/universal-declaration-of-human-rights}{Universal Declaration of Human Rights}, we have a right to privacy, however, through an ISP we cannot access the internet without a user profile built. To address this, our group aims to provide a method of private communication and web browsing via packet radio. 
+The internet has become an essential part of our daily lives as it facilitates communication and access to information. Currently, an ISP is required to access the internet. ISPs use this necessity to their advantage to collect user data on every single user, which can be sold to other companies. This data is often used for targeted marketing and to influence a user's online behavior. According to the https://www.un.org/en/about-us/universal-declaration-of-human-rights, we have a right to privacy, however, through an ISP we cannot access the internet without a user profile built. To address this, our group aims to provide a method of private communication and web browsing via packet radio. 
 
 ## Annotated Bibliography
 
