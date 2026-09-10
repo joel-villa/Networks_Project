@@ -1,95 +1,23 @@
 # Non-Internet Based Communication
 
-## Project Goals (Work In Progress):
+## Topic
 
-1. Compilation of literature on methods of communication in emergency contexts
-  i.e. **NO** internet connection
-2. Build the network (acquire hardware, setup, etc.)
-3. Educate the class on how to use mesh with the goal of answering the
-   following questions (add questions you want answered):
-    1. What is mesh?
-    2. How expensive is the hardware? 
-    3. Where to buy?
-    4. How to setup?
-    5. **How to ensure privacy/security?**
-        1. Is it encrypted?
-        2. How to know when data is recieved? Do you care?
-        3. Handshake?
-    10. What is the range? 
-    11. What kind of information/files can be sent?
-    12. Why would this stay up in a scenario when the internet goes down?
-    13. How are messages prioratized? In what order are messages recieved?
+Meshcore is an open source protocol of communication that implements an ad hoc network system that can transmit messages to other users in range through radio waves. Meshcore allows a user to connect a transceiver node to a personal device to transmit or receive a message without access to the internet. Our group plans to investigate the security and efficacy in allowing users to communicate, search, and render information on Meshcore devices without the direct use of internet through an Internet Service Provider (ISP). Our group seeks to create a system where users of our mesh network are able to communicate to a central node wherein that node is able to parse a question a user sends and reach the external website without a user ever having to have direct contact with an ISP. Due to concerns of censorship or user not having a reliable connection to the internet, being able to search for information can allow users to access first aid information, messaging sites, news sites, and many more essential resources that are beyond valuable in an emergency. Our group also aims to provide benchmarking statistics as well as test the security of the Mesh Core nodes and repeaters to packet sniffing, packet overloading, and other security vulnerability's associated with radio communication. The benchmarking will show the efficacy of communication over mesh radio in New Mexico's unique terrain, as well as the most efficient place to place a mesh repeater. 
 
-4. It’s worth noting that MeshCore is open source, which gives us opportunities to do many cool things
-    - https://meshcore.io
-    - https://github.com/meshcore-dev/meshcore
+## Motivation
 
-### Further Goals (Feel Free to Suggest/Add To This):
+The internet has become an essential part of our daily lives as it facilitates communication and access to information. Currently, an ISP is required to access the internet. ISPs use this necessity to their advantage to collect user data on every single user, which can be sold to other companies. This data is often used for targeted marketing and to influence a user's online behavior. According to the \href{https://www.un.org/en/about-us/universal-declaration-of-human-rights}{Universal Declaration of Human Rights}, we have a right to privacy, however, through an ISP we cannot access the internet without a user profile built. To address this, our group aims to provide a method of private communication and web browsing via packet radio. 
 
-#### Network Benchmarking
+## Annotated Bibliography
 
-Collect data about the chosen networking hardware. Some potential data ideas 
-are as follows (input-pending):
+Below is a list of references relevant to our proposed research project annotated with information about what those references are about and how they relate to the project.
 
-1. Communication latency (how quick data travels from point a to point b)
-2. Communication bandwidth (how much data can be sent)
-3. Communication ordering (the order in which messages are sent and recieved)
-4. Measure of how adding more devices (repeaters) affects latency + bandwidth
-5. Distance, Line of Sight, and Elevation: how do they affect communication 
-   speeds?
-6. Distance with devices (repeaters) in between (this is a more measurable
-   extension of idea (4.)
 
-Could also look into efficacy of writing programs which could do these tests
-(I'm thinking something akin to SpeedTest or TraceRoute--Mesh has Traceroute
-though)
-
-#### Security Testing/Bolstering
-
-I doubt we'd be able to make any meaningful additions in terms of security, 
-but it may be interesting to look into what penetration testing looks like 
-in the context of a non-Internet-based network
-
-#### Application Development
-
-Take this idea with a grain of salt, I don't know how feasible it is, but we 
-could look into the capacity of making Apps for Mesh to do cool things such as
-but not limited to:
-
-1. File Transfer
-2. Mesh-Networked Gameplay (something simple like Pong, idk)
-
-This also may be swaying too much from the prime goal which is reliable 
-communication in times of crisis (people playing games over network would 
-unneccessarily use up resources)
-
-#### Your Idea Here
-
-## Relevant work
- 
-### Natalie's
-
-- M. Matracia, N. Saeed, M. A. Kishk and M. -S. Alouini, "Post-Disaster Communications: Enabling Technologies, Architectures, and Open Challenges," in IEEE Open Journal of the Communications Society, vol. 3, pp. 1177-1205, 2022, doi: 10.1109/OJCOMS.2022.3192040.
-keywords: {Computer architecture;Wireless communication;Satellites;Ad hoc networks;Routing;Mesh networks;Coverage;stochastic geometry;non-terrestrial networks;resilience;backhaul;6G},
-    - https://ieeexplore.ieee.org/abstract/document/9832657
-- Sujoy Saha, Subrata Nandi, Partha Sarathi Paul, Vijay K. Shah, Akash Roy, Sajal K. Das, Designing delay constrained hybrid ad hoc network infrastructure for post-disaster communication, Ad Hoc Networks, Volume 25, Part B, 2015, Pages 406-429, ISSN 1570-8705, https://doi.org/10.1016/j.adhoc.2014.08.009.
-    - https://www.sciencedirect.com/science/article/pii/S1570870514001802
-- Erika Rosas, Felipe Garay, Nicolas Hidalgo, Context-aware self-adaptive routing for delay tolerant network in disaster scenarios, Ad Hoc Networks, Volume 102, 2020, 102095, ISSN 1570-8705, https://doi.org/10.1016/j.adhoc.2020.102095.
-    - https://www.sciencedirect.com/science/article/abs/pii/S1570870519301507
-
-- El Gemayel, C.; El Gemayel, J.; Constantin, J. HERMES: Metric-Driven Multi-Transport Routing for Civilian Messaging During Connectivity Disruption. Network 2026, 6, 64. https://doi.org/10.3390/network6030064
-    - https://www.mdpi.com/2673-8732/6/3/64
-
-### Joel's
-
-- S. C. Ng, G. Mao and B. D. O. Anderson, "On the Properties of One-Dimensional Infrastructure-Based Wireless Multi-Hop Networks," in IEEE Transactions on Wireless Communications, vol. 11, no. 7, pp. 2606-2615, July 2012, doi: 10.1109/TWC.2012.052412.111561.
-keywords: {Ad hoc networks;Base stations;Wireless communication;Spread spectrum communication;Wireless sensor networks;Australia;Approximation methods;Wireless networks;1-D networks;random geometric graph;connectivity;clusters},
-    - https://ieeexplore.ieee.org/abstract/document/627224
-
-- R. Bruno, M. Conti and E. Gregori, "Mesh networks: commodity multihop ad hoc networks," in IEEE Communications Magazine, vol. 43, no. 3, pp. 123-131, March 2005, doi: 10.1109/MCOM.2005.1404606.
-keywords: {Mesh networks;Spread spectrum communication;Ad hoc networks;Wireless mesh networks;IP networks;Intelligent transportation systems;Mobile ad hoc networks;Wireless LAN;Buildings;Testing},
-    - https://ieeexplore.ieee.org/abstract/document/1404606
- 
-- Chambers, Benjamin Avery. The grid roofnet: a rooftop ad hoc wireless network. Diss. Massachusetts Institute of Technology, 2002.
-    - https://dspace.mit.edu/entities/publication/123f8f1d-02e1-4b50-8e85-11c090ba817e
-
+- **El Gemayel, C.; El Gemayel, J.; Constantin, J. HERMES: Metric-Driven Multi-Transport Routing for Civilian Messaging During Connectivity Disruption. Network 2026, 6, 64. https://doi.org/10.3390/network6030064** 
+    *Annotation:* This paper introduces HERMES, which is a hybrid communication method utilizing a mix of HTTP/IP networking, Bluetooth Low Energy (BLE) mesh communication, and Delay-Tolerant Networking (DTN). HERMES is motivated by providing those in need the ability to communicate, the motivation of this paper has many overlaps with the motivation of our own.
+- **R. Bruno, M. Conti and E. Gregori, "Mesh networks: commodity multihop ad hoc networks," in IEEE Communications Magazine, vol. 43, no. 3, pp. 123-131, March 2005, doi: 10.1109/MCOM.2005.1404606.**
+  *Annotation:* An article from 2005, that has an in-depth overview of the mesh-network landscape of the time. Some key takeaways that directly relate to our project are as follows: using mesh as an accessible means to extend internet access is not unprecedented; ad-hoc networks have a network-diameter bottleneck; all layers of an ad-hoc network must be self-manageable, self-configurable, and self-healing; fairness in ad-hoc networks is complex.
+- **J. Jubin and J. D. Tornow, "The DARPA packet radio network protocols," in Proceedings of the IEEE, vol. 75, no. 1, pp. 21-32, Jan. 1987, doi: 10.1109/PROC.1987.13702.**
+  *Annotation:* This paper is one of the first to explore a wireless method of communication via a packet switched, store-and-forward radio. Modern ad hoc networks are based on this network design for multihop message transmission. This describes how the multi-hop algorithm traverses the network topology with a table of its neighbors. 
+- **S. T. Ahmed, A. A. Ahmed, A. Annamalai, and M. F. Chouikha, “A Scalable and Energy-Efficient LoRaWAN-Based Geofencing System for Remote Monitoring of Vulnerable Communities,” IEEE Access, vol. 12, pp. 48540–48554, 2024, doi: 10.1109/ACCESS.2024.3383778.**
+  *Annotation:* The paper describes the implementation of a LoRaWAN geofencing system using nodes, similar in capabilities to those we propose to use. The system is also similarly designed, using central server node(s) to receive messages from mobile client nodes and passing those messages to a dedicated program for features (in the paper, alerts when a node travels outside a defined spatial perimeter). The paper describes improvements in the established ECHO protocol for LoRaWAN resulting in reduced collisions, improved battery life, increase in successful packet delivery rates - at the cost of latency. The considerations made for these improvements are relevant to design choices we will make in designing our application's protocols.
