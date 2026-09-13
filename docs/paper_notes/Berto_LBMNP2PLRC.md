@@ -18,7 +18,7 @@ R. Berto, P. Napoletano, and M. Savi, “A LoRa-Based Mesh Network for Peer-to-P
 ## Questions and Cmmentary
 
 > "the gateway is a single point of failure whose malfunctioning would compromise the operation of the whole LPWAN network."
-    - Hence why we need to make a bot/app that anyone could easily deploy! I 
+- Hence why we need to make a bot/app that anyone could easily deploy! I 
       am excited! How to make this bot as accessible as possible should be one 
       of our priorities. How to do that?
 > "
