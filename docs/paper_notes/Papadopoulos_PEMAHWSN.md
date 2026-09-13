@@ -6,8 +6,14 @@ https://ieeexplore.ieee.org/abstract/document/7378437
 
 ## TLDR
 
-I hate this article: "everything should be about reproducability", then 
-proceeds to provide no meaningful suggestions as to how.
+This papers is an analysis of the methodologies of over 1,000 ad-hoc network 
+related papers, the author's emphasize reproducability, though they do not 
+provide strong suggestions as to how to achieve this outside of a simulation 
+setting. The paper gives a high-level suggestion in-terms of how to do 
+performance evaluation in an ad-hoc context: initial real-world testing 
+(to get a feeling for 'noise' in the network), followed by simulations, 
+followed by a final stage of real-world testing--with an emphasis on 
+reproducability throughout.
 
 ## Definitions
 
