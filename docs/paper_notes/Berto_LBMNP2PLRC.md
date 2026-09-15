@@ -82,7 +82,7 @@ of.
 
 > "It is clear that SF plays a key role: the higher the SF is, the higher the delivery time."
 
-- What is Meshcore's SF by default? I couldn't find it in the FAQs, is this 
-  something we'd be able to mess with?
+- Meschore's SF by default is 7
+    - https://docs.meshcore.io/faq/
 
 > ""
