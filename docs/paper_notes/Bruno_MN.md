@@ -4,6 +4,16 @@ R. Bruno, M. Conti and E. Gregori, "Mesh networks: commodity multihop ad hoc net
 
 Text: https://ieeexplore.ieee.org/abstract/document/1404606
 
+## TLDR
+
+An article from 2005, that has an in-depth overview of the
+mesh-network landscape of the time. Some key takeaways that directly
+relate to our project are as follows: using mesh as an accessible means
+to extend internet access is not unprecedented; ad-hoc networks have a
+network-diameter bottleneck; all layers of an ad-hoc network must be self-
+manageable, self-configurable, and self-healing; fairness in ad-hoc networks
+is complex.
+
 ## Definitions
 
 1. Ad Hoc Network: "A wireless network that allows easy connection 
