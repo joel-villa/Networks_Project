@@ -238,13 +238,11 @@ async def main():
             for part in parts:
                 if part:
                     await mc.commands.send_chan_msg(CHANNEL_IDX, part)
+        else:
+            send_result = await mc.commands.send_chan_msg(CHANNEL_IDX, reply)
 
         
-        # parts = split_message(reply, MAX_MSG_LEN)
-        # for part in parts:
-        
-        #     if part:
-        #         await mc.commands.send_chan_msg(CHANNEL_IDX, part)
+
             
         print(reply)
         # reply1 = reply[:MAX_MSG_LEN]
