@@ -14,7 +14,7 @@ USER_AGENT = "pleaseWiki"
 CHANNEL_SECRET = bytes.fromhex("aa27c63feeacd8e835d02d243a17c409")
 MAX_MSG_LEN = 130 # TODO or is it 150 
 
-options = ['Knock Knock', 'google', 'ip', 'wiki']
+options = ['Knock Knock', 'google', 'ip']
 setup = ["Lettuce", "Boo", "Tank", "Interrupting cow"]
 punch = [
     "Lettuce in, it's cold out here!",
@@ -24,40 +24,6 @@ punch = [
 ]
 
 users = {}
-
-def searchWikipedia(query: str, sentences: int = 2) -> str:
-    
-    try:
-        r = requests.get(
-            "https://en.wikipedia.org/w/api.php",
-            params={
-                "action": "query",
-                "format": "json",
-                "generator": "search",
-                "gsrsearch": query,
-                "gsrlimit": 1,
-                "prop": "extracts",
-                "exintro": 1,
-                "explaintext": 1,
-                "redirects": 1,
-            },
-            headers={"User-Agent": USER_AGENT},
-            timeout=8,
-        )
-        r.raise_for_status()
-        pages = r.json().get("query", {}).get("pages", {})
-        if not pages:
-            return "No Wikipedia results found"
-        page = next(iter(pages.values()))
-        extract = page.get("extract", "").strip()
-        if not extract:
-            return f"{page.get('title', query)}: no summary available"
-        short = " ".join(extract.replace("\n", " ").split(". ")[:sentences])
-        return f"{page['title']}: {short}"
-    except Exception as e:
-        print(f"Wiki issue: {type(e).__name__}: {e}")
-        return "Wikipedia lookup failed, try again"
-
 
 
 def menuText() -> str:
@@ -75,9 +41,6 @@ def handleNewUser(user: str, text: str) -> str:
     elif choice == '2' or choice == "ip":
         users[user] = {"wants":2}
         return f"Hello {user}! I see you want {options[2]}. Who should I search?"
-    elif choice == '3' or choice == "wiki":
-        users[user] = {"wants":3}
-        return f"Hello {user}! I see you want {options[3]}. What should I search?"
     else:
         return f"I don't understand. {menuText()}"
 
@@ -93,22 +56,6 @@ def handleNewUser(user: str, text: str) -> str:
 #         return "Search failed, try again"
 #     return "No results found"
 from googlesearch import search
-
-def split_message(text):
-    
-    chunks = []
-    while len(text) > MAX_MSG_LEN :
-        
-        breaker = text.rfind(' ', 0, MAX_MSG_LEN )
-        if breaker == -1:
-            breaker = MAX_MSG_LEN 
-        
-        chunks.append(text[:breaker])
-        text = text[breaker:].lstrip() 
-    
-    if text:
-        chunks.append(text)
-    return chunks
 
 def searchGoogle(query: str) -> str:
     print(f"Attempting to search with: {query}")
@@ -199,9 +146,6 @@ async def make_reply(user: str, text: str) -> str | None:
     if state["wants"] ==2: 
         return queryIp()
 
-    if state["wants"] ==3: 
-        return searchWikipedia(text)
-
     return None
 
 
@@ -233,26 +177,21 @@ async def main():
         print(f"Payload {payload}")
 
         reply = await make_reply(user, text)
-        if(len(reply)>MAX_MSG_LEN):
-            parts = split_message(reply)
-            for part in parts:
-                if part:
-                    await mc.commands.send_chan_msg(CHANNEL_IDX, part)
-        else:
-            send_result = await mc.commands.send_chan_msg(CHANNEL_IDX, reply)
-
-        
-
-            
+        if reply is None:
+            return
         print(reply)
-        # reply1 = reply[:MAX_MSG_LEN]
-        # reply2 = reply[MAX_MSG_LEN:]
+        reply.replace("\"", "")
+        reply.replace("\'", "")
+        reply.replace("}", "")
+        reply.replace("{", "")
+        reply.replace(":", "")
+        reply = reply[:MAX_MSG_LEN]
         
-        #send_result = await mc.commands.send_chan_msg(CHANNEL_IDX, reply)
+        send_result = await mc.commands.send_chan_msg(CHANNEL_IDX, reply)
         if send_result.type == EventType.ERROR:
             print(f"Failed to send reply: {send_result.payload}")
         else:
-            print(f"Sent: {reply1}")
+            print(f"Sent: {reply}")
 
     async def handle_ack(event):
         print("Message acknowledged!")
