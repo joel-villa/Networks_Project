@@ -7,10 +7,10 @@ import json
 
 
 
-PORT = "/dev/ttyUSB1"
+PORT = "/dev/ttyUSB0"
 CHANNEL_IDX = 0
 CHANNEL_NAME = "MeshedUp"
-USER_AGENT = "MeshBot"
+USER_AGENT = "pleaseWiki"
 CHANNEL_SECRET = bytes.fromhex("aa27c63feeacd8e835d02d243a17c409")
 MAX_MSG_LEN = 130 # TODO or is it 150 
 
