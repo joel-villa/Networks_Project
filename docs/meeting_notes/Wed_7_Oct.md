@@ -37,3 +37,21 @@
     2. latency (how fast)
     3. frame loss (how reliable)
     4. back-to-back traffic (how does it handle bursts of traffic). 
+
+
+## Natalie
+
+### Progress Update
+
+- Set up packet sniffing
+- Added nonce to demo code prevent replay hash security vunerability, and mesh packet fingerprinting
+- Started LoRa security paper - https://ieeexplore.ieee.org/document/7985777
+- Skimmed Quinn's paper
+- Met with Dr. Anwar about packet sniffing
+
+### Goals for Next Week
+
+- Investigate security flaws in past versions that are still avalible to be flashed
+- Test what meta data is exposed by packet sniffer
+- Finish security paper
+
