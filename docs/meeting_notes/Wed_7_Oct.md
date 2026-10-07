@@ -1,4 +1,4 @@
-
+# Wed 7 Oct
 
 ## Quinn's Notes considering applying lessons from the paper,
 * Extend the results of the paper, but considering only a single network regime (MeshCore in LoRa) to service limited requests to internet services
@@ -19,3 +19,11 @@
 ### Consider for presentation
 * Mention system cost for n users, m gateways. Demonstrate example configurations costs
 * The paper mentions low data rate networks can add value where high rate networks not available, functionally they are not available if the services they host are blocked
+
+## Joel
+
+### Progress Update
+
+- 
+
+### Goals for Next Week
