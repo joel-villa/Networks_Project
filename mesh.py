@@ -4,6 +4,7 @@ from meshcore import MeshCore, EventType
 import csv
 import requests
 import json
+import uuid
 
 
 
@@ -61,23 +62,27 @@ def searchWikipedia(query: str, sentences: int = 2) -> str:
 
 
 def menuText() -> str:
-    return f"reply 0 for {options[0]} or 1 for {options[1]} or say which option"
+    my_uuid = uuid.uuid4()
+    uuid_str = str(my_uuid)
+    return f"reply 0 for {options[0]} or 1 for {options[1]} or say which option \n{uuid_str}"
 
 
 def handleNewUser(user: str, text: str) -> str:
     choice = text.strip().lower()
+    my_uuid = uuid.uuid4()
+    uuid_str = str(my_uuid)
     if choice == '0' or choice == "knock knock":
         users[user] = {"wants": 0, "step": 0, "joke": 0}
         return f"Hello {user}! I see you want {options[0]}. Knock knock!"
     elif choice == '1' or choice == "google":
         users[user] = {"wants": 1}
-        return f"Hello {user}! I see you want {options[1]}. What should I search?"
+        return f"Hello {user}! I see you want {options[1]}. What should I search?\n{uuid_str}"
     elif choice == '2' or choice == "ip":
         users[user] = {"wants":2}
-        return f"Hello {user}! I see you want {options[2]}. Who should I search?"
+        return f"Hello {user}! I see you want {options[2]}. Who should I search?\n{uuid_str}"
     elif choice == '3' or choice == "wiki":
         users[user] = {"wants":3}
-        return f"Hello {user}! I see you want {options[3]}. What should I search?"
+        return f"Hello {user}! I see you want {options[3]}. What should I search?\n{uuid_str}"
     else:
         return f"I don't understand. {menuText()}"
 
