@@ -24,6 +24,16 @@
 
 ### Progress Update
 
-- 
+- Finished reading RFC
+- Skimmed the paper Quinn found, fully read the section on benchmarking
+    - Takeaway: their benchmarking was very minimal. I think it would be easy (hopefully) to implement more than they did, considering we have Meshcore already defining our API calls!
+- Implemented a ping-pong, it was super simple
+    - Takeaway: MeshCore does ACKs, I will give more updates as the benchmarking becomes more intensive
 
 ### Goals for Next Week
+
+- Finish coding the four applicable benchmarking tasks outlined by the RFC (testing along the way with two-three nodes). Those tests include:
+    1. throughput (how much)
+    2. latency (how fast)
+    3. frame loss (how reliable)
+    4. back-to-back traffic (how does it handle bursts of traffic). 
