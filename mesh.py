@@ -66,7 +66,8 @@ def menuText() -> str:
     uuid_str = str(my_uuid)
     return f"reply 0 for {options[0]} or 1 for {options[1]} or say which option \n{uuid_str}"
 
-
+#by including these, we gurantee that the hash of the packets can not be fingerprinted as easily, because the won't be the same each time with a UUID
+# however, fingerprinting through the sequencing is still possible, might be something to cconsider
 def handleNewUser(user: str, text: str) -> str:
     choice = text.strip().lower()
     my_uuid = uuid.uuid4()
@@ -82,21 +83,11 @@ def handleNewUser(user: str, text: str) -> str:
         return f"Hello {user}! I see you want {options[2]}. Who should I search?\n{uuid_str}"
     elif choice == '3' or choice == "wiki":
         users[user] = {"wants":3}
-        return f"Hello {user}! I see you want {options[3]}. What should I search?\n{uuid_str}"
+        return f"Hello {user}! I see you want {options[3]}. What should I search?\n{uuid_str}" 
     else:
         return f"I don't understand. {menuText()}"
 
 
-# def searchGoogle(query: str) -> str:
-#     print(f"attempting to search with {query}")
-#     try:
-#         for result in search(query, advanced=True):
-#             print(f"{result.title}: {result.description}")
-#             return f"{result.title}: {result.description}"
-#     except Exception as e:
-#         print(f"Search failed: {e}")
-#         return "Search failed, try again"
-#     return "No results found"
 from googlesearch import search
 
 def split_message(text):
