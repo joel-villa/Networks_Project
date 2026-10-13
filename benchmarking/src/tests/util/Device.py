@@ -10,6 +10,7 @@ class Device(StrEnum):
     HELTEC_V3 = auto()
     HELTEC_T114 = auto()
     SEEED_WIO_TRACKER_L1_PRO = auto()
+    NO_DEVICE = auto()
 
     @classmethod
     def _missing_(cls, value):
