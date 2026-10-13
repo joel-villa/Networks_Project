@@ -3,7 +3,6 @@ ping-pongs, implementing something similar to what is prescribed in RFC 2544:
     https://www.rfc-editor.org/info/rfc2544/
 """
 import asyncio
-import json
 import numpy as np
 from time import perf_counter
 from meshcore import MeshCore, EventType
@@ -141,6 +140,7 @@ async def get_latencies(
     return frame_sizes, latencies
 
 async def run_test(
+    contact_under_test:str,
     num_frame_sizes:int,
     max_msgs:int,
     max_time:int,
@@ -164,7 +164,7 @@ async def run_test(
     # Send a message to T114-j
     if contacts:
         for contact in contacts.values():
-            if contact["adv_name"] == "T114-j":
+            if contact["adv_name"] == contact_under_test:
                 print("Starting test")
                 frame_sizes, latencies = await get_latencies(
                     meshcore=meshcore,
@@ -206,6 +206,7 @@ def view_results(file_name:int) -> None:
 async def main():
     """Main for testing purposes
 	"""
+    contact_under_test = "T114-j"
     num_frame_sizes=8
     max_msgs=1024
     max_time=260
@@ -216,15 +217,16 @@ async def main():
 
     file_name=1
 
-#    file_name = await run_test(
-#        num_frame_sizes=num_frame_sizes,
-#        max_msgs=max_msgs,
-#        max_time=max_time,
-#        src_type=src_type,
-#        dst_type=dst_type,
-#        distance=distance,
-#        notes=notes,
-#    )
+    file_name = await run_test(
+        contact_under_test=contact_under_test,
+        num_frame_sizes=num_frame_sizes,
+        max_msgs=max_msgs,
+        max_time=max_time,
+        src_type=src_type,
+        dst_type=dst_type,
+        distance=distance,
+        notes=notes,
+    )
 
     view_results(file_name)
 
