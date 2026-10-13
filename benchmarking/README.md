@@ -9,4 +9,4 @@ python -m benchmarking.src.tests.latency
 ```
 
 To generate new results open `latency.py` and set hyperparameters in main 
-to desired values and uncomment the call to `run_test()`
+to desired values and uncomment the call to `wrap_run_test()`

@@ -129,6 +129,7 @@ async def get_latencies(
     latencies = np.full((num_frame_sizes, max_msgs), np.nan)
 
     for i, frame_size in enumerate(frame_sizes):
+        print(f"Timing frame size {frame_size}")
         latencies[i] = await latency_test(
             frame_size=frame_size,
             meshcore=meshcore,
@@ -140,6 +141,58 @@ async def get_latencies(
     return frame_sizes, latencies
 
 async def run_test(
+    meshcore:MeshCore,
+    contact:dict,
+    num_frame_sizes:int,
+    max_msgs:int,
+    max_time:int,
+    src_type:Device,
+    dst_type:Device,
+    distance:float | None,
+    notes:str | None,
+) -> int:
+    """Run this latency test with given specifications
+
+    Args:
+        meshcore (MeshCore): The timing device
+        contact (dict): The contact which has the DUT
+        num_frame_sizes (int): The number of frame sizes tested
+        max_msgs (int): The maximum number of messages sent during
+        test of a given frame size
+        max_time (int): The maxium time of test (seconds) for a given
+        frame size
+        src_type (Device): The type of the timing device
+        dst_type (Device): The type of the Device Under Test
+        distance (float | None): The distance between the src and dst
+        notes (str | None): Anything to note?
+
+    Returns:
+         file_num (int): file number the test is saved under
+	"""
+    print("Starting test")
+    frame_sizes, latencies = await get_latencies(
+        meshcore=meshcore,
+        dst_key=contact,
+        num_frame_sizes=num_frame_sizes,
+        max_msgs=max_msgs,
+        max_time=max_time,
+    )
+    results = LatencyResults(
+        src_type=src_type,
+        dst_type=dst_type,
+        distance=distance,
+        num_frame_sizes=num_frame_sizes,
+        max_msgs=max_msgs,
+        max_time=max_time,
+        notes=notes,
+        frame_sizes=frame_sizes,
+        latencies=latencies,
+    )
+    file_name = results.save_results()
+
+    return file_name
+
+async def wrap_run_test(
     contact_under_test:str,
     num_frame_sizes:int,
     max_msgs:int,
@@ -149,9 +202,23 @@ async def run_test(
     distance:float | None,
     notes:str | None,
 ) -> int:
-    """Main for testing purposes
-	"""
+    """Wrapper for run_test()
 
+    Args:
+        contact_under_test (str): the string of the contact to test
+        num_frame_sizes (int): The number of frame sizes tested
+        max_msgs (int): The maximum number of messages sent during
+        test of a given frame size
+        max_time (int): The maxium time of test (seconds) for a given
+        frame size
+        src_type (Device): The type of the timing device
+        dst_type (Device): The type of the Device Under Test
+        distance (float | None): The distance between the src and dst
+        notes (str | None): Anything to note?
+
+    Returns:
+         file_num (int): file number the test is saved under
+	"""
     # Connect to your device
     meshcore = await MeshCore.create_serial("/dev/ttyUSB0")
 
@@ -165,26 +232,17 @@ async def run_test(
     if contacts:
         for contact in contacts.values():
             if contact["adv_name"] == contact_under_test:
-                print("Starting test")
-                frame_sizes, latencies = await get_latencies(
+                file_name = await run_test(
                     meshcore=meshcore,
-                    dst_key=contact,
+                    contact=contact,
                     num_frame_sizes=num_frame_sizes,
                     max_msgs=max_msgs,
                     max_time=max_time,
-                )
-                results = LatencyResults(
                     src_type=src_type,
                     dst_type=dst_type,
                     distance=distance,
-                    num_frame_sizes=num_frame_sizes,
-                    max_msgs=max_msgs,
-                    max_time=max_time,
                     notes=notes,
-                    frame_sizes=frame_sizes,
-                    latencies=latencies,
                 )
-                file_name = results.save_results()
 
     await meshcore.disconnect()
 
@@ -217,16 +275,16 @@ async def main():
 
     file_name=1
 
-#    file_name = await run_test(
-#        contact_under_test=contact_under_test,
-#        num_frame_sizes=num_frame_sizes,
-#        max_msgs=max_msgs,
-#        max_time=max_time,
-#        src_type=src_type,
-#        dst_type=dst_type,
-#        distance=distance,
-#        notes=notes,
-#    )
+    file_name = await wrap_run_test(
+        contact_under_test=contact_under_test,
+        num_frame_sizes=num_frame_sizes,
+        max_msgs=max_msgs,
+        max_time=max_time,
+        src_type=src_type,
+        dst_type=dst_type,
+        distance=distance,
+        notes=notes,
+    )
 
     view_results(file_name)
 
