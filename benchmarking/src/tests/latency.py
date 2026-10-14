@@ -278,16 +278,16 @@ async def main():
 
     file_name=1
 
-    file_name = await wrap_run_test(
-        contact_under_test=contact_under_test,
-        num_frame_sizes=num_frame_sizes,
-        max_msgs=max_msgs,
-        max_time=max_time,
-        src_type=src_type,
-        dst_type=dst_type,
-        distance=distance,
-        notes=notes,
-    )
+#    file_name = await wrap_run_test(
+#        contact_under_test=contact_under_test,
+#        num_frame_sizes=num_frame_sizes,
+#        max_msgs=max_msgs,
+#        max_time=max_time,
+#        src_type=src_type,
+#        dst_type=dst_type,
+#        distance=distance,
+#        notes=notes,
+#    )
 
     view_results(file_name)
 
