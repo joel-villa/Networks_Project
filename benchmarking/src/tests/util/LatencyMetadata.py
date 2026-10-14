@@ -145,7 +145,6 @@ class LatencyResults:
             for file in files:
                 if file.endswith(".json"):
                     try:
-                        print(file[:-5])
                         curr_file = int(file[:-5])
                         max_file = max(max_file, curr_file)
                     except:
