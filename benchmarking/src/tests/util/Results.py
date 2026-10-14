@@ -3,6 +3,7 @@
 Resources:
     https://realpython.com/python-interface/
 """
+import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -24,6 +25,26 @@ class Metadata(ABC):
         path_json = self.TEST_RESULTS_PATH / f"{file_name}.json"
         path_npz = self.TEST_RESULTS_PATH / f"{file_name}.npz"
         return path_json, path_npz
+
+    def next_available_filename(self) -> int:
+        """Get the current maximum filename under the results path
+
+        Args:
+            name (type): Description
+
+        Returns:
+             maximum (int): The maximum file number currently
+        """
+        curr_max = 0
+        for (root, dirs, files) in os.walk(self.TEST_RESULTS_PATH):
+            for file in files:
+                if file.endswith(".json"):
+                    try:
+                        curr_file = int(file[:-5])
+                        curr_max = max(curr_max, curr_file)
+                    except:
+                        pass
+        return curr_max + 1
 
     @abstractmethod
     def load_results(self, file_name:int) -> None:
