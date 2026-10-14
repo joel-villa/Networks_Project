@@ -6,8 +6,8 @@ import asyncio
 import numpy as np
 from time import perf_counter
 from meshcore import MeshCore, EventType
-from .util.Device import Device
-from .util.LatencyMetadata import LatencyResults
+from ..util.Device import Device
+from ..results.LatencyResults import LatencyResults
 
 async def round_trip_time(
     meshcore:MeshCore,
@@ -266,7 +266,9 @@ async def main():
     """Main for testing purposes
 	"""
     contact_under_test = "T114_0"
-    num_frame_sizes=8
+
+    # TODO: get this test to under 5 minutes for scaling to larger tests
+    num_frame_sizes=8 # 5 at minimum
     max_msgs=1024
     max_time=260
     src_type=Device.HELTEC_V3
@@ -276,16 +278,16 @@ async def main():
 
     file_name=1
 
-    file_name = await wrap_run_test(
-        contact_under_test=contact_under_test,
-        num_frame_sizes=num_frame_sizes,
-        max_msgs=max_msgs,
-        max_time=max_time,
-        src_type=src_type,
-        dst_type=dst_type,
-        distance=distance,
-        notes=notes,
-    )
+#    file_name = await wrap_run_test(
+#        contact_under_test=contact_under_test,
+#        num_frame_sizes=num_frame_sizes,
+#        max_msgs=max_msgs,
+#        max_time=max_time,
+#        src_type=src_type,
+#        dst_type=dst_type,
+#        distance=distance,
+#        notes=notes,
+#    )
 
     view_results(file_name)
 

@@ -9,11 +9,11 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
-from .Device import Device
+from ..util.Device import Device
+from .Results import Metadata
 
-TEST_RESULTS_PATH = Path("benchmarking/latency_test_results/")
 
-class LatencyResults:
+class LatencyResults(Metadata):
     """The metadata to track
 	"""
     src_type: Device
@@ -25,6 +25,7 @@ class LatencyResults:
     notes: str | None
     frame_sizes: np.ndarray
     latencies: np.ndarray
+    TEST_RESULTS_PATH: Path = Path("benchmarking/latency_test_results/")
 
     def __init__(
         self,
@@ -83,22 +84,6 @@ class LatencyResults:
             self.frame_sizes = frame_sizes
             self.latencies = latencies
 
-
-    def get_paths(self, file_name: int) -> tuple[Path,Path]:
-        """Get the paths to the file name in test_results directory
-
-        Args:
-            self: This LatencyMetadata instance
-            file_name (int): The name of the file of significance
-
-        Returns:
-            path_json (Path): The path to the json file
-            path_npz (Path): The path to the npz file
-        """
-        path_json = TEST_RESULTS_PATH / f"{file_name}.json"
-        path_npz = TEST_RESULTS_PATH / f"{file_name}.npz"
-        return path_json, path_npz
-
     def load_results(self, file_name:int) -> None:
         """Load the results from the provided file name
 
@@ -138,19 +123,7 @@ class LatencyResults:
             https://numpy.org/doc/stable/reference/generated/numpy.savez.html
             https://www.geeksforgeeks.org/python/how-to-convert-python-dictionary-to-json/
         """
-
-        max_file = 0
-
-        for (root, dirs, files) in os.walk(TEST_RESULTS_PATH):
-            for file in files:
-                if file.endswith(".json"):
-                    try:
-                        curr_file = int(file[:-5])
-                        max_file = max(max_file, curr_file)
-                    except:
-                        pass
-
-        save_file = max_file + 1
+        save_file = self.next_available_filename()
 
         path_json, path_npz = self.get_paths(save_file)
 
