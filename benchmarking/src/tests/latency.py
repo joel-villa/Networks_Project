@@ -84,6 +84,7 @@ async def latency_test(
     rtts = np.full((max_msgs,), np.nan)
 
     while (num_msgs < max_msgs and elapsed_time < max_time):
+#        print(f"num_msgs={num_msgs}, elapsed_time={elapsed_time}")
         rtts[num_msgs] = await round_trip_time(
             meshcore=meshcore,
             dst_key=dst_key,
@@ -264,7 +265,7 @@ def view_results(file_name:int) -> None:
 async def main():
     """Main for testing purposes
 	"""
-    contact_under_test = "T114-j"
+    contact_under_test = "T114_0"
     num_frame_sizes=8
     max_msgs=1024
     max_time=260
