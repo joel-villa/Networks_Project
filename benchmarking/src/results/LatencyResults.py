@@ -9,7 +9,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
-from util.Device import Device
+from ..util.Device import Device
 from .Results import Metadata
 
 
