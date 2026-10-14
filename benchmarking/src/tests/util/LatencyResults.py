@@ -123,19 +123,7 @@ class LatencyResults(Metadata):
             https://numpy.org/doc/stable/reference/generated/numpy.savez.html
             https://www.geeksforgeeks.org/python/how-to-convert-python-dictionary-to-json/
         """
-
-        max_file = 0
-
-        for (root, dirs, files) in os.walk(self.TEST_RESULTS_PATH):
-            for file in files:
-                if file.endswith(".json"):
-                    try:
-                        curr_file = int(file[:-5])
-                        max_file = max(max_file, curr_file)
-                    except:
-                        pass
-
-        save_file = max_file + 1
+        save_file = self.next_available_filename()
 
         path_json, path_npz = self.get_paths(save_file)
 
