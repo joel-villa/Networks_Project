@@ -266,7 +266,9 @@ async def main():
     """Main for testing purposes
 	"""
     contact_under_test = "T114_0"
-    num_frame_sizes=8
+
+    # TODO: get this test to under 5 minutes for scaling to larger tests
+    num_frame_sizes=8 # 5 at minimum
     max_msgs=1024
     max_time=260
     src_type=Device.HELTEC_V3
