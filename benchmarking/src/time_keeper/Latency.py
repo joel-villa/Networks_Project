@@ -60,7 +60,7 @@ class Latency(Test):
         # Ensure correct input shape
         assert type(source) is MeshCore, f"{type(source)}"
         assert type(src_type) is Device, f"{type(src_type)}"
-        assert type(distance) is float, f"{type(distance)}"
+        assert type(distance) is float or distance is None, f"{type(distance)}"
 
         print("Starting test")
         frame_sizes, latencies = await get_latencies(
@@ -133,9 +133,9 @@ async def wrap_run_test(
                 )
 
                 file_id = await lat_test.run_test(
-                    source=[meshcore,],
+                    source=meshcore,
                     dut=contact,
-                    src_type=[src_type,],
+                    src_type=src_type,
                     dst_type=dst_type,
                     num_frame_sizes=num_frame_sizes,
                     distance=distance,
