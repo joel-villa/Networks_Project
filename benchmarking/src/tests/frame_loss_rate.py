@@ -7,27 +7,44 @@ from time import perf_counter
 from meshcore import MeshCore, EventType
 
 
-async def frame_loss_rate_test(
-    num_frames:int,
-    max_frame_rate:float,
-    granularity:float,
-    meshcore:MeshCore,
-    dst_key:dict,
-    frame_size:int=150,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+async def frame_loss_rate_test_send(
+    num_frames: int,
+    frame_size: int,
+    timeout_time: float,
+    meshcore: MeshCore,
+    dst_key: dict,
+) -> bool:
     """
     Args:
         num_frames (int): The number of frames to send to the DUT per frame rate
-        max_frame_rate (float): The initial frame rate, this is the 100%
-        granularity (float): The amount to decrement the frame rate per test
+        frame_size (int): The frame size (bytes).
+        timeout_time (float): Timeout time between message sendings
         meshcore (MeshCore): The sending device
         dst_key (dict): The contact of the device under test
-        frame_size (int): The frame size (bytes). NOTE: use maximum frame size,
-        150 chars?
 
     Returns:
-        frame_rates (np.ndarray): The tested frame rates
-        frames_sent (np.ndarray): The total number of frames sent per frame rate
-        frames_lost (np.ndarray): The total number of frames lost per frame rate
+        success (bool): Successful test?
+	"""
+
+    # NOTE: on calculating next timeout times: convert to fps then do percentages then convert back
+    pass
+
+async def frame_loss_rate_test_recv(
+    meshcore: MeshCore,
+    dst_key: dict,
+) -> dict[int, int]:
+    """
+    Args:
+        num_frames (int): The number of frames to send to the DUT per frame rate
+        frame_size (int): The frame size (bytes).
+        timeout_time (float): Timeout time between message sendings
+        meshcore (MeshCore): The sending device
+        dst_key (dict): The contact of the device under test
+
+    Returns:
+        frames_recvd
+
+    Resoureces:
+        https://docs.python.org/3/library/typing.html
 	"""
     pass
