@@ -10,17 +10,18 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from warnings import warn
 from ..util.Device import Device
-from .Results import Metadata
+from .Results import Results
 
 
-class LatencyResults(Metadata):
+class LatencyResults(Results):
     """The metadata to track
 	"""
-    src_type: Device
+    src_type: list[Device]
     dst_type: Device
-    distance: float | None # TODO: make this not optional
+    distance: list[float] | None # TODO: make this not optional
     num_frame_sizes: int
     frames_sent: int
+    granularity: float # TODO put this everywher
     num_send_nodes: int
     num_recv_nodes: int
     notes: str | None
@@ -36,11 +37,12 @@ class LatencyResults(Metadata):
     def __init__(
         self,
         file_name: int | None = None,
-        src_type: Device | None = None,
+        src_type: list[Device] | None = None,
         dst_type: Device | None = None,
-        distance: float | None = None,
+        distance: list[float] | None = None,
         num_frame_sizes: int | None = None,
         frames_sent: int | None = None,
+        granularity: float | None = None,
         num_send_nodes: int | None = None,
         num_recv_nodes: int | None = None,
         notes: str | None = None,
@@ -53,10 +55,11 @@ class LatencyResults(Metadata):
 
         Args:
             file_name (int | None): Where the results live
-            src_type (Device | None): The type of the timing device
+            src_type (list[Device] | None): The type of the timing device
             dst_type (Device | None): The type of the Device Under Test
-            distance (float | None): The distance between the src and dst
+            distance (list[float] | None): The distance between the src and dst
             num_frame_sizes (int | None): The number of frame sizes tested
+            granularity (float | None): The amount to decrement the fps
             frames_sent (int | None): The number of frames sent across all tests
             num_send_nodes (int | None): Number of nodes sending messages to DUT
             num_recv_nodes (int | None): Number of nodes recieving messages
@@ -79,6 +82,7 @@ class LatencyResults(Metadata):
                 dst_type is None or
                 num_frame_sizes is None or
                 frames_sent is None or
+                granularity is None or
                 num_send_nodes is None or
                 num_recv_nodes is None or
                 frame_sizes is None or
@@ -92,8 +96,9 @@ class LatencyResults(Metadata):
             self.src_type = src_type
             self.dst_type = dst_type
             self.distance = distance
-            self. num_frame_sizes = num_frame_sizes
+            self.num_frame_sizes = num_frame_sizes
             self.frames_sent = frames_sent
+            self.granularity = granularity
             self.num_send_nodes = num_send_nodes
             self.num_recv_nodes = num_recv_nodes
             self.notes = notes
@@ -122,11 +127,15 @@ class LatencyResults(Metadata):
 
         with open(path_json) as json_file:
             metadata = json.load(json_file)
-            self.src_type = Device(metadata['src_type'])
+            src_types = metadata['src_type']
+            self.src_type = []
+            for dev_type in src_types:
+                self.src_type.append(Device(dev_type))
             self.dst_type = Device(metadata['dst_type'])
             self.distance = metadata['distance']
             self.num_frame_sizes = metadata['num_frame_sizes']
             self.frames_sent = metadata['frames_sent']
+            self.granularity = metadata['granularity']
             self.num_send_nodes = metadata['num_send_nodes']
             self.num_recv_nodes = metadata['num_recv_nodes']
             self.notes = metadata['notes']
@@ -160,6 +169,7 @@ class LatencyResults(Metadata):
             'distance': self.distance,
             'num_frame_sizes': self.num_frame_sizes,
             'frames_sent': self.frames_sent,
+            'granularity': self.granularity,
             'num_send_nodes': self.num_send_nodes,
             'num_recv_nodes': self.num_recv_nodes,
             'notes': self.notes
@@ -177,9 +187,8 @@ class LatencyResults(Metadata):
 
         return save_file
 
-    def plot_loss_v_frame_rate(
-        self
-    ) -> None:
+
+    def disp_results(self) -> None:
         """Display the latencies
 
         Resrouces:

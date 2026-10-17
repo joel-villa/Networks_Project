@@ -259,7 +259,7 @@ def view_results(file_name:int) -> None:
     print("Displaying results")
     print(f"frame_sizes={results.frame_sizes}")
     print(f"latencies={results.latencies[:, :32]}")
-    results.plot_latency_v_itter()
+    results.plot_latency_v_iter()
     results.plot_latency_v_fsize()
 
 async def main():

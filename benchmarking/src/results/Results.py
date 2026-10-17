@@ -7,7 +7,7 @@ import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-class Metadata(ABC):
+class Results(ABC):
     """Interface for Metadata"""
     TEST_RESULTS_PATH: Path
 
@@ -60,4 +60,9 @@ class Metadata(ABC):
 
         Returns:
             save_file (int): The file name where the data was saved
+        """
+
+    @abstractmethod
+    def disp_results(self) -> None:
+        """Display test results
         """
