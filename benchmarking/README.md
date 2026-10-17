@@ -2,17 +2,18 @@
 
 ## Latency Test
 
-To visualize results of test 1 run the following from root.
+To visualize results of test 2 run the following from root.
 
 ```linux
-python -m benchmarking.src.tests.latency
+python -m benchmarking.src.time_keeper.Latency
 ```
 
 Before running any tests of your own, ensure devices are in eachother's 
 contacts and able to send messages. Then...
 
-To generate new results open `latency.py` and set hyperparameters in main 
-to desired values and uncomment the call to `wrap_run_test()`
+To generate new results open `src/time_keeper/Latency.py` and set 
+hyperparameters in main to desired values and uncomment the call to 
+`wrap_run_test()`
 
 ## TODOs
 

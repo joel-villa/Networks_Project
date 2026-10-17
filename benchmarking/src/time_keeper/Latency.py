@@ -162,16 +162,16 @@ async def main():
 
     file_id = 2
 
-    file_id = await wrap_run_test(
-        contact_under_test=contact_under_test,
-        num_frame_sizes=num_frame_sizes,
-        max_msgs=max_msgs,
-        max_time=max_time,
-        src_type=src_type,
-        dst_type=dst_type,
-        distance=distance,
-        notes=notes,
-    )
+#    file_id = await wrap_run_test(
+#        contact_under_test=contact_under_test,
+#        num_frame_sizes=num_frame_sizes,
+#        max_msgs=max_msgs,
+#        max_time=max_time,
+#        src_type=src_type,
+#        dst_type=dst_type,
+#        distance=distance,
+#        notes=notes,
+#    )
 
     results = LatencyResults(file_name=file_id)
     results.disp_results()
