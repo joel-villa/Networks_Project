@@ -10,10 +10,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 from ..util.Device import Device
-from .Results import Metadata
+from .Results import Results
 
 
-class LatencyResults(Metadata):
+class LatencyResults(Results):
     """The metadata to track
 	"""
     src_type: Device
@@ -147,7 +147,7 @@ class LatencyResults(Metadata):
 
         return save_file
 
-    def plot_latency_v_itter(
+    def plot_latency_v_iter(
         self
     ) -> None:
         """Display the latencies
@@ -180,3 +180,9 @@ class LatencyResults(Metadata):
         plt.xlabel("Frame Size (bytes)")
         plt.show()
         plt.close()
+
+    def disp_results(self) -> None:
+        """Display test results
+        """
+        self.plot_latency_v_iter()
+        self.plot_latency_v_fsize()
