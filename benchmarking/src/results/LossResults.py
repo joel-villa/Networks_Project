@@ -21,6 +21,7 @@ class LatencyResults(Results):
     distance: list[float] | None # TODO: make this not optional
     num_frame_sizes: int
     frames_sent: int
+    granularity: float # TODO put this everywher
     num_send_nodes: int
     num_recv_nodes: int
     notes: str | None
@@ -41,6 +42,7 @@ class LatencyResults(Results):
         distance: list[float] | None = None,
         num_frame_sizes: int | None = None,
         frames_sent: int | None = None,
+        granularity: float | None = None,
         num_send_nodes: int | None = None,
         num_recv_nodes: int | None = None,
         notes: str | None = None,
@@ -57,6 +59,7 @@ class LatencyResults(Results):
             dst_type (Device | None): The type of the Device Under Test
             distance (list[float] | None): The distance between the src and dst
             num_frame_sizes (int | None): The number of frame sizes tested
+            granularity (float | None): The amount to decrement the fps
             frames_sent (int | None): The number of frames sent across all tests
             num_send_nodes (int | None): Number of nodes sending messages to DUT
             num_recv_nodes (int | None): Number of nodes recieving messages
@@ -79,6 +82,7 @@ class LatencyResults(Results):
                 dst_type is None or
                 num_frame_sizes is None or
                 frames_sent is None or
+                granularity is None or
                 num_send_nodes is None or
                 num_recv_nodes is None or
                 frame_sizes is None or
@@ -92,8 +96,9 @@ class LatencyResults(Results):
             self.src_type = src_type
             self.dst_type = dst_type
             self.distance = distance
-            self. num_frame_sizes = num_frame_sizes
+            self.num_frame_sizes = num_frame_sizes
             self.frames_sent = frames_sent
+            self.granularity = granularity
             self.num_send_nodes = num_send_nodes
             self.num_recv_nodes = num_recv_nodes
             self.notes = notes
@@ -130,6 +135,7 @@ class LatencyResults(Results):
             self.distance = metadata['distance']
             self.num_frame_sizes = metadata['num_frame_sizes']
             self.frames_sent = metadata['frames_sent']
+            self.granularity = metadata['granularity']
             self.num_send_nodes = metadata['num_send_nodes']
             self.num_recv_nodes = metadata['num_recv_nodes']
             self.notes = metadata['notes']
@@ -163,6 +169,7 @@ class LatencyResults(Results):
             'distance': self.distance,
             'num_frame_sizes': self.num_frame_sizes,
             'frames_sent': self.frames_sent,
+            'granularity': self.granularity,
             'num_send_nodes': self.num_send_nodes,
             'num_recv_nodes': self.num_recv_nodes,
             'notes': self.notes
