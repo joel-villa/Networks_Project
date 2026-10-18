@@ -39,8 +39,8 @@ class Test(ABC):
             frame_sizezss (np.ndarray): The frame_sizes
 
         Returns:
-             min_rtt (np.ndarray): The minimum round trip time
-             max_rtt (np.ndarray): The maximum round trip time
+             min_rtt (np.ndarray): The minimum round trip time per frame size
+             max_rtt (np.ndarray): The maximum round trip time per frame size
         """
         pass
 
