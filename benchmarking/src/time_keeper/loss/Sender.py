@@ -10,16 +10,7 @@ from meshcore import MeshCore
 
 
 
-        # max_fps = 1 / init_timeout
 
-        # percentages = np.arange(
-        #     1, # max fps is 100%
-        #     granularity, # min fps is granularity
-        #     -granularity, # step size of granularity
-        #     dtype = float,
-        # )
-        # fpss = percentages * max_fps
-        # self.timeouts = 1 / fpss
 
 class Sender:
     """For sending messages for the Loss test"""
