@@ -6,6 +6,9 @@ from ..util.Device import Device
 
 class Test(ABC):
     """Interface for Tests"""
+    num_rtts: int = 5 # How many rtts to do when rtt_time() is called
+    prop_min_time: float = 0.9 # What proportion of the minimum rtt is considered small enough
+    prop_max_time: float = 2.0 # What proportion of the maximum rtt is considered small enough
 
     def get_frame_sizes(self, num_frame_sizes: int) -> np.ndarray:
         """Get the frame sizes from teh number of frame sizes
@@ -27,7 +30,6 @@ class Test(ABC):
         self,
         source: MeshCore | list[MeshCore],
         dut: dict,
-        num_msgs: int,
         frame_sizes: np.ndarray,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Find the minimum and maximum rtt for the given frame sizes
@@ -35,12 +37,11 @@ class Test(ABC):
         Args:
             source (MeshCore | list[MeshCore]): The sending device(s)
             dut (dict): Contact info of device under test
-            num_msgs (int): Number of messages to base rtt on
             frame_sizezss (np.ndarray): The frame_sizes
 
         Returns:
-             min_rtt (np.ndarray): The minimum round trip time
-             max_rtt (np.ndarray): The maximum round trip time
+             min_rtt (np.ndarray): The minimum round trip time per frame size
+             max_rtt (np.ndarray): The maximum round trip time per frame size
         """
         pass
 
