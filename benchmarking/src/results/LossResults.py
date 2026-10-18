@@ -13,7 +13,7 @@ from ..util.Device import Device
 from .Results import Results
 
 
-class LatencyResults(Results):
+class LossResults(Results):
     """The metadata to track
 	"""
     src_type: list[Device]
@@ -24,6 +24,9 @@ class LatencyResults(Results):
     granularity: float # TODO put this everywher
     num_send_nodes: int
     num_recv_nodes: int
+    num_rtts: int # How many rtts to do when rtt_time() is called # TODO: THESE THREE PUT EM ALL OVER
+    prop_min_time: float # What proportion of the minimum rtt is considered small enough
+    prop_max_time: float # What proportion of the maximum rtt is considered small enough
     notes: str | None
     frame_sizes: np.ndarray
     min_timeouts: np.ndarray # one per frame size (what is minimum possible
