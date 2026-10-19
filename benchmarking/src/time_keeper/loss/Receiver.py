@@ -4,10 +4,10 @@ Resources:
     https://docs.python.org/3/library/threading.html
     https://pypi.org/project/meshcore/
 """
-import sys
 import asyncio
 from meshcore import MeshCore, EventType
 from meshcore.events import Event
+from ...util.constants import N_CHAR_PUB_KEY_PREFIX
 
 class Receiver:
     """For recieving messages for the Loss test"""
@@ -28,7 +28,7 @@ class Receiver:
             dut (ditc): Public key prefix of DUT
 	    """
         self.reciever = reciever
-        self.dut = dut_pub_key[:12]
+        self.dut = dut_pub_key[:N_CHAR_PUB_KEY_PREFIX]
         self.n_recieved = 0
 
     def inc_counter(
