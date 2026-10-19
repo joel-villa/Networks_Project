@@ -230,7 +230,7 @@ async def main():
 
     # Connect to your device
     send_mesh = await MeshCore.create_serial("/dev/ttyUSB0")
-    recv_mesh = await MeshCore.create_serial("/dev/ttyUSB1") #TODO is USB1 correct?
+    recv_mesh = await MeshCore.create_serial("/dev/ttyUSB1")
 
     source = [
         send_mesh,
