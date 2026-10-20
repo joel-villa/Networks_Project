@@ -3,6 +3,7 @@
 Resources:
     https://docs.python.org/3/library/threading.html
 """
+import sys
 import warnings
 import asyncio
 import numpy as np
@@ -32,8 +33,11 @@ class Loss(Test):
         self,
         frames_sent: int,
         granularity: float,
+        #TODO: default constructor in parent class
         prop_min_time: float | None = None,
         prop_max_time: float | None = None,
+        num_rtts: int | None = None, # How many rtts to do when rtt_time() is called
+        max_timeout: float | None = None, # The maximum timeout on lost mesage possible
     ) -> None:
         """Initialize this Loss Test object
 
@@ -55,6 +59,12 @@ class Loss(Test):
         if prop_max_time:
             assert prop_max_time > 1, f"{prop_max_time} <= 1"
             self.prop_max_time = prop_max_time
+        if num_rtts:
+            assert num_rtts >= 1, f"{num_rtts} < 1"
+            self.num_rtts = num_rtts
+        if max_timeout:
+            assert max_timeout >= 2, f"{max_timeout} < 1"
+            self.max_timeout = max_timeout
 
     def get_timeouts(
         self,
@@ -94,11 +104,9 @@ class Loss(Test):
 
         Args:
             recieved_msg (EventType): Message recieved o7
-
-        Resources:
-            https://www.geeksforgeeks.org/python/python-sys-stdout-flush/
-            https://www.geeksforgeeks.org/python/string-comparison-in-python/
         """
+        print(received_msg.payload['text'])
+        sys.stdout.flush()
         if received_msg.payload['pubkey_prefix'] == dut_key_pref:
             with self.cv:
                 self.awaiting_success = False
@@ -186,7 +194,7 @@ class Loss(Test):
 
         frame_sizes = self.get_frame_sizes(num_frame_sizes=num_frame_sizes)
 
-        print("Measuring some rtts")
+        print("Measuring some rtts based on ACKs")
         min_times, max_times = await self.rtt_time(
             source=send_devs,
             dut=dut_contacts,
@@ -308,9 +316,11 @@ async def main():
     contact_under_test = "T114_0"
     frame_count = 5
     granularity = 0.1 # 10% is maximum granularity
-    num_frame_sizes = 5 # 5 is minimum
+    num_frame_sizes = 2 # 5 is minimum
     prop_min_time = 0.9
     prop_max_time = 2
+    n_rtts = 3
+    max_time = 2
     source_type = [
         Device.HELTEC_V3,
         Device.HELTEC_V3,
@@ -342,6 +352,8 @@ async def main():
                         granularity=granularity,
                         prop_min_time=prop_min_time,
                         prop_max_time=prop_max_time,
+                        num_rtts=n_rtts,
+                        max_timeout=max_time,
                 )
                 file_id = await loss_test.run_test(
                     source=source,
