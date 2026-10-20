@@ -52,7 +52,7 @@ class Test(ABC):
         if type(dut) is dict:
             dut = [dut]
 
-        min_rtt = np.full((frame_sizes.shape[0],), np.inf)
+        min_rtt = np.full((frame_sizes.shape[0],), self.max_timeout)
         max_rtt = np.zeros((frame_sizes.shape[0],))
 
         for i, frame_size in enumerate(frame_sizes):
@@ -73,11 +73,50 @@ class Test(ABC):
 
         return min_rtt, max_rtt
 
+    async def get_contacts(
+        self,
+        local_devices: MeshCore | list[MeshCore],
+        dut_name: str,
+    ) -> dict | list[dict]:
+        """Get the contacts for each local device
+
+        Args:
+            local_device (MeshCore | list[MeshCore]): The local devices
+            dut_name (str): The name of the contact
+
+        Returns:
+             dut_contacts (dict | list[dict]): The contacts of the dut for each
+             device
+    	"""
+        if local_devices is MeshCore:
+            local_devices = [local_devices]
+
+        dut_contacts = []
+        for device in local_devices:
+            print(f"source_dev: {device}")
+            if device is None:
+                raise ValueError(f"None source: {local_devices}")
+            # Get your contacts
+            result = await device.commands.get_contacts()
+            contacts = result.payload
+            if contacts:
+                for contact in contacts.values():
+#                    print(f"contact: {contact}")
+                    if contact["adv_name"] == dut_name:
+                        dut_contacts.append(contact)
+                        break
+
+        assert len(local_devices) == len(dut_contacts), f"Source device does not have DUT in contacts: {dut_contacts}"
+
+        if len(dut_contacts) == 1:
+            return dut_contacts[0]
+        return dut_contacts
+
     @abstractmethod
     async def run_test(
         self,
         source: MeshCore | list[MeshCore],
-        dut: dict,
+        dut_name: str,
         src_type: Device | list[Device],
         dst_type: Device,
         num_frame_sizes: int,
