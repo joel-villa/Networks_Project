@@ -61,7 +61,7 @@ class Test(ABC):
             for j, meshcore in enumerate(source):
                 for k in range(self.num_rtts):
 
-                    rtt_time = latency.round_trip_time(
+                    rtt_time = await latency.round_trip_time(
                         meshcore=meshcore,
                         dst_key=dut[j],
                         message=message,
