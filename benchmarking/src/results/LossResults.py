@@ -210,6 +210,7 @@ class LossResults(Results):
         ys = ((self.frames_sent - self.frames_recvd) * 100) / self.frames_sent
 
         for i, frame_size in enumerate(self.frame_sizes):
+            print(f"xs[:5]:{xs[:5]}\nys[:5]:{ys[:5]}\n\n")
             plt.plot(xs, ys, label=f"{frame_size}")
 
         plt.ylabel("Frame Loss (%)")
