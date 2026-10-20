@@ -1,11 +1,19 @@
-"""The frame loss test"""
+"""The frame loss test
+
+Resources:
+    https://docs.python.org/3/library/threading.html
+"""
 import warnings
 import asyncio
 import numpy as np
-from meshcore import MeshCore
+from threading import Condition
+from meshcore import MeshCore, EventType
+from meshcore.events import Event
 
 from ...results.LossResults import LossResults
+from ...util.constants import N_CHAR_PUB_KEY_PREFIX
 from ...util.Device import Device
+from ...util.MsgType import MsgType
 from ..Test import Test
 from .Sender import Sender
 from .Receiver import Receiver
@@ -17,6 +25,8 @@ class Loss(Test):
 
     frames_sent: int
     granularity: float
+    awaiting_success: bool
+    cv: Condition
 
     def __init__(
         self,
@@ -30,9 +40,15 @@ class Loss(Test):
         Args:
             frames_sent (int): Number of frames for this test
             granularity (float): Proportion to decrease frame rate per test
+            prop_min_time (float | None): The proportion of the min found time
+            (during warmup) that is considered minimum possible
+            prop_max_time (float | None): The proportion of the min found time
+            (during warmup) that is considered minimum possible
         """
         self.frames_sent = frames_sent
         self.granularity = granularity
+        self.awaiting_success = True
+        self.cv = Condition()
         if prop_min_time:
             assert prop_min_time < 1, f"{prop_min_time} >= 1"
             self.prop_min_time = prop_min_time
@@ -69,6 +85,37 @@ class Loss(Test):
 
         return 1 / fpss
 
+    def handshake_finish(
+        self,
+        received_msg: Event,
+        dut_key_pref: str,
+    ) -> None:
+        """Continue the count!
+
+        Args:
+            recieved_msg (EventType): Message recieved o7
+
+        Resources:
+            https://www.geeksforgeeks.org/python/python-sys-stdout-flush/
+            https://www.geeksforgeeks.org/python/string-comparison-in-python/
+        """
+        if received_msg.payload['pubkey_prefix'] == dut_key_pref:
+            with self.cv:
+                self.awaiting_success = False
+                self.cv.notify()
+
+    """
+    async def run_test(
+        self,
+        source: MeshCore | list[MeshCore],
+        dut: dict,
+        src_type: Device | list[Device],
+        dst_type: Device,
+        num_frame_sizes: int,
+        distance: float | list[float] | None,
+        notes: str | None,
+    ) -> int:
+    """
     async def run_test(
         self,
         source: MeshCore | list[MeshCore],
@@ -105,21 +152,10 @@ class Loss(Test):
         if (len(source) % 2 != 0):
             warnings.warn(f"Odd number of source devices: {len(source)}")
 
-        dut_contacts = []
-        for source_dev in source:
-            print(f"source_dev: {source_dev}")
-            if source_dev is None:
-                raise ValueError(f"None source: {source}")
-            # Get your contacts
-            result = await source_dev.commands.get_contacts()
-            contacts = result.payload
-            if contacts:
-                for contact in contacts.values():
-#                    print(f"contact: {contact}")
-                    if contact["adv_name"] == dut_name:
-                        dut_contacts.append(contact)
-                        break
-        assert len(source) == len(dut_contacts), f"Source device does not have DUT in contacts: {dut_contacts}"
+        dut_contacts = await self.get_contacts(
+            local_devices=source,
+            dut_name=dut_name,
+        )
 
         num_src = len(source) // 2
         send_devs = source[:num_src]
@@ -148,18 +184,71 @@ class Loss(Test):
             senders.append(new_sender)
             receivers.append(new_receiver)
 
-        # TODO: handshake (ensure DUT has map of sending devices to recieving devs)
-
         frame_sizes = self.get_frame_sizes(num_frame_sizes=num_frame_sizes)
+
+        print("Measuring some rtts")
         min_times, max_times = await self.rtt_time(
             source=send_devs,
             dut=dut_contacts,
             frame_sizes=frame_sizes,
         )
 
+        print("Starting handshake")
+        # A handshake of sorts: ensure the DUT knows who's sending & who's receiving
+        for i, device in enumerate(source):
+            connection_msg = None
+            if i < num_src:
+                # Half are senders
+                connection_msg = MsgType.SENDER.name
+            else:
+                # The rest are receivers
+                connection_msg = MsgType.RECEIVER.name
+
+            no_ack = True
+            while no_ack:
+                # Send the message and get information about the sent message
+                sent_result = await device.commands.send_msg(
+                    dut_contacts[i],
+                    connection_msg,
+                )
+                # Extract the expected acknowledgment code from the message sent event
+                if sent_result.type == EventType.ERROR:
+                    continue
+
+                expected_ack = sent_result.payload["expected_ack"].hex()
+
+                # Wait specifically for this acknowledgment
+                result = await device.wait_for_event(
+                    EventType.ACK,
+                    attribute_filters={"code": expected_ack},
+                    timeout=max_times[-1],
+                )
+                if result:
+                    no_ack = False
+
+        for recv_dev in  recv_devs:
+            recv_dev.subscribe(
+                event_type = EventType.CONTACT_MSG_RECV,
+                callback = self.handshake_finish,
+                attribute_filters = {
+                    # Only need 12 characters of the dut's pub key to confirm
+                    'dut_key_pref': dut_contacts[0]['public_key'][:N_CHAR_PUB_KEY_PREFIX]
+                },
+            )
+
+        print("Waiting for handshake to finish")
+        with self.cv:
+            # Wait for the DUT to setup
+            while self.awaiting_success:
+                self.cv.wait()
+
+        for recv_dev in recv_devs:
+            await recv_dev.stop_auto_message_fetching()
+
         timeouts = self.get_timeouts(min_times)
         frames_received = np.full(timeouts.shape, np.nan)
 
+        print("Starting Test!")
         #TODO: do test for various frame sizes, setting timeouts along the way
         for i, frame_size in enumerate(frame_sizes):
             print(f"Loss Test: frame_size of {frame_size}")
@@ -231,40 +320,40 @@ async def main():
 
     file_id = 1
 
-    # # Connect to your device
-    # send_mesh = await MeshCore.create_serial("/dev/ttyUSB0")
-    # recv_mesh = await MeshCore.create_serial("/dev/ttyUSB1")
+    # Connect to your device
+    send_mesh = await MeshCore.create_serial("/dev/ttyUSB0")
+    recv_mesh = await MeshCore.create_serial("/dev/ttyUSB1")
 
-    # source = [
-    #     send_mesh,
-    #     recv_mesh,
-    # ]
+    source = [
+        send_mesh,
+        recv_mesh,
+    ]
 
-    # # Get your contacts
-    # result = await recv_mesh.commands.get_contacts()
-    # contacts = result.payload
+    # Get your contacts
+    result = await recv_mesh.commands.get_contacts()
+    contacts = result.payload
 
-    # # Send a message to T114-j
-    # if contacts:
-    #     for contact in contacts.values():
-    #         if contact["adv_name"] == contact_under_test:
-    #             loss_test = Loss(
-    #                     frames_sent=frame_count,
-    #                     granularity=granularity,
-    #                     prop_min_time=prop_min_time,
-    #                     prop_max_time=prop_max_time,
-    #             )
-    #             file_id = await loss_test.run_test(
-    #                 source=source,
-    #                 dut_name=contact_under_test,
-    #                 src_type=source_type,
-    #                 dst_type=dst_type,
-    #                 num_frame_sizes=num_frame_sizes,
-    #                 distance=None,
-    #                 notes="testing thangs",
-    #             )
-    # await send_mesh.disconnect()
-    # await recv_mesh.disconnect()
+    # Send a message to T114-j
+    if contacts:
+        for contact in contacts.values():
+            if contact["adv_name"] == contact_under_test:
+                loss_test = Loss(
+                        frames_sent=frame_count,
+                        granularity=granularity,
+                        prop_min_time=prop_min_time,
+                        prop_max_time=prop_max_time,
+                )
+                file_id = await loss_test.run_test(
+                    source=source,
+                    dut_name=contact_under_test,
+                    src_type=source_type,
+                    dst_type=dst_type,
+                    num_frame_sizes=num_frame_sizes,
+                    distance=None,
+                    notes="testing thangs",
+                )
+    await send_mesh.disconnect()
+    await recv_mesh.disconnect()
 
     results = LossResults(file_name=file_id)
     results.disp_results()
