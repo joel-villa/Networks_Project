@@ -24,9 +24,11 @@ class LossResults(Results):
     granularity: float # TODO put this everywher
     num_send_nodes: int
     num_recv_nodes: int
+    #TODO add these guys
     num_rtts: int # How many rtts to do when rtt_time() is called # TODO: THESE THREE PUT EM ALL OVER
     prop_min_time: float # What proportion of the minimum rtt is considered small enough
     prop_max_time: float # What proportion of the maximum rtt is considered small enough
+    max_timeout: float = 10 # The maximum timeout on lost mesage possible
     notes: str | None
     frame_sizes: np.ndarray
     min_timeouts: np.ndarray # one per frame size (what is minimum possible
@@ -202,7 +204,7 @@ class LossResults(Results):
             # Following RFC recommendations
             max_frame_rate = xs[i, xs.shape[1] - 1]
             xs[i] = 100 - (max_frame_rate - xs[i]* 100)
-            if xs[i, xs.shape[1]] - 1 <=99.99999:
+            if xs[i, xs.shape[1] - 1] - 1 <=99.99999:
                 warn(
                     "Expecting max to be 100% for frame size"
                     f"{self.frame_sizes[i]}, got {xs[i, xs.shape[1] - 1]}"
@@ -210,6 +212,7 @@ class LossResults(Results):
         ys = ((self.frames_sent - self.frames_recvd) * 100) / self.frames_sent
 
         for i, frame_size in enumerate(self.frame_sizes):
+            print(f"xs[:5]:{xs[:5]}\nys[:5]:{ys[:5]}\n\n")
             plt.plot(xs, ys, label=f"{frame_size}")
 
         plt.ylabel("Frame Loss (%)")

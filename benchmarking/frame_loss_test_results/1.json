@@ -1,0 +1,14 @@
+{
+    "src_type": [
+        "heltec_v3",
+        "heltec_v3"
+    ],
+    "dst_type": "heltec_t114",
+    "distance": null,
+    "num_frame_sizes": 5,
+    "frames_sent": 5,
+    "granularity": 0.1,
+    "num_send_nodes": 1,
+    "num_recv_nodes": 1,
+    "notes": "testing thangs"
+}

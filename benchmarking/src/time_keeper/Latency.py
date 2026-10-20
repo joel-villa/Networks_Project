@@ -34,7 +34,7 @@ class Latency(Test):
     async def run_test(
         self,
         source: MeshCore | list[MeshCore],
-        dut: dict,
+        dut_name: str,
         src_type: Device | list[Device],
         dst_type: Device,
         num_frame_sizes: int,
@@ -61,6 +61,13 @@ class Latency(Test):
         assert type(source) is MeshCore, f"{type(source)}"
         assert type(src_type) is Device, f"{type(src_type)}"
         assert type(distance) is float or distance is None, f"{type(distance)}"
+
+        dut = await self.get_contacts(
+            local_devices=source,
+            dut_name=dut_name,
+        )
+
+        assert type(dut) is dict, f"{type(dut)}"
 
         print("Starting test")
         frame_sizes, latencies = await get_latencies(

@@ -12,7 +12,8 @@ from ..results.LatencyResults import LatencyResults
 async def round_trip_time(
     meshcore:MeshCore,
     dst_key:dict,
-    message:str
+    message:str,
+    timeout:float=5,  #TODO: expose this to top level API + add to metadata tracker
 ) -> float:
     """Time a message's ACK
 
@@ -38,7 +39,7 @@ async def round_trip_time(
     result = await meshcore.wait_for_event(
         EventType.ACK,
         attribute_filters={"code": expected_ack},
-        timeout=5.0 #TODO: expose this to top level API + add to metadata tracker
+        timeout=timeout
     )
     stop = perf_counter()
 
