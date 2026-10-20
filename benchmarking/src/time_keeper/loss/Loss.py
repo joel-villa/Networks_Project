@@ -235,9 +235,10 @@ class Loss(Test):
                     no_ack = False
 
         for recv_dev in  recv_devs:
+            await recv_dev.start_auto_message_fetching()
             recv_dev.subscribe(
                 event_type = EventType.CONTACT_MSG_RECV,
-                callback = self.handshake_finish,
+                callback = self.handshake_finish, # TODO: handhsake confirmation failing
                 attribute_filters = {
                     # Only need 12 characters of the dut's pub key to confirm
                     'dut_key_pref': dut_contacts[0]['public_key'][:N_CHAR_PUB_KEY_PREFIX]
@@ -344,7 +345,7 @@ async def main():
     contacts = result.payload
 
     # Send a message to T114-j
-    if contacts:
+    if contacts: # TODO: Is this necessary anymore?
         for contact in contacts.values():
             if contact["adv_name"] == contact_under_test:
                 loss_test = Loss(
