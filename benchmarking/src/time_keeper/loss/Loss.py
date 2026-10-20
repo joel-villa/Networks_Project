@@ -115,7 +115,7 @@ class Loss(Test):
             contacts = result.payload
             if contacts:
                 for contact in contacts.values():
-                    print(f"contact:")
+#                    print(f"contact: {contact}")
                     if contact["adv_name"] == dut_name:
                         dut_contacts.append(contact)
                         break
@@ -153,7 +153,7 @@ class Loss(Test):
         frame_sizes = self.get_frame_sizes(num_frame_sizes=num_frame_sizes)
         min_times, max_times = await self.rtt_time(
             source=send_devs,
-            dut=dut_name,
+            dut=dut_contacts,
             frame_sizes=frame_sizes,
         )
 
@@ -228,6 +228,9 @@ async def main():
     ]
     dst_type = Device.HELTEC_T114
 
+
+    file_id = 1
+
     # Connect to your device
     send_mesh = await MeshCore.create_serial("/dev/ttyUSB0")
     recv_mesh = await MeshCore.create_serial("/dev/ttyUSB1")
@@ -241,14 +244,10 @@ async def main():
     result = await recv_mesh.commands.get_contacts()
     contacts = result.payload
 
-    file_id = 1
-
     # Send a message to T114-j
     if contacts:
         for contact in contacts.values():
             if contact["adv_name"] == contact_under_test:
-                print(contact)
-
                 loss_test = Loss(
                         frames_sent=frame_count,
                         granularity=granularity,
