@@ -3,6 +3,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 from time import perf_counter
 from meshcore import MeshCore
+from ..tests import latency
 from ..util.Device import Device
 
 class Test(ABC):
@@ -10,6 +11,7 @@ class Test(ABC):
     num_rtts: int = 5 # How many rtts to do when rtt_time() is called
     prop_min_time: float = 0.9 # What proportion of the minimum rtt is considered small enough
     prop_max_time: float = 2.0 # What proportion of the maximum rtt is considered small enough
+    max_timeout: float = 10 # The maximum timeout on lost mesage possible
 
     def get_frame_sizes(self, num_frame_sizes: int) -> np.ndarray:
         """Get the frame sizes from teh number of frame sizes
@@ -58,11 +60,13 @@ class Test(ABC):
             message *= frame_size
             for j, meshcore in enumerate(source):
                 for k in range(self.num_rtts):
-                    start = perf_counter()
-                    await meshcore.commands.send_msg(dut[j], message)
-                    stop = perf_counter()
 
-                    rtt_time = stop - start
+                    rtt_time = latency.round_trip_time(
+                        meshcore=meshcore,
+                        dst_key=dut[j],
+                        message=message,
+                        timeout=self.max_timeout,  #TODO: expose this to top level API + add to metadata tracker
+                    )
 
                     min_rtt[i] = min(min_rtt[i], rtt_time)
                     max_rtt[i] = max(max_rtt[i], rtt_time)
