@@ -5,10 +5,11 @@ Resources:
 """
 from enum import auto, StrEnum
 
-class NodeType(StrEnum):
+class MsgType(StrEnum):
     """Device types"""
     SENDER = auto()
     RECEIVER = auto()
+    SETUP_SUCCESS = auto()
 
     @classmethod
     def _missing_(cls, value):
