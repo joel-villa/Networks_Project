@@ -202,7 +202,7 @@ class LossResults(Results):
             # Following RFC recommendations
             max_frame_rate = xs[i, xs.shape[1] - 1]
             xs[i] = 100 - (max_frame_rate - xs[i]* 100)
-            if xs[i, xs.shape[1]] - 1 <=99.99999:
+            if xs[i, xs.shape[1] - 1] - 1 <=99.99999:
                 warn(
                     "Expecting max to be 100% for frame size"
                     f"{self.frame_sizes[i]}, got {xs[i, xs.shape[1] - 1]}"
