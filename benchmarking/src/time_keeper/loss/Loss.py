@@ -231,44 +231,43 @@ async def main():
 
     file_id = 1
 
-    # Connect to your device
-    send_mesh = await MeshCore.create_serial("/dev/ttyUSB0")
-    recv_mesh = await MeshCore.create_serial("/dev/ttyUSB1")
+    # # Connect to your device
+    # send_mesh = await MeshCore.create_serial("/dev/ttyUSB0")
+    # recv_mesh = await MeshCore.create_serial("/dev/ttyUSB1")
 
-    source = [
-        send_mesh,
-        recv_mesh,
-    ]
+    # source = [
+    #     send_mesh,
+    #     recv_mesh,
+    # ]
 
-    # Get your contacts
-    result = await recv_mesh.commands.get_contacts()
-    contacts = result.payload
+    # # Get your contacts
+    # result = await recv_mesh.commands.get_contacts()
+    # contacts = result.payload
 
-    # Send a message to T114-j
-    if contacts:
-        for contact in contacts.values():
-            if contact["adv_name"] == contact_under_test:
-                loss_test = Loss(
-                        frames_sent=frame_count,
-                        granularity=granularity,
-                        prop_min_time=prop_min_time,
-                        prop_max_time=prop_max_time,
-                )
-                file_id = await loss_test.run_test(
-                    source=source,
-                    dut_name=contact_under_test,
-                    src_type=source_type,
-                    dst_type=dst_type,
-                    num_frame_sizes=num_frame_sizes,
-                    distance=None,
-                    notes="testing thangs",
-                )
+    # # Send a message to T114-j
+    # if contacts:
+    #     for contact in contacts.values():
+    #         if contact["adv_name"] == contact_under_test:
+    #             loss_test = Loss(
+    #                     frames_sent=frame_count,
+    #                     granularity=granularity,
+    #                     prop_min_time=prop_min_time,
+    #                     prop_max_time=prop_max_time,
+    #             )
+    #             file_id = await loss_test.run_test(
+    #                 source=source,
+    #                 dut_name=contact_under_test,
+    #                 src_type=source_type,
+    #                 dst_type=dst_type,
+    #                 num_frame_sizes=num_frame_sizes,
+    #                 distance=None,
+    #                 notes="testing thangs",
+    #             )
+    # await send_mesh.disconnect()
+    # await recv_mesh.disconnect()
 
     results = LossResults(file_name=file_id)
     results.disp_results()
-
-    await send_mesh.disconnect()
-
 
 if __name__ == "__main__":
     """Main for testing purposes
