@@ -1,6 +1,7 @@
 """The Test Super Class"""
 import numpy as np
 from abc import ABC, abstractmethod
+from time import perf_counter
 from meshcore import MeshCore
 from ..util.Device import Device
 
@@ -29,21 +30,44 @@ class Test(ABC):
     async def rtt_time(
         self,
         source: MeshCore | list[MeshCore],
-        dut: dict,
+        dut: dict | list[dict],
         frame_sizes: np.ndarray,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Find the minimum and maximum rtt for the given frame sizes
 
         Args:
             source (MeshCore | list[MeshCore]): The sending device(s)
-            dut (dict): Contact info of device under test
+            dut (list[dict]): Contact info of device under test for each device
             frame_sizezss (np.ndarray): The frame_sizes
 
         Returns:
              min_rtt (np.ndarray): The minimum round trip time per frame size
              max_rtt (np.ndarray): The maximum round trip time per frame size
         """
-        pass
+        # Ensure stuff is correct shape
+        if type(source) is MeshCore:
+            source = [source]
+        if type(dut) is dict:
+            dut = [dut]
+
+        min_rtt = np.full((frame_sizes.shape[0],), np.inf)
+        max_rtt = np.zeros((frame_sizes.shape[0],))
+
+        for i, frame_size in enumerate(frame_sizes):
+            message = 'a'
+            message *= frame_size
+            for j, meshcore in enumerate(source):
+                for k in range(self.num_rtts):
+                    start = perf_counter()
+                    await meshcore.commands.send_msg(dut[j], message)
+                    stop = perf_counter()
+
+                    rtt_time = stop - start
+
+                    min_rtt[i] = min(min_rtt[i], rtt_time)
+                    max_rtt[i] = max(max_rtt[i], rtt_time)
+
+        return min_rtt, max_rtt
 
     @abstractmethod
     async def run_test(
