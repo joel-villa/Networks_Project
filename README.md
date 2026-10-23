@@ -10,7 +10,7 @@ The internet has become an essential part of our daily lives as it facilitates c
 
 ## Using `Ruff`
 
-Ruff is a linter (error checking) and formater for Python
+Ruff is an industry standard linter (error checking) and formater for Python written in rust (stupid fast)
 
 - Install with: `pip install ruff`
 - Lint with: `ruff check`
