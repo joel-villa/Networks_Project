@@ -15,4 +15,4 @@ Ruff is an industry standard linter (error checking) and formater for Python wri
 - Install with: `pip install ruff`
 - Lint with: `ruff check`
 - Style checking: `ruff format`
-- *All in one command*: `ruff --fix`
+- *All in one command*: `ruff check --fix`
