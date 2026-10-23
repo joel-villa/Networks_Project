@@ -7,3 +7,12 @@ Meshcore is an open source protocol of communication that implements an ad hoc n
 ## Motivation
 
 The internet has become an essential part of our daily lives as it facilitates communication and access to information. One cannot access this web of information without an intermediary Internet Service Provider. ISPs hold a strong hand in the modern information landscape, and their ability to track and sell user data should not be taken lightly. The right to privacy is something which large tech companies and ISPs are consistently attempting to undermine. For example, when an ISP is involved in Internet connection (all the time), an individual cannot access the internet without a user profile being built. To address this, our group aims to provide a method of private communication and web browsing via packeted radio connections. We hope that this will provide (1) security, as the connection can only be traced back to a willing gateway device (one connected to internet), and (2) be robust to failure, as any device with an Internet connection can feasibly become a gateway device or stop being a gateway device at any time. Additionally, we would be remiss if we did not mention that the MeshCore devices which we plan to utilize can and are already used as communication devices without any need for the Internet. This fact motivates our preliminary security/benchmark testing. Concisely, our goal is to both test the performance of an already existing means of communication non-reliant on Internet, and to see if such a tool can be used to bolster user privacy when surfing the web.  
+
+## Using `Ruff`
+
+Ruff is a linter (error checking) and formater for Python
+
+- Install with: `pip install ruff`
+- Lint with: `ruff check`
+- Style checking: `ruff format`
+- *All in one command*: `ruff --fix`
