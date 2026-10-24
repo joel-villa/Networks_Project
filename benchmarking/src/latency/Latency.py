@@ -4,10 +4,10 @@ import asyncio
 
 from meshcore import MeshCore
 
-from ..results.LatencyResults import LatencyResults
-from ..tests.latency import get_latencies
+from ..Test import Test
 from ..util.Device import Device
-from .Test import Test
+from .latency import get_latencies
+from .LatencyResults import LatencyResults
 
 
 class Latency(Test):
@@ -142,7 +142,7 @@ async def wrap_run_test(
 
                 file_id = await lat_test.run_test(
                     source=meshcore,
-                    dut=contact,
+                    dut_name=contact_under_test,
                     src_type=src_type,
                     dst_type=dst_type,
                     num_frame_sizes=num_frame_sizes,

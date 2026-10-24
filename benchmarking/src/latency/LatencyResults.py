@@ -10,8 +10,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from ..Results import Results
 from ..util.Device import Device
-from .Results import Results
 
 
 class LatencyResults(Results):

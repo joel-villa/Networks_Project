@@ -9,7 +9,7 @@ import asyncio
 from meshcore import EventType, MeshCore
 from meshcore.events import Event
 
-from ...util.constants import N_CHAR_PUB_KEY_PREFIX
+from ..util.constants import N_CHAR_PUB_KEY_PREFIX
 
 
 class Receiver:

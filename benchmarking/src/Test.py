@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 import numpy as np
 from meshcore import MeshCore
 
-from ..tests import latency
-from ..util.Device import Device
+from .latency import latency
+from .util.Device import Device
 
 
 class Test(ABC):

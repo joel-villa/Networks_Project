@@ -12,11 +12,11 @@ import numpy as np
 from meshcore import EventType, MeshCore
 from meshcore.events import Event
 
-from ...results.LossResults import LossResults
-from ...util.constants import N_CHAR_PUB_KEY_PREFIX
-from ...util.Device import Device
-from ...util.MsgType import MsgType
 from ..Test import Test
+from ..util.constants import N_CHAR_PUB_KEY_PREFIX
+from ..util.Device import Device
+from ..util.MsgType import MsgType
+from .LossResults import LossResults
 from .Receiver import Receiver
 from .Sender import Sender
 

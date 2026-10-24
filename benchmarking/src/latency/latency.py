@@ -8,8 +8,8 @@ from time import perf_counter
 import numpy as np
 from meshcore import EventType, MeshCore
 
-from ..results.LatencyResults import LatencyResults
 from ..util.Device import Device
+from .LatencyResults import LatencyResults
 
 
 async def round_trip_time(
