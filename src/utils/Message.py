@@ -1,6 +1,6 @@
-""" """
+"""Message me up Scotty!"""
 
-from SRC.utils.UserType import UserType
+from .UserType import UserType
 
 
 class Message:
