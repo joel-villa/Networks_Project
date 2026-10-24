@@ -5,12 +5,13 @@ Resources:
     https://www.geeksforgeeks.org/python/method-and-constructor-overloading-in-python/
 """
 import json
-import os
-import numpy as np
-import matplotlib.pyplot as plt
 from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from ..Results import Results
 from ..util.Device import Device
-from .Results import Results
 
 
 class LatencyResults(Results):
@@ -25,7 +26,7 @@ class LatencyResults(Results):
     notes: str | None
     frame_sizes: np.ndarray
     latencies: np.ndarray
-    TEST_RESULTS_PATH: Path = Path("benchmarking/latency_test_results/")
+    TEST_RESULTS_PATH: Path = Path("latency_test_results/")
 
     def __init__(
         self,

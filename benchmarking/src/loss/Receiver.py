@@ -5,9 +5,12 @@ Resources:
     https://pypi.org/project/meshcore/
 """
 import asyncio
-from meshcore import MeshCore, EventType
+
+from meshcore import EventType, MeshCore
 from meshcore.events import Event
-from ...util.constants import N_CHAR_PUB_KEY_PREFIX
+
+from ..util.constants import N_CHAR_PUB_KEY_PREFIX
+
 
 class Receiver:
     """For recieving messages for the Loss test"""

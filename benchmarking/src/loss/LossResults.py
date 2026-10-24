@@ -5,12 +5,14 @@ Resources:
     https://www.geeksforgeeks.org/python/method-and-constructor-overloading-in-python/
 """
 import json
-import numpy as np
-import matplotlib.pyplot as plt
 from pathlib import Path
 from warnings import warn
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from ..Results import Results
 from ..util.Device import Device
-from .Results import Results
 
 
 class LossResults(Results):
@@ -37,7 +39,7 @@ class LossResults(Results):
     timeout_times: np.ndarray # has same dimensions as frames_recvd (this is
     # the inverse of the frame rate)
 
-    TEST_RESULTS_PATH: Path = Path("benchmarking/frame_loss_test_results/")
+    TEST_RESULTS_PATH: Path = Path("frame_loss_test_results/")
 
     def __init__(
         self,

@@ -67,7 +67,7 @@ def menuText() -> str:
     return f"reply 0 for {options[0]} or 1 for {options[1]} or say which option \n{uuid_str}"
 
 #by including these, we gurantee that the hash of the packets can not be fingerprinted as easily, because the won't be the same each time with a UUID
-# however, fingerprinting through the sequencing is still possible, might be something to cconsider
+# however, fingerprinting through the sequencing is still possible, might be something to consider
 def handleNewUser(user: str, text: str) -> str:
     choice = text.strip().lower()
     my_uuid = uuid.uuid4()
@@ -163,7 +163,7 @@ def makeKnock(text: str, step: int, joke: int) -> str | None:
 
 
 async def make_reply(user: str, text: str) -> str | None:
-    """Parse te responce"""
+    """Parse the responce"""
     print(text)
     text = text.strip()
 

@@ -3,21 +3,22 @@
 Resources:
     https://docs.python.org/3/library/threading.html
 """
+import asyncio
 import sys
 import warnings
-import asyncio
-import numpy as np
 from threading import Condition
-from meshcore import MeshCore, EventType
+
+import numpy as np
+from meshcore import EventType, MeshCore
 from meshcore.events import Event
 
-from ...results.LossResults import LossResults
-from ...util.constants import N_CHAR_PUB_KEY_PREFIX
-from ...util.Device import Device
-from ...util.MsgType import MsgType
 from ..Test import Test
-from .Sender import Sender
+from ..util.constants import N_CHAR_PUB_KEY_PREFIX
+from ..util.Device import Device
+from ..util.MsgType import MsgType
+from .LossResults import LossResults
 from .Receiver import Receiver
+from .Sender import Sender
 
 TIMEOUT_BTWN_FRAME_SIZES = 5 #Timeout for five seconds between messages
 

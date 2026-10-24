@@ -4,3 +4,14 @@ Repository of APIS
 - Possible states of the API
 - Modular to handle multiple different types (wikipedia, etc)
 """
+
+stateToApp = {
+
+}
+
+"""
+Wikapedia states:
+Initial query
+Need more info - choose between options that match a query
+serving results
+"""
