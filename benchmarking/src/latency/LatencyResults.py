@@ -4,6 +4,7 @@ Resources:
     https://docs.python.org/3/tutorial/classes.html
     https://www.geeksforgeeks.org/python/method-and-constructor-overloading-in-python/
 """
+
 import json
 from pathlib import Path
 
@@ -15,11 +16,11 @@ from ..util.Device import Device
 
 
 class LatencyResults(Results):
-    """The metadata to track
-	"""
+    """The metadata to track"""
+
     src_type: Device
     dst_type: Device
-    distance: float | None # TODO: make this not optional
+    distance: float | None  # TODO: make this not optional
     num_frame_sizes: int
     max_msgs: int
     max_time: int
@@ -62,13 +63,13 @@ class LatencyResults(Results):
 
         else:
             if (
-                src_type is None or
-                dst_type is None or
-                num_frame_sizes is None or
-                max_msgs is None or
-                max_time is None or
-                frame_sizes is None or
-                latencies is None
+                src_type is None
+                or dst_type is None
+                or num_frame_sizes is None
+                or max_msgs is None
+                or max_time is None
+                or frame_sizes is None
+                or latencies is None
             ):
                 raise ValueError(
                     "if file_name is None, all other fields "
@@ -78,14 +79,14 @@ class LatencyResults(Results):
             self.src_type = src_type
             self.dst_type = dst_type
             self.distance = distance
-            self. num_frame_sizes = num_frame_sizes
+            self.num_frame_sizes = num_frame_sizes
             self.max_msgs = max_msgs
             self.max_time = max_time
             self.notes = notes
             self.frame_sizes = frame_sizes
             self.latencies = latencies
 
-    def load_results(self, file_name:int) -> None:
+    def load_results(self, file_name: int) -> None:
         """Load the results from the provided file name
 
         Args:
@@ -99,13 +100,13 @@ class LatencyResults(Results):
 
         with open(path_json) as json_file:
             metadata = json.load(json_file)
-            self.src_type = Device(metadata['src_type'])
-            self.dst_type = Device(metadata['dst_type'])
-            self.distance = metadata['distance']
-            self.num_frame_sizes = metadata['num_frame_sizes']
-            self.max_msgs = metadata['max_msgs']
-            self.max_time = metadata['max_time']
-            self.notes = metadata['notes']
+            self.src_type = Device(metadata["src_type"])
+            self.dst_type = Device(metadata["dst_type"])
+            self.distance = metadata["distance"]
+            self.num_frame_sizes = metadata["num_frame_sizes"]
+            self.max_msgs = metadata["max_msgs"]
+            self.max_time = metadata["max_time"]
+            self.notes = metadata["notes"]
 
         npzfile = np.load(path_npz)
         self.frame_sizes = npzfile["frame_sizes"]
@@ -140,19 +141,12 @@ class LatencyResults(Results):
         with open(path_json, "w") as json_file:
             json.dump(metadata, json_file, indent=4)
 
-        np.savez(
-            path_npz,
-            frame_sizes=self.frame_sizes,
-            latencies=self.latencies
-        )
+        np.savez(path_npz, frame_sizes=self.frame_sizes, latencies=self.latencies)
 
         return save_file
 
-    def plot_latency_v_iter(
-        self
-    ) -> None:
-        """Display the latencies
-        """
+    def plot_latency_v_iter(self) -> None:
+        """Display the latencies"""
         xs = range(self.latencies.shape[1])
 
         for i, frame_size in enumerate(self.frame_sizes):
@@ -164,16 +158,15 @@ class LatencyResults(Results):
         plt.show()
         plt.close()
 
-
-    def plot_latency_v_fsize(
-        self
-    ) -> None:
+    def plot_latency_v_fsize(self) -> None:
         """Display the latencies as requested in the RFC
 
         Resources:
             https://numpy.org/doc/2.1/reference/generated/numpy.nanmean.html
         """
-        frame_lats = np.nanmean(self.latencies, axis=1) # Average latency per frame size
+        frame_lats = np.nanmean(
+            self.latencies, axis=1
+        )  # Average latency per frame size
 
         plt.plot(self.frame_sizes, frame_lats)
 
@@ -183,7 +176,6 @@ class LatencyResults(Results):
         plt.close()
 
     def disp_results(self) -> None:
-        """Display test results
-        """
+        """Display test results"""
         self.plot_latency_v_iter()
         self.plot_latency_v_fsize()

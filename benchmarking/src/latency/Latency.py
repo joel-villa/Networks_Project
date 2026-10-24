@@ -33,14 +33,13 @@ class Latency(Test):
         self.max_msgs = max_msgs
         self.max_time = max_time
 
-
     async def latency_test(
         self,
-        frame_size:int,
-        meshcore:MeshCore,
-        dst_key:dict,
-        max_msgs:int,
-        max_time:int=120,
+        frame_size: int,
+        meshcore: MeshCore,
+        dst_key: dict,
+        max_msgs: int,
+        max_time: int = 120,
     ) -> np.ndarray:
         """Do a latency test: send messages of a particular size from the MeshCore
         device to the destination device, until the max number of messages is
@@ -61,7 +60,7 @@ class Latency(Test):
             times (np.ndarray): The elapsed time of every message sent
         """
         # Making the message of the given size
-        msg = 'a'
+        msg = "a"
         msg = msg * frame_size
 
         num_msgs = 0
@@ -70,7 +69,7 @@ class Latency(Test):
 
         rtts = np.full((max_msgs,), np.nan)
 
-        while (num_msgs < max_msgs and elapsed_time < max_time):
+        while num_msgs < max_msgs and elapsed_time < max_time:
             #        print(f"num_msgs={num_msgs}, elapsed_time={elapsed_time}")
             rtts[num_msgs] = await self.round_trip_time(
                 meshcore=meshcore,
@@ -82,15 +81,15 @@ class Latency(Test):
             num_msgs += 1
             elapsed_time = perf_counter() - start_time
 
-        return rtts / 2 # Latency = RTT / 2
+        return rtts / 2  # Latency = RTT / 2
 
     async def get_latencies(
         self,
-        meshcore:MeshCore,
-        dst_key:dict,
-        num_frame_sizes:int=5,
-        max_msgs:int=32000,
-        max_time:int=120,
+        meshcore: MeshCore,
+        dst_key: dict,
+        num_frame_sizes: int = 5,
+        max_msgs: int = 32000,
+        max_time: int = 120,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Get the average latencies for all significant frame sizes
 
@@ -110,10 +109,10 @@ class Latency(Test):
             https://numpy.org/doc/stable/reference/generated/numpy.linspace.html
         """
         frame_sizes = np.linspace(
-            start=1, # Sending message of minimum size 1
+            start=1,  # Sending message of minimum size 1
             stop=150,
             num=num_frame_sizes,
-            dtype=int
+            dtype=int,
         )
         latencies = np.full((num_frame_sizes, max_msgs), np.nan)
 
@@ -256,26 +255,26 @@ async def main():
     """Main for testing purposes"""
     file_id = 2
 
-#    contact_under_test = "T114_0"
-#
-#    # TODO: get this test to under 5 minutes for scaling to larger tests
-#    num_frame_sizes = 8  # 5 at minimum
-#    max_msgs = 1024
-#    max_time = 260
-#    src_type = Device.HELTEC_V3
-#    dst_type = Device.HELTEC_T114
-#    distance = None
-#    notes = None
-#    file_id = await wrap_run_test(
-#        contact_under_test=contact_under_test,
-#        num_frame_sizes=num_frame_sizes,
-#        max_msgs=max_msgs,
-#        max_time=max_time,
-#        src_type=src_type,
-#        dst_type=dst_type,
-#        distance=distance,
-#        notes=notes,
-#    )
+    #    contact_under_test = "T114_0"
+    #
+    #    # TODO: get this test to under 5 minutes for scaling to larger tests
+    #    num_frame_sizes = 8  # 5 at minimum
+    #    max_msgs = 1024
+    #    max_time = 260
+    #    src_type = Device.HELTEC_V3
+    #    dst_type = Device.HELTEC_T114
+    #    distance = None
+    #    notes = None
+    #    file_id = await wrap_run_test(
+    #        contact_under_test=contact_under_test,
+    #        num_frame_sizes=num_frame_sizes,
+    #        max_msgs=max_msgs,
+    #        max_time=max_time,
+    #        src_type=src_type,
+    #        dst_type=dst_type,
+    #        distance=distance,
+    #        notes=notes,
+    #    )
 
     results = LatencyResults(file_name=file_id)
     results.disp_results()

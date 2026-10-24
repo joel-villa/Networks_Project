@@ -3,6 +3,7 @@ needs a thread and is capable of sending and recieving through that mesh node.
 Also, the DUT needs a map of contacts to contacts (contacts to recv and send to
 accordingly)"""
 
+
 class DUT:
     """The DUT test class"""
 

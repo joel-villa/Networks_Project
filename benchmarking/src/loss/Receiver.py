@@ -4,6 +4,7 @@ Resources:
     https://docs.python.org/3/library/threading.html
     https://pypi.org/project/meshcore/
 """
+
 import asyncio
 
 from meshcore import EventType, MeshCore
@@ -29,7 +30,7 @@ class Receiver:
         Args:
             reciever (MeshCore): The device which is recieving messages
             dut (ditc): Public key prefix of DUT
-	    """
+        """
         self.reciever = reciever
         self.dut = dut_pub_key[:N_CHAR_PUB_KEY_PREFIX]
         self.n_recieved = 0
@@ -47,26 +48,24 @@ class Receiver:
             https://www.geeksforgeeks.org/python/python-sys-stdout-flush/
             https://www.geeksforgeeks.org/python/string-comparison-in-python/
         """
-        if received_msg.payload['pubkey_prefix'] == self.dut:
+        if received_msg.payload["pubkey_prefix"] == self.dut:
             self.n_recieved += 1
             # print(self.n_recieved)
             # sys.stdout.flush()
 
     async def start(self) -> None:
-        """Star the test!
-        """
+        """Star the test!"""
         self.n_recieved = 0
 
         # Start auto-fetching messages
         await self.reciever.start_auto_message_fetching()
 
         self.reciever.subscribe(
-            event_type = EventType.CONTACT_MSG_RECV,
-            callback = self.inc_counter,
+            event_type=EventType.CONTACT_MSG_RECV,
+            callback=self.inc_counter,
         )
 
-
-    async def stop(self) -> int: #TODO: causing error
+    async def stop(self) -> int:  # TODO: causing error
         """Stop the count
 
         Returns:
@@ -74,6 +73,7 @@ class Receiver:
         """
         await self.reciever.stop_auto_message_fetching()
         return self.n_recieved
+
 
 async def main():
     """For testing purposes
@@ -89,15 +89,14 @@ async def main():
     result = await meshcore.commands.get_contacts()
     contacts = result.payload
 
-
     # Send a message to T114-j
     if contacts:
         for contact in contacts.values():
             if contact["adv_name"] == contact_under_test:
                 print(contact)
                 reciever = Receiver(
-                    reciever = meshcore,
-                    dut_pub_key = contact['public_key'],
+                    reciever=meshcore,
+                    dut_pub_key=contact["public_key"],
                 )
 
                 await reciever.start()
