@@ -19,4 +19,6 @@ class Client:
     state: int
 
     def __init__(self, api_type: int, user_name: str, state: int) -> None:
-        self.api_type = api_type, self.user_name = user_name, self.state = state
+        self.api_type = api_type
+        self.user_name = user_name
+        self.state = state

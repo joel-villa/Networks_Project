@@ -5,3 +5,6 @@
 __pycache__/
 .venv/
 .env
+
+# Ignore that json
+secrets.json
