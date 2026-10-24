@@ -39,7 +39,7 @@ class LossResults(Results):
     timeout_times: np.ndarray # has same dimensions as frames_recvd (this is
     # the inverse of the frame rate)
 
-    TEST_RESULTS_PATH: Path = Path("benchmarking/frame_loss_test_results/")
+    TEST_RESULTS_PATH: Path = Path("frame_loss_test_results/")
 
     def __init__(
         self,
