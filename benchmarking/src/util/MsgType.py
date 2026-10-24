@@ -3,7 +3,8 @@
 Resources:
     https://docs.python.org/3/library/enum.html
 """
-from enum import auto, StrEnum
+from enum import StrEnum, auto
+
 
 class MsgType(StrEnum):
     """Device types"""

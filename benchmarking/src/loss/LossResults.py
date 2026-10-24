@@ -5,12 +5,14 @@ Resources:
     https://www.geeksforgeeks.org/python/method-and-constructor-overloading-in-python/
 """
 import json
-import numpy as np
-import matplotlib.pyplot as plt
 from pathlib import Path
 from warnings import warn
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from ..Results import Results
 from ..util.Device import Device
-from .Results import Results
 
 
 class LossResults(Results):
