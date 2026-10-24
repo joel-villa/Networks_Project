@@ -26,7 +26,7 @@ class LatencyResults(Results):
     notes: str | None
     frame_sizes: np.ndarray
     latencies: np.ndarray
-    TEST_RESULTS_PATH: Path = Path("benchmarking/latency_test_results/")
+    TEST_RESULTS_PATH: Path = Path("latency_test_results/")
 
     def __init__(
         self,
