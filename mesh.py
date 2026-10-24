@@ -241,7 +241,7 @@ async def main():
         if send_result.type == EventType.ERROR:
             print(f"Failed to send reply: {send_result.payload}")
         else:
-            print(f"Sent: {reply1}")
+            print(f"Sent: {reply}")
 
     async def handle_ack(event):
         print("Message acknowledged!")
