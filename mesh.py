@@ -87,8 +87,6 @@ def handleNewUser(user: str, text: str) -> str:
         return f"I don't understand. {menuText()}"
 
 
-
-
 def split_message(text):
 
     chunks = []
