@@ -1,10 +1,10 @@
 """The Test Super Class"""
 from abc import ABC, abstractmethod
+from time import perf_counter
 
 import numpy as np
-from meshcore import MeshCore
+from meshcore import EventType, MeshCore
 
-from .latency import latency
 from .util.Device import Device
 
 
@@ -31,6 +31,46 @@ class Test(ABC):
             dtype=int
         )
 
+    async def round_trip_time(
+        self,
+        meshcore:MeshCore,
+        dst_key:dict,
+        message:str,
+        timeout:float=5,  #TODO: expose this to top level API + add to metadata tracker
+    ) -> float:
+        """Time a message's ACK
+
+        Args:
+            meshcore (MeshCore): The sending device
+            dst_key (dict): The contact of the device under test
+            message (str): The message to send
+
+        Returns:
+            rtt (float): The time elapsed from message sent and ACK recieved
+        """
+        start = perf_counter()
+        # Send the message and get information about the sent message
+        sent_result = await meshcore.commands.send_msg(dst_key, message)
+
+        # Extract the expected acknowledgment code from the message sent event
+        if sent_result.type == EventType.ERROR:
+            return np.nan
+
+        expected_ack = sent_result.payload["expected_ack"].hex()
+
+        # Wait specifically for this acknowledgment
+        result = await meshcore.wait_for_event(
+            EventType.ACK,
+            attribute_filters={"code": expected_ack},
+            timeout=timeout
+        )
+        stop = perf_counter()
+
+        if result:
+            return stop - start
+        else:
+            # Timeout -> NaN
+            return np.nan
     async def rtt_time(
         self,
         source: MeshCore | list[MeshCore],
@@ -63,7 +103,7 @@ class Test(ABC):
             for j, meshcore in enumerate(source):
                 for k in range(self.num_rtts):
 
-                    rtt_time = await latency.round_trip_time(
+                    rtt_time = await self.round_trip_time(
                         meshcore=meshcore,
                         dst_key=dut[j],
                         message=message,
@@ -90,7 +130,7 @@ class Test(ABC):
              dut_contacts (dict | list[dict]): The contacts of the dut for each
              device
     	"""
-        if local_devices is MeshCore:
+        if type(local_devices) is MeshCore:
             local_devices = [local_devices]
 
         dut_contacts = []
