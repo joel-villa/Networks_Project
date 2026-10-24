@@ -40,11 +40,8 @@ class Results(ABC):
         for (root, dirs, files) in os.walk(self.TEST_RESULTS_PATH):
             for file in files:
                 if file.endswith(".json"):
-                    try:
-                        curr_file = int(file[:-5])
-                        curr_max = max(curr_max, curr_file)
-                    except:
-                        pass
+                    curr_file = int(file[:-5])
+                    curr_max = max(curr_max, curr_file)
         return curr_max + 1
 
     @abstractmethod

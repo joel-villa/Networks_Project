@@ -157,19 +157,18 @@ async def wrap_run_test(
 
 async def main():
     """Main for testing purposes"""
-    contact_under_test = "T114_0"
-
-    # TODO: get this test to under 5 minutes for scaling to larger tests
-    num_frame_sizes = 8  # 5 at minimum
-    max_msgs = 1024
-    max_time = 260
-    src_type = Device.HELTEC_V3
-    dst_type = Device.HELTEC_T114
-    distance = None
-    notes = None
-
     file_id = 2
 
+#    contact_under_test = "T114_0"
+#
+#    # TODO: get this test to under 5 minutes for scaling to larger tests
+#    num_frame_sizes = 8  # 5 at minimum
+#    max_msgs = 1024
+#    max_time = 260
+#    src_type = Device.HELTEC_V3
+#    dst_type = Device.HELTEC_T114
+#    distance = None
+#    notes = None
 #    file_id = await wrap_run_test(
 #        contact_under_test=contact_under_test,
 #        num_frame_sizes=num_frame_sizes,
