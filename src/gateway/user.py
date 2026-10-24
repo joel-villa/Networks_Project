@@ -9,9 +9,8 @@ User object will be directly interfacing with the user
 
 import threading
 
-from meshcore import MeshCore, EventType
+from meshcore import EventType, MeshCore
 from meshcore.events import Event
-
 from SRC.utils.UserType import UserType
 
 

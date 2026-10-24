@@ -5,7 +5,9 @@ Main Class that will handle most of the server side functionality.
 
 - Listen for new connections will create new threads for each client (Client object)
 """
+
 from meshcore import MeshCore
+
 
 class Gateway:
     """The client handler"""
