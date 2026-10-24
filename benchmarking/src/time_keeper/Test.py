@@ -1,10 +1,12 @@
 """The Test Super Class"""
-import numpy as np
 from abc import ABC, abstractmethod
-from time import perf_counter
+
+import numpy as np
 from meshcore import MeshCore
+
 from ..tests import latency
 from ..util.Device import Device
+
 
 class Test(ABC):
     """Interface for Tests"""

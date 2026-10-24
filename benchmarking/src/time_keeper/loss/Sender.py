@@ -6,10 +6,8 @@ Resources:
 import asyncio
 import threading
 from time import perf_counter
+
 from meshcore import MeshCore
-
-
-
 
 
 class Sender:

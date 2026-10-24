@@ -5,10 +5,11 @@ Resources:
     https://www.geeksforgeeks.org/python/method-and-constructor-overloading-in-python/
 """
 import json
-import os
-import numpy as np
-import matplotlib.pyplot as plt
 from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 from ..util.Device import Device
 from .Results import Results
 

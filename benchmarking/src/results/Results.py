@@ -7,6 +7,7 @@ import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 
+
 class Results(ABC):
     """Interface for Metadata"""
     TEST_RESULTS_PATH: Path

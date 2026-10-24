@@ -1,6 +1,7 @@
 """The latency test class"""
 
 import asyncio
+
 from meshcore import MeshCore
 
 from ..results.LatencyResults import LatencyResults

@@ -2,9 +2,7 @@
     https://www.rfc-editor.org/info/rfc2544/
 """
 
-import numpy as np
-from time import perf_counter
-from meshcore import MeshCore, EventType
+from meshcore import MeshCore
 
 
 async def frame_loss_rate_test_send(
@@ -27,7 +25,6 @@ async def frame_loss_rate_test_send(
 	"""
 
     # NOTE: on calculating next timeout times: convert to fps then do percentages then convert back
-    pass
 
 async def frame_loss_rate_test_recv(
     meshcore: MeshCore,
@@ -47,4 +44,3 @@ async def frame_loss_rate_test_recv(
     Resoureces:
         https://docs.python.org/3/library/typing.html
 	"""
-    pass

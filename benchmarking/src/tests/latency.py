@@ -3,11 +3,14 @@ ping-pongs, implementing something similar to what is prescribed in RFC 2544:
     https://www.rfc-editor.org/info/rfc2544/
 """
 import asyncio
-import numpy as np
 from time import perf_counter
-from meshcore import MeshCore, EventType
-from ..util.Device import Device
+
+import numpy as np
+from meshcore import EventType, MeshCore
+
 from ..results.LatencyResults import LatencyResults
+from ..util.Device import Device
+
 
 async def round_trip_time(
     meshcore:MeshCore,
