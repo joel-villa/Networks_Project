@@ -11,7 +11,7 @@ import threading
 
 from meshcore import EventType, MeshCore
 from meshcore.events import Event
-from SRC.utils.UserType import UserType
+from ..utils.UserType import UserType
 
 
 # class syntax
