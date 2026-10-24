@@ -3,6 +3,7 @@
 Resources:
     https://docs.python.org/3/library/threading.html
 """
+
 import asyncio
 import sys
 import warnings
@@ -20,7 +21,8 @@ from .LossResults import LossResults
 from .Receiver import Receiver
 from .Sender import Sender
 
-TIMEOUT_BTWN_FRAME_SIZES = 5 #Timeout for five seconds between messages
+TIMEOUT_BTWN_FRAME_SIZES = 5  # Timeout for five seconds between messages
+
 
 class Loss(Test):
     """The latency test class"""
@@ -34,11 +36,11 @@ class Loss(Test):
         self,
         frames_sent: int,
         granularity: float,
-        #TODO: default constructor in parent class
+        # TODO: default constructor in parent class
         prop_min_time: float | None = None,
         prop_max_time: float | None = None,
-        num_rtts: int | None = None, # How many rtts to do when rtt_time() is called
-        max_timeout: float | None = None, # The maximum timeout on lost mesage possible
+        num_rtts: int | None = None,  # How many rtts to do when rtt_time() is called
+        max_timeout: float | None = None,  # The maximum timeout on lost mesage possible
     ) -> None:
         """Initialize this Loss Test object
 
@@ -79,16 +81,16 @@ class Loss(Test):
 
         Returns:
              timeouts (np.ndarray): The timeout times for every frame size
-	    """
+        """
         num_frame_sizes = min_times.shape[0]
         init_timeouts = min_times * self.prop_min_time
         max_fps = 1 / init_timeouts
 
         percentages = np.arange(
-            1, # max fps is 100%
-            self.granularity, # min fps is granularity
-            -self.granularity, # step size of granularity
-            dtype = float,
+            1,  # max fps is 100%
+            self.granularity,  # min fps is granularity
+            -self.granularity,  # step size of granularity
+            dtype=float,
         )
         fpss = np.zeros((num_frame_sizes, percentages.shape[0]))
         for i in range(num_frame_sizes):
@@ -106,9 +108,9 @@ class Loss(Test):
         Args:
             recieved_msg (EventType): Message recieved o7
         """
-        print(received_msg.payload['text'])
+        print(received_msg.payload["text"])
         sys.stdout.flush()
-        if received_msg.payload['pubkey_prefix'] == dut_key_pref:
+        if received_msg.payload["pubkey_prefix"] == dut_key_pref:
             with self.cv:
                 self.awaiting_success = False
                 self.cv.notify()
@@ -125,6 +127,7 @@ class Loss(Test):
         notes: str | None,
     ) -> int:
     """
+
     async def run_test(
         self,
         source: MeshCore | list[MeshCore],
@@ -154,11 +157,17 @@ class Loss(Test):
         """
         # Ensure correct input shape
         assert type(source) is list, f"need more than one source device: {type(source)}"
-        assert type(src_type) is list, f"need more than one source device: {type(src_type)}"
-        assert distance is None or type(distance) is list, f"need more than one source device: {type(distance)}"
+        assert type(src_type) is list, (
+            f"need more than one source device: {type(src_type)}"
+        )
+        assert distance is None or type(distance) is list, (
+            f"need more than one source device: {type(distance)}"
+        )
         assert len(source) == len(src_type), f"{len(source)} != {len(src_type)}"
-        assert distance is None or len(source) == len(distance), f"{len(source)} != {len(src_type)}"
-        if (len(source) % 2 != 0):
+        assert distance is None or len(source) == len(distance), (
+            f"{len(source)} != {len(src_type)}"
+        )
+        if len(source) % 2 != 0:
             warnings.warn(f"Odd number of source devices: {len(source)}")
 
         dut_contacts = await self.get_contacts(
@@ -181,14 +190,14 @@ class Loss(Test):
 
         for i in range(num_src):
             new_sender = Sender(
-                sender = send_devs[i],
-                dut = dut_contacts[i],
-                frames_to_send = frames_per_dev,
-                needs_thread = needs_thread,
+                sender=send_devs[i],
+                dut=dut_contacts[i],
+                frames_to_send=frames_per_dev,
+                needs_thread=needs_thread,
             )
             new_receiver = Receiver(
                 reciever=recv_devs[i],
-                dut_pub_key=dut_contacts[i]['public_key'],
+                dut_pub_key=dut_contacts[i]["public_key"],
             )
             senders.append(new_sender)
             receivers.append(new_receiver)
@@ -235,14 +244,16 @@ class Loss(Test):
                 if result:
                     no_ack = False
 
-        for recv_dev in  recv_devs:
+        for recv_dev in recv_devs:
             await recv_dev.start_auto_message_fetching()
             recv_dev.subscribe(
-                event_type = EventType.CONTACT_MSG_RECV,
-                callback = self.handshake_finish, # TODO: handhsake confirmation failing
-                attribute_filters = {
+                event_type=EventType.CONTACT_MSG_RECV,
+                callback=self.handshake_finish,  # TODO: handhsake confirmation failing
+                attribute_filters={
                     # Only need 12 characters of the dut's pub key to confirm
-                    'dut_key_pref': dut_contacts[0]['public_key'][:N_CHAR_PUB_KEY_PREFIX]
+                    "dut_key_pref": dut_contacts[0]["public_key"][
+                        :N_CHAR_PUB_KEY_PREFIX
+                    ]
                 },
             )
 
@@ -259,7 +270,7 @@ class Loss(Test):
         frames_received = np.full(timeouts.shape, np.nan)
 
         print("Starting Test!")
-        #TODO: do test for various frame sizes, setting timeouts along the way
+        # TODO: do test for various frame sizes, setting timeouts along the way
         for i, frame_size in enumerate(frame_sizes):
             print(f"Loss Test: frame_size of {frame_size}")
             no_loss_prev = False
@@ -271,8 +282,8 @@ class Loss(Test):
                 # Start sending messages
                 for sender in senders:
                     await sender.start(
-                        msg_size = frame_size,
-                        timeout = timeout_time,
+                        msg_size=frame_size,
+                        timeout=timeout_time,
                     )
 
                 # Wait for sending to finish
@@ -313,12 +324,11 @@ class Loss(Test):
 
 # TODO: TEST THIS BADDIE
 async def main():
-    """For testing purposes
-    """
+    """For testing purposes"""
     contact_under_test = "T114_0"
     frame_count = 5
-    granularity = 0.1 # 10% is maximum granularity
-    num_frame_sizes = 2 # 5 is minimum
+    granularity = 0.1  # 10% is maximum granularity
+    num_frame_sizes = 2  # 5 is minimum
     prop_min_time = 0.9
     prop_max_time = 2
     n_rtts = 3
@@ -328,7 +338,6 @@ async def main():
         Device.HELTEC_V3,
     ]
     dst_type = Device.HELTEC_T114
-
 
     file_id = 1
 
@@ -346,16 +355,16 @@ async def main():
     contacts = result.payload
 
     # Send a message to T114-j
-    if contacts: # TODO: Is this necessary anymore?
+    if contacts:  # TODO: Is this necessary anymore?
         for contact in contacts.values():
             if contact["adv_name"] == contact_under_test:
                 loss_test = Loss(
-                        frames_sent=frame_count,
-                        granularity=granularity,
-                        prop_min_time=prop_min_time,
-                        prop_max_time=prop_max_time,
-                        num_rtts=n_rtts,
-                        max_timeout=max_time,
+                    frames_sent=frame_count,
+                    granularity=granularity,
+                    prop_min_time=prop_min_time,
+                    prop_max_time=prop_max_time,
+                    num_rtts=n_rtts,
+                    max_timeout=max_time,
                 )
                 file_id = await loss_test.run_test(
                     source=source,
@@ -371,6 +380,7 @@ async def main():
 
     results = LossResults(file_name=file_id)
     results.disp_results()
+
 
 if __name__ == "__main__":
     """Main for testing purposes

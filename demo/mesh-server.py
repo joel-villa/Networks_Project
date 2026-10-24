@@ -1,20 +1,22 @@
 import asyncio
-import logging
 
-from meshcore import MeshCore, EventType
 from llm import get_response
+from meshcore import EventType, MeshCore
 
 # logging.basicConfig(level=logging.INFO)
 
-PORT = "/dev/cu.usbmodem14101" # "/dev/ttyUSB0"
+PORT = "/dev/cu.usbmodem14101"  # "/dev/ttyUSB0"
 CHANNEL_IDX = 0
-CHANNEL_NAME = "BigData" #"MeshedUp"
-CHANNEL_SECRET = bytes.fromhex("4a84f3cf8a9796917cf29f1eca3e0b62") # bytes.fromhex("aa27c63feeacd8e835d02d243a17c409")
+CHANNEL_NAME = "BigData"  # "MeshedUp"
+CHANNEL_SECRET = bytes.fromhex(
+    "4a84f3cf8a9796917cf29f1eca3e0b62"
+)  # bytes.fromhex("aa27c63feeacd8e835d02d243a17c409")
+
 
 async def main():
     # Connect to the node
     mc = await MeshCore.create_serial(PORT)
-   
+
     # Set channel
     result = await mc.commands.set_channel(CHANNEL_IDX, CHANNEL_NAME, CHANNEL_SECRET)
     if result.type == EventType.ERROR:
@@ -22,7 +24,7 @@ async def main():
         await mc.disconnect()
         return
     print(f"Channel {CHANNEL_IDX} configured as '{CHANNEL_NAME}'")
-    
+
     # Handle incoming messages
     async def handle_channel_message(event):
         payload = event.payload
@@ -53,12 +55,13 @@ async def main():
     print("Waiting for incoming messages")
 
     try:
-        await asyncio.Event().wait()  
+        await asyncio.Event().wait()
     except asyncio.CancelledError:
         pass
     finally:
         await mc.stop_auto_message_fetching()
         await mc.disconnect()
+
 
 if __name__ == "__main__":
     try:

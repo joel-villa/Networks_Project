@@ -3,6 +3,7 @@
 Resources:
     https://realpython.com/python-interface/
 """
+
 import os
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -10,9 +11,10 @@ from pathlib import Path
 
 class Results(ABC):
     """Interface for Metadata"""
+
     TEST_RESULTS_PATH: Path
 
-    def get_paths(self, file_name: int) -> tuple[Path,Path]:
+    def get_paths(self, file_name: int) -> tuple[Path, Path]:
         """Get the paths to the file name in test_results directory
 
         Args:
@@ -37,7 +39,7 @@ class Results(ABC):
              maximum (int): The maximum file number currently
         """
         curr_max = 0
-        for (root, dirs, files) in os.walk(self.TEST_RESULTS_PATH):
+        for root, dirs, files in os.walk(self.TEST_RESULTS_PATH):
             for file in files:
                 if file.endswith(".json"):
                     curr_file = int(file[:-5])
@@ -45,7 +47,7 @@ class Results(ABC):
         return curr_max + 1
 
     @abstractmethod
-    def load_results(self, file_name:int) -> None:
+    def load_results(self, file_name: int) -> None:
         """Load the results from the provided file name
 
         Args:
@@ -62,5 +64,4 @@ class Results(ABC):
 
     @abstractmethod
     def disp_results(self) -> None:
-        """Display test results
-        """
+        """Display test results"""

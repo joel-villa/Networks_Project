@@ -3,6 +3,7 @@
 Resources:
     https://docs.python.org/3/library/threading.html
 """
+
 import asyncio
 import threading
 from time import perf_counter
@@ -19,7 +20,7 @@ class Sender:
     msg_size: int
     timeout: float
 
-    thread: threading.Thread | None # None when only one Sender -> give it main thread?
+    thread: threading.Thread | None  # None when only one Sender -> give it main thread?
 
     def __init__(
         self,
@@ -36,25 +37,22 @@ class Sender:
             frames_to_send (int): The number of frames to send
             needs_thread (bool): When multiple Sender's, give them all a thread,
             else hand main thread to singular Sender
-	    """
+        """
         self.sender = sender
         self.dut = dut
         self.frames_to_send = frames_to_send
         self.msg_size = -1
         self.timeout = -1
         if needs_thread:
-            self.thread = threading.Thread(
-                target = self.thread_entry
-            )
+            self.thread = threading.Thread(target=self.thread_entry)
         else:
             self.thread = None
 
     async def thread_loop(self) -> None:
-        """Send dem messages
-        """
-        message = 'a'
+        """Send dem messages"""
+        message = "a"
         message = message * self.msg_size
-        while (self.frames_to_send):
+        while self.frames_to_send:
             start = perf_counter()
             await self.sender.commands.send_msg(self.dut, message)
             stop = perf_counter()
@@ -82,7 +80,7 @@ class Sender:
         Resources:
             https://numpy.org/doc/stable/reference/generated/numpy.arange.html
         """
-        #TODO: timeout -> incremental fps -> timeouts
+        # TODO: timeout -> incremental fps -> timeouts
         self.msg_size = msg_size
         self.timeout = timeout
 
@@ -92,9 +90,8 @@ class Sender:
             await self.thread_loop()
 
     def stop(self) -> None:
-        """Await the test to finish
-        """
-        #TODO: thread.join
+        """Await the test to finish"""
+        # TODO: thread.join
         if self.thread:
             self.thread.join()
 
@@ -103,8 +100,7 @@ class Sender:
 
 
 async def main():
-    """For testing purposes
-    """
+    """For testing purposes"""
     contact_under_test = "T114_0"
     # Connect to your device
     meshcore = await MeshCore.create_serial("/dev/ttyUSB0")
@@ -113,22 +109,21 @@ async def main():
     result = await meshcore.commands.get_contacts()
     contacts = result.payload
 
-
     # Send a message to T114-j
     if contacts:
         for contact in contacts.values():
             if contact["adv_name"] == contact_under_test:
                 print(contact)
                 sender = Sender(
-                    sender = meshcore,
-                    dut = contact,
-                    frames_to_send = 10,
-                    needs_thread = False,
+                    sender=meshcore,
+                    dut=contact,
+                    frames_to_send=10,
+                    needs_thread=False,
                 )
 
                 await sender.start(
-                    msg_size = 150,
-                    timeout = 2,
+                    msg_size=150,
+                    timeout=2,
                 )
                 sender.stop()
 

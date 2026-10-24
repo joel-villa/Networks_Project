@@ -1,21 +1,19 @@
 import asyncio
-from googlesearch import search
-from meshcore import MeshCore, EventType
-import csv
-import requests
 import json
 import uuid
 
-
+import requests
+from googlesearch import search
+from meshcore import EventType, MeshCore
 
 PORT = "/dev/ttyUSB0"
 CHANNEL_IDX = 0
 CHANNEL_NAME = "MeshedUp"
 USER_AGENT = "pleaseWiki"
 CHANNEL_SECRET = bytes.fromhex("aa27c63feeacd8e835d02d243a17c409")
-MAX_MSG_LEN = 130 # TODO or is it 150 
+MAX_MSG_LEN = 130  # TODO or is it 150
 
-options = ['Knock Knock', 'google', 'ip', 'wiki']
+options = ["Knock Knock", "google", "ip", "wiki"]
 setup = ["Lettuce", "Boo", "Tank", "Interrupting cow"]
 punch = [
     "Lettuce in, it's cold out here!",
@@ -26,8 +24,9 @@ punch = [
 
 users = {}
 
+
 def searchWikipedia(query: str, sentences: int = 2) -> str:
-    
+
     try:
         r = requests.get(
             "https://en.wikipedia.org/w/api.php",
@@ -60,51 +59,51 @@ def searchWikipedia(query: str, sentences: int = 2) -> str:
         return "Wikipedia lookup failed, try again"
 
 
-
 def menuText() -> str:
     my_uuid = uuid.uuid4()
     uuid_str = str(my_uuid)
     return f"reply 0 for {options[0]} or 1 for {options[1]} or say which option \n{uuid_str}"
 
-#by including these, we gurantee that the hash of the packets can not be fingerprinted as easily, because the won't be the same each time with a UUID
+
+# by including these, we gurantee that the hash of the packets can not be fingerprinted as easily, because the won't be the same each time with a UUID
 # however, fingerprinting through the sequencing is still possible, might be something to consider
 def handleNewUser(user: str, text: str) -> str:
     choice = text.strip().lower()
     my_uuid = uuid.uuid4()
     uuid_str = str(my_uuid)
-    if choice == '0' or choice == "knock knock":
+    if choice == "0" or choice == "knock knock":
         users[user] = {"wants": 0, "step": 0, "joke": 0}
         return f"Hello {user}! I see you want {options[0]}. Knock knock!"
-    elif choice == '1' or choice == "google":
+    elif choice == "1" or choice == "google":
         users[user] = {"wants": 1}
         return f"Hello {user}! I see you want {options[1]}. What should I search?\n{uuid_str}"
-    elif choice == '2' or choice == "ip":
-        users[user] = {"wants":2}
+    elif choice == "2" or choice == "ip":
+        users[user] = {"wants": 2}
         return f"Hello {user}! I see you want {options[2]}. Who should I search?\n{uuid_str}"
-    elif choice == '3' or choice == "wiki":
-        users[user] = {"wants":3}
-        return f"Hello {user}! I see you want {options[3]}. What should I search?\n{uuid_str}" 
+    elif choice == "3" or choice == "wiki":
+        users[user] = {"wants": 3}
+        return f"Hello {user}! I see you want {options[3]}. What should I search?\n{uuid_str}"
     else:
         return f"I don't understand. {menuText()}"
 
 
-from googlesearch import search
+
 
 def split_message(text):
-    
+
     chunks = []
-    while len(text) > MAX_MSG_LEN :
-        
-        breaker = text.rfind(' ', 0, MAX_MSG_LEN )
+    while len(text) > MAX_MSG_LEN:
+        breaker = text.rfind(" ", 0, MAX_MSG_LEN)
         if breaker == -1:
-            breaker = MAX_MSG_LEN 
-        
+            breaker = MAX_MSG_LEN
+
         chunks.append(text[:breaker])
-        text = text[breaker:].lstrip() 
-    
+        text = text[breaker:].lstrip()
+
     if text:
         chunks.append(text)
     return chunks
+
 
 def searchGoogle(query: str) -> str:
     print(f"Attempting to search with: {query}")
@@ -112,8 +111,8 @@ def searchGoogle(query: str) -> str:
     try:
         results = search(
             query,
-            num_results=5, ## Or whatever we agree on
-            lang="en"
+            num_results=5,  ## Or whatever we agree on
+            lang="en",
         )
 
         for index, url in enumerate(results, start=1):
@@ -123,41 +122,40 @@ def searchGoogle(query: str) -> str:
         print(f"Issue: {type(e).__name__}: {e}")
 
     return ""
-    
+
+
 def queryIp() -> str:
     try:
         print("here")
-        url = 'https://api.abuseipdb.com/api/v2/check'
+        url = "https://api.abuseipdb.com/api/v2/check"
 
-        querystring = {
-            'ipAddress': '118.25.6.39',
-            'maxAgeInDays': '90'
-        }
+        querystring = {"ipAddress": "118.25.6.39", "maxAgeInDays": "90"}
 
         headers = {
-            'Accept': 'application/json',
-            'Key': '39a9ed7e3fafdd963eaf60612ea8bafbebf1894a42f4e2ba6d92c7403bd0cda11adbd84dc3f38a5a'
+            "Accept": "application/json",
+            "Key": "39a9ed7e3fafdd963eaf60612ea8bafbebf1894a42f4e2ba6d92c7403bd0cda11adbd84dc3f38a5a",
         }
         print("here 2")
-        response = requests.request(method='GET', url=url, headers=headers, params=querystring)
+        response = requests.request(
+            method="GET", url=url, headers=headers, params=querystring
+        )
 
         # Formatted output
         decodedResponse = json.loads(response.text)
-        print (json.dumps(decodedResponse, sort_keys=True, indent=4))
+        print(json.dumps(decodedResponse, sort_keys=True, indent=4))
         return decodedResponse
     except Exception as e:
         print(f"Issue: {type(e).__name__}: {e}")
     return ""
 
-    
-
-
 
 def makeKnock(text: str, step: int, joke: int) -> str | None:
     text = text.lower()
-    if step == 0 and ("who's" in text or "whos" in text or "who is" in text  or "who’s" in text):
+    if step == 0 and (
+        "who's" in text or "whos" in text or "who is" in text or "who’s" in text
+    ):
         return setup[joke]
-    elif step == 1 and 'who' in text:
+    elif step == 1 and "who" in text:
         return punch[joke]
     return None
 
@@ -191,11 +189,11 @@ async def make_reply(user: str, text: str) -> str | None:
 
     if state["wants"] == 1:
         return await asyncio.to_thread(searchGoogle, text)
-    
-    if state["wants"] ==2: 
+
+    if state["wants"] == 2:
         return queryIp()
 
-    if state["wants"] ==3: 
+    if state["wants"] == 3:
         return searchWikipedia(text)
 
     return None
@@ -210,7 +208,7 @@ async def main():
         await mc.disconnect()
         return
     print(f"Channel {CHANNEL_IDX} configured as '{CHANNEL_NAME}'")
-    await mc.commands.send_chan_msg(CHANNEL_IDX, 'Wellcome! ' + menuText())
+    await mc.commands.send_chan_msg(CHANNEL_IDX, "Wellcome! " + menuText())
 
     async def handle_channel_message(event):
         payload = event.payload
@@ -219,8 +217,8 @@ async def main():
 
         text = payload.get("text", "")
         # in a channal it will put the name before the message so we break it up by the :
-        if ':' in text:
-            user, text = text.split(':', 1)
+        if ":" in text:
+            user, text = text.split(":", 1)
             user = user.strip()
         else:
             user = "unknown"
@@ -229,7 +227,7 @@ async def main():
         print(f"Payload {payload}")
 
         reply = await make_reply(user, text)
-        if(len(reply)>MAX_MSG_LEN):
+        if len(reply) > MAX_MSG_LEN:
             parts = split_message(reply)
             for part in parts:
                 if part:
@@ -237,14 +235,11 @@ async def main():
         else:
             send_result = await mc.commands.send_chan_msg(CHANNEL_IDX, reply)
 
-        
-
-            
         print(reply)
         # reply1 = reply[:MAX_MSG_LEN]
         # reply2 = reply[MAX_MSG_LEN:]
-        
-        #send_result = await mc.commands.send_chan_msg(CHANNEL_IDX, reply)
+
+        # send_result = await mc.commands.send_chan_msg(CHANNEL_IDX, reply)
         if send_result.type == EventType.ERROR:
             print(f"Failed to send reply: {send_result.payload}")
         else:

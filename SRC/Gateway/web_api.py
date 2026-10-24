@@ -5,9 +5,7 @@ Repository of APIS
 - Modular to handle multiple different types (wikipedia, etc)
 """
 
-stateToApp = {
-
-}
+stateToApp = {}
 
 """
 Wikapedia states:
