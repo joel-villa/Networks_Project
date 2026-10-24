@@ -1,0 +1,9 @@
+{
+    "src_type": "HELTEC_V3",
+    "dst_type": "HELTEC_T114",
+    "distance": null,
+    "num_frame_sizes": 8,
+    "max_msgs": 1024,
+    "max_time": 260,
+    "notes": null
+}
