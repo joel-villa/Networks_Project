@@ -4,11 +4,13 @@ Repository of APIS
 - Possible states of the API
 - Modular to handle multiple different types (wikipedia, etc)
 """
+
 import json
 from collections.abc import Callable
 from typing import Any
 
-DICT_VALUE = 'api_keys'
+DICT_VALUE = "api_keys"
+
 
 class Service:
     """PUT ALL IMPLEMENTED WEB INTERFACING HERE"""
@@ -24,10 +26,10 @@ class Service:
         """
         self.func_dict = {
             "wikipedia": self.wikipedia,
-            #TODO: add more here
+            # TODO: add more here
         }
         # Opening JSON file
-        with open('secrets.json') as json_file:
+        with open("secrets.json") as json_file:
             data = json.load(json_file)
             self.api_dict = data[DICT_VALUE]
 
@@ -51,6 +53,8 @@ class Service:
 
         Returns:
              returned_obj (TBD): The test file returned
-    	"""
-        assert type(query_term) is str, f"you bad bad bad bad you, I want strings not, {type(query_term)}s"
-        raise NotImplemented
+        """
+        assert type(query_term) is str, (
+            f"you bad bad bad bad you, I want strings not, {type(query_term)}s"
+        )
+        raise NotImplementedError
