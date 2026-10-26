@@ -1,17 +1,39 @@
-def formatParagraph(paragraphText: str):
+def formatParagraph(paragraphText: str) -> str:
     result = ""
     phrases = paragraphText.split("'''")
     for i in range(len(phrases)):
         if i % 2 == 1:
-            result += f"<b>{phrases[i]}</b>"
+            result += tagify(phrases[i], "b")
         else:
             result += phrases[i];
+    links = result.split("[[")
+    result = ""
+    for i in range(len(links)):
+        if i % 2 == 1:
+            endLink = links[i].find("]]")
+            linkBody = links[i][0: endLink]
+            linkRemainder = links[i][endLink + 2: len(links[i]) - 1]
+            result += f"{formatLink(linkBody)}{linkRemainder}"
+        else:
+            result += links[i]
     return result
 
-def tagify(content: str, type: str):
+def formatLink(wikitextLink: str) -> str:
+    parts = wikitextLink.split("|")
+    if len(parts) == 1:
+        return tagifyArgs(wikitextLink, "a", "href", parts[0])
+    elif len(parts) == 2:
+        return tagifyArgs(parts[1], "a", "href", parts[0])
+    elif len(parts) == 3:
+        return f"Image '{parts[0]}' of '{parts[2]}'"
+
+def tagify(content: str, type: str) -> str:
     if type == "p":
         return f"<{type}>{formatParagraph(content)}</{type}>"
     return f"<{type}>{content}</{type}>"
+
+def tagifyArgs(content: str, type: str, argName: str, argVal: str) -> str:
+    return f"<{type} {argName}='{argVal}'>{formatParagraph(content)}</{type}>"
 
 def processChunk(wikitextChunk: str) -> str:
     result = ""
