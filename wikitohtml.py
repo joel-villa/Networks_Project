@@ -1,3 +1,5 @@
+## TODO, check out all wikitext formatting, do them all?
+
 def formatParagraph(paragraphText: str) -> str:
     result = ""
     phrases = paragraphText.split("'''")
