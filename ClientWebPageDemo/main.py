@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 import uvicorn
-import wikitohtml
+import src.client.services.wikitohtml as wikitohtml
 
 
 """
