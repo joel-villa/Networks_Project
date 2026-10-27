@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Embedded Data</title>
+</head>
+<body style="background-color: #f0f8ff; font-family: sans-serif;">
+
+<!-- The Iframe Content that uses python to change it -->
+    {% if search_query %}
+        <p>Python received your search for: <strong>{{ search_query }}</strong></p>
+        <p><em>This is where your Wikipedia results will eventually go.</em></p>
+    {% else %}
+        <p>Awaiting search...</p>
+    {% endif %}
+</body>
+</html>
