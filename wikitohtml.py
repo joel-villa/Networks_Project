@@ -42,11 +42,15 @@ def processChunk(wikitextChunk: str) -> str:
     paragraphs = wikitextChunk.split("\n")
     for p in paragraphs:
         para = p.strip();
-        if para[0:2] == "==":
-            result += tagify(para[2: len(para) - 2], "h2")
+        if para[0] == para[len(para) - 1] == "=":
+            result += makeHeader(para)
         else:
             result += tagify(para, "p")
     return result
+
+def makeHeader(headerStr: str) -> str:
+    hLevel = headerStr.count("=") / 2
+    return tagify(headerStr.replace("=",""), f"h{int(hLevel)}")
 
 def translate(wikitext: str) -> str: 
     result = ""
