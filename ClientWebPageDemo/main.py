@@ -5,28 +5,37 @@ import uvicorn
 """
 required packages:
 pip install fastapi uvicorn jinja2
+
+Future todo: make a page to add in server credentials for direct communication
 """
 
 app = FastAPI()
-
-# Tell FastAPI where to find the HTML files
+# HTML pages
 templates = Jinja2Templates(directory="clientPages")
 
 @app.get("/")
-async def home(request: Request):
+async def menu(request: Request):
+    # todo: will need code to try to initiate the connection with client
+    # if wikipedia Api is pressed -> initiate_wikipedia_connection()
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.get("/errorScreen")
-async def about(request: Request):
+async def error(request: Request):
+    # todo: will need code to try to initiate the connection with client
+    # if try_again -> initiate_wikipedia_connection()
     return templates.TemplateResponse("errorScreen.html", {"request": request})
 
 @app.get("/wikiSearch")
-async def dashboard(request: Request):
+async def searchWiki(request: Request):
     return templates.TemplateResponse("wikiSearch.html", {"request": request})
 
 @app.get("/embeddedText")
-async def embedded(request: Request):
-    return templates.TemplateResponse("embeddedText.html", {"request": request})
+async def embeddedText(request: Request, q: str = None):
+    # todo: the code here changes the iframe content
+    return templates.TemplateResponse("embeddedText.html", {"request": request, "search_query": q})
+
+
+# todo def initiate_connection()
 
 if __name__ == "__main__":
     # Runs the server locally on port 8000
