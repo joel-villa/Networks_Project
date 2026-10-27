@@ -1,14 +1,13 @@
 ## TODO, check out all wikitext formatting, do them all?
 
 def formatParagraph(paragraphText: str) -> str:
-    result = ""
-    phrases = paragraphText.split("'''")
-    for i in range(len(phrases)):
-        if i % 2 == 1:
-            result += tagify(phrases[i], "b")
-        else:
-            result += phrases[i];
-    links = result.split("[[")
+    result = doFaces(paragraphText)
+    result = doLinks(result)
+    
+    return result
+
+def doLinks(text: str) -> str:
+    links = text.split("[[")
     result = ""
     for i in range(len(links)):
         if i % 2 == 1:
@@ -18,6 +17,30 @@ def formatParagraph(paragraphText: str) -> str:
             result += f"{formatLink(linkBody)}{linkRemainder}"
         else:
             result += links[i]
+    return result
+
+def doFaces(text: str) -> str:
+    result = ""
+    phrases = text.split("'''''")
+    for i in range(len(phrases)):
+        if i % 2 == 1:
+            result += tagify(tagify(phrases[i], "em"), "b")
+        else:
+            result += phrases[i];
+    phrases = result.split("'''")
+    result = ""
+    for i in range(len(phrases)):
+        if i % 2 == 1:
+            result += tagify(phrases[i], "b")
+        else:
+            result += phrases[i];
+    phrases = result.split("''")
+    result = ""
+    for i in range(len(phrases)):
+        if i % 2 == 1:
+            result += tagify(phrases[i], "em")
+        else:
+            result += phrases[i];
     return result
 
 def formatLink(wikitextLink: str) -> str:
@@ -76,7 +99,7 @@ def generatePage(title: str, wikitext: str):
 def main():
     print(generatePage("Pet door", """{{Short description|Flap door for pets}}
 [[File:Doggy door exit.JPG|thumb|A dog exiting through a pet door]]
-A '''pet door''' or '''pet flap''' (also referred to in more specific terms, such as '''cat flap''', '''cat door''', '''kitty door''', '''dog flap''', '''dog door''', or '''doggy/doggie door''') is a small opening to allow [[pet]]s to enter and exit a building on their own without needing a human to open the door.  Originally simple holes, the modern form is a hinged and often spring-loaded panel or flexible flap, and some are electronically controlled.  They offer a degree of protection against wind, rain, and larger-bodied intruders entering the dwelling. Similar hatches can let dogs through fences at stiles. A related concept is the '''pet gate''', which is easy for humans to open but acts as a secure pet barrier.
+A ''pet door'' or '''pet flap''' (also referred to in more specific terms, such as '''''cat flap''''', '''cat door''', '''kitty door''', '''dog flap''', '''dog door''', or '''doggy/doggie door''') is a small opening to allow [[pet]]s to enter and exit a building on their own without needing a human to open the door.  Originally simple holes, the modern form is a hinged and often spring-loaded panel or flexible flap, and some are electronically controlled.  They offer a degree of protection against wind, rain, and larger-bodied intruders entering the dwelling. Similar hatches can let dogs through fences at stiles. A related concept is the '''pet gate''', which is easy for humans to open but acts as a secure pet barrier.
 
 ==Purpose==
 A pet door is found to be convenient by many owners of companion animals, especially dogs and cats, because it lets the pets come and go as they please, reducing the need for pet-owners to let or take the pet outside manually, and curtailing unwanted behaviour such as loud vocalisation to be let outside, scratching on doors or walls, and (especially in the case of dogs) [[Excretion|excreting]] in the house. They also help to ensure that a pet left outdoors can safely get back into the house unattended, in the case of inclement weather.
