@@ -9,7 +9,8 @@ import wikitohtml
 required packages:
 pip install fastapi uvicorn jinja2
 
-Future todo: make a page to add in server credentials for direct communication
+todo: this may be too wikipedia based. Make it more generic for other apis?
+todo: make a page to add in server credentials for direct communication
 """
 
 app = FastAPI()

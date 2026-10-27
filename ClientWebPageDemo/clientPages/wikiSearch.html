@@ -6,11 +6,10 @@
 <body>
     <h1>Search Wikipedia</h1>
     <nav>
-        <a href="/">Home</a> |
+        <a href="/">Menu</a> |
         <a href="/errorScreen">Server Disconnected</a> |
         <a href="/wikiSearch">Search Wikipedia</a>
     </nav>
-
 
     <form action="/embeddedText" method="GET" target="contentIframe" style="margin: 15px;">
         <!-- The name="q" is what Python will look for -->
@@ -21,20 +20,5 @@
     <!-- The 'name' attribute must match the form's 'target' attribute -->
     <iframe name="contentIframe" src="/embeddedText" width="100%" height="300px" style="border: 2px solid #333; border-radius: 5px;"></iframe>
 </body>
-
-
-
-
-
-
-
-<!--    todo: this is static iframe -->
-<!--        <p>Below is an iframe loading our 4th local HTML page seamlessly:</p>&ndash;&gt;-->
-<!--&lt;!&ndash;    &lt;!&ndash; The src points to the /embedded route we defined in FastAPI &ndash;&gt;&ndash;&gt;-->
-<!--&lt;!&ndash;    <iframe src="/embeddedText" width="100%" height="300px" style="border: 2px solid #333; border-radius: 5px;"></iframe>-->
-
-
-
-
 </body>
 </html>
