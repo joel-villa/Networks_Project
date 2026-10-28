@@ -1,4 +1,9 @@
-from getWikitext import getWikitext
+# from getWikitext import getWikitext
+# todo: maybe making the folders python packages
+try:
+    from .getWikitext import getWikitext
+except ImportError:
+    from getWikitext import getWikitext
 ## TODO, check out all wikitext formatting, do them all?
 
 def formatParagraph(paragraphText: str) -> str:
