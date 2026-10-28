@@ -16,10 +16,10 @@ from meshcore.events import Event
 from ..Test import Test
 from ..util.constants import N_CHAR_PUB_KEY_PREFIX
 from ..util.Device import Device
-from .util.MsgType import MsgType
 from .LossResults import LossResults
 from .Receiver import Receiver
 from .Sender import Sender
+from .util.MsgType import MsgType
 
 TIMEOUT_BTWN_FRAME_SIZES = 5  # Timeout for five seconds between messages
 
