@@ -126,8 +126,8 @@ class Loss(Test):
         while no_ack:
             # Send the message and get information about the sent message
             sent_result = await device.commands.send_msg(
-                dut_contacts[i],
-                connection_msg,
+                contact,
+                msg_type.name,
             )
             # Extract the expected acknowledgment code from the message sent event
             if sent_result.type == EventType.ERROR:
@@ -143,7 +143,6 @@ class Loss(Test):
             )
             if result:
                 no_ack = False
-
 
     async def __handshake(
         self,
@@ -162,7 +161,7 @@ class Loss(Test):
             recv_contacts(list[dict]): The contact of the DUT for all receivers
             timeout_time (int): How long to wait for an acknowledgement before
             retrying
-	"""
+        """
         print("Starting handshake")
         for i, device in enumerate(send_devs):
             await self.__send_device_type(
@@ -200,7 +199,6 @@ class Loss(Test):
 
         for recv_dev in recv_devs:
             await recv_dev.stop_auto_message_fetching()
-
 
     async def run_test(
         self,

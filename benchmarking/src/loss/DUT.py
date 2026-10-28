@@ -5,12 +5,13 @@ accordingly)"""
 
 from meshcore.events import Event
 
+
 class DUT:
     """The DUT test class"""
 
     # Incoming messages are gotten using the public key prefix, outgoing using the contact dict
     mesh_dict: dict[str, dict]
-    #TODO: other variables
+    # TODO: other variables
 
     def __init__(
         self,
@@ -28,7 +29,5 @@ class DUT:
         """
         raise NotImplementedError
 
-    def __handshake(
-        self
-    ) -> None:
+    def __handshake(self) -> None:
         raise NotImplementedError
