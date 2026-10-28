@@ -348,7 +348,6 @@ class Loss(Test):
         return file_id
 
 
-# TODO: TEST THIS BADDIE
 async def main():
     """For testing purposes"""
     contact_under_test = "T114_0"
