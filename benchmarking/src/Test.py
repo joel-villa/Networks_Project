@@ -134,7 +134,8 @@ class Test(ABC):
              dut_contacts (dict | list[dict]): The contacts of the dut for each
              device
         """
-        if type(local_devices) is MeshCore:
+        was_list = type(local_devices) is list
+        if not was_list:
             local_devices = [local_devices]
 
         dut_contacts = []
@@ -156,9 +157,9 @@ class Test(ABC):
             f"Source device does not have DUT in contacts: {dut_contacts}"
         )
 
-        if len(dut_contacts) == 1:
-            return dut_contacts[0]
-        return dut_contacts
+        if was_list:
+            return dut_contacts
+        return dut_contacts[0]
 
     @abstractmethod
     async def run_test(
