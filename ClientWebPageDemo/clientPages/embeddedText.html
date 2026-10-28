@@ -2,15 +2,16 @@
 <html>
 <head>
     <title>Embedded Data</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
-<body style="background-color: #f0f8ff; font-family: sans-serif;">
+<!--<body style="background-color: #f0f8ff; font-family: sans-serif;">-->
 
 <!-- The Iframe Content that uses python to change it -->
     {% if search_query %}
         <p>Python received your search for: <strong>{{ search_query }}</strong></p>
         <p><em>This is where your Wikipedia results will eventually go.</em></p>
     {% else %}
-        <p>Awaiting search...</p>
+        <i style="color: #272727;">Awaiting search...</i>
     {% endif %}
-</body>
+<!--</body>-->
 </html>

@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 import src.client.services.wikitohtml as wikitohtml
 
@@ -15,6 +16,7 @@ todo: make a page to add in server credentials for direct communication
 
 app = FastAPI()
 # HTML pages
+app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="clientPages")
 
 @app.get("/")
@@ -36,6 +38,7 @@ async def searchWiki(request: Request):
 @app.get("/embeddedText")
 async def embeddedText(request: Request, q: str = None):
     if q and q.lower() == "pet door":
+        q = q.title()
 
         # This is an example of what the client will reccieve from server.
         sample_wikitext = """{{Short description|Flap door for pets}}
@@ -47,6 +50,8 @@ async def embeddedText(request: Request, q: str = None):
 
         # Return the raw HTML string directly to the iframe
         generated_html_string = wikitohtml.generatePage(q, sample_wikitext)
+        css_string = '<link rel="stylesheet" href="/static/wikipedia.css">'
+        generated_html_string = generated_html_string.replace("</head>", f"{css_string}\n</head>")
         return HTMLResponse(content=generated_html_string)
     return templates.TemplateResponse("embeddedText.html", {"request": request, "search_query": q})
 
