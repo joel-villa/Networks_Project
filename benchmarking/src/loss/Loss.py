@@ -13,13 +13,15 @@ import numpy as np
 from meshcore import EventType, MeshCore
 from meshcore.events import Event
 
+from src.util.RDT import RDT
+
 from ..Test import Test
 from ..util.constants import N_CHAR_PUB_KEY_PREFIX
 from ..util.Device import Device
-from ..util.MsgType import MsgType
 from .LossResults import LossResults
 from .Receiver import Receiver
 from .Sender import Sender
+from .util.MsgType import MsgType
 
 TIMEOUT_BTWN_FRAME_SIZES = 5  # Timeout for five seconds between messages
 
@@ -69,7 +71,7 @@ class Loss(Test):
             assert max_timeout >= 2, f"{max_timeout} < 1"
             self.max_timeout = max_timeout
 
-    def get_timeouts(
+    def __calculate_timeouts(
         self,
         min_times: np.ndarray,
     ) -> np.ndarray:
@@ -115,18 +117,94 @@ class Loss(Test):
                 self.awaiting_success = False
                 self.cv.notify()
 
-    """
-    async def run_test(
+    async def __rdt_msg(
         self,
-        source: MeshCore | list[MeshCore],
-        dut: dict,
-        src_type: Device | list[Device],
-        dst_type: Device,
-        num_frame_sizes: int,
-        distance: float | list[float] | None,
-        notes: str | None,
-    ) -> int:
-    """
+        device: MeshCore,
+        contact: dict,
+        msg_type: MsgType,
+        timeout_time: float,
+    ) -> None:
+        """Await an ACK that the DUT knows this devices typ
+
+        Args:
+            device (MeshCore): sending device
+            contact (dict): contact info of DUT
+            msg_type (MsgType): the type of device this device is (sending to
+            device under test)
+            timeout_time (float): How long to wait for an acknowledgement before
+            retrying (seconds)
+        """
+        rdt = RDT()
+        await rdt.send_msg(
+            device=device,
+            contact=contact,
+            message=msg_type.name,
+            timeout_time=timeout_time,
+        )
+
+    async def __handshake(
+        self,
+        send_devs: list[MeshCore],
+        recv_devs: list[MeshCore],
+        send_contacts: list[dict],
+        recv_contacts: list[dict],
+        timeout_time: float,
+    ) -> None:
+        """Do tha dang handshake
+
+        Args:
+            send_devs (list[MeshCore]): The sending MeshCore devices
+            recv_devs (list[MeshCore]): The receiving MeshCore devices
+            send_contacts(list[dict]): The contact of the DUT for all senders
+            recv_contacts(list[dict]): The contact of the DUT for all receivers
+            timeout_time (int): How long to wait for an acknowledgement before
+            retrying
+        """
+        print("Starting handshake")
+        for i, device in enumerate(send_devs):
+            await self.__rdt_msg(
+                device=device,
+                contact=send_contacts[i],
+                msg_type=MsgType.SENDER,
+                timeout_time=timeout_time,
+            )
+        for i, device in enumerate(recv_devs):
+            await self.__rdt_msg(
+                device=device,
+                contact=recv_contacts[i],
+                msg_type=MsgType.RECEIVER,
+                timeout_time=timeout_time,
+            )
+
+        for i, device in enumerate(send_devs):
+            await self.__rdt_msg(
+                device=device,
+                contact=send_contacts[i],
+                msg_type=MsgType.HANDSHAKE_DONE,
+                timeout_time=timeout_time,
+            )
+
+        for recv_dev in recv_devs:
+            await recv_dev.start_auto_message_fetching()
+            recv_dev.subscribe(
+                event_type=EventType.CONTACT_MSG_RECV,
+                callback=self.handshake_finish,  # TODO: handhsake confirmation failing
+                attribute_filters={
+                    # Only need 12 characters of the dut's pub key to confirm
+                    "dut_key_pref": recv_contacts[0]["public_key"][
+                        :N_CHAR_PUB_KEY_PREFIX
+                    ]
+                },
+            )
+
+        print("Waiting for handshake to finish")
+        with self.cv:
+            # Wait for the DUT to setup
+            while self.awaiting_success:
+                self.cv.wait()
+
+        for recv_dev in recv_devs:
+            await recv_dev.stop_auto_message_fetching()
 
     async def run_test(
         self,
@@ -174,6 +252,7 @@ class Loss(Test):
             local_devices=source,
             dut_name=dut_name,
         )
+        assert type(dut_contacts) is list, "How do we have singular contact?"
 
         num_src = len(source) // 2
         send_devs = source[:num_src]
@@ -211,62 +290,15 @@ class Loss(Test):
             frame_sizes=frame_sizes,
         )
 
-        print("Starting handshake")
-        # A handshake of sorts: ensure the DUT knows who's sending & who's receiving
-        for i, device in enumerate(source):
-            connection_msg = None
-            if i < num_src:
-                # Half are senders
-                connection_msg = MsgType.SENDER.name
-            else:
-                # The rest are receivers
-                connection_msg = MsgType.RECEIVER.name
+        await self.__handshake(
+            send_devs=send_devs,
+            recv_devs=recv_devs,
+            send_contacts=dut_contacts[:num_src],
+            recv_contacts=dut_contacts[num_src:],
+            timeout_time=max_times[-1],
+        )
 
-            no_ack = True
-            while no_ack:
-                # Send the message and get information about the sent message
-                sent_result = await device.commands.send_msg(
-                    dut_contacts[i],
-                    connection_msg,
-                )
-                # Extract the expected acknowledgment code from the message sent event
-                if sent_result.type == EventType.ERROR:
-                    continue
-
-                expected_ack = sent_result.payload["expected_ack"].hex()
-
-                # Wait specifically for this acknowledgment
-                result = await device.wait_for_event(
-                    EventType.ACK,
-                    attribute_filters={"code": expected_ack},
-                    timeout=max_times[-1],
-                )
-                if result:
-                    no_ack = False
-
-        for recv_dev in recv_devs:
-            await recv_dev.start_auto_message_fetching()
-            recv_dev.subscribe(
-                event_type=EventType.CONTACT_MSG_RECV,
-                callback=self.handshake_finish,  # TODO: handhsake confirmation failing
-                attribute_filters={
-                    # Only need 12 characters of the dut's pub key to confirm
-                    "dut_key_pref": dut_contacts[0]["public_key"][
-                        :N_CHAR_PUB_KEY_PREFIX
-                    ]
-                },
-            )
-
-        print("Waiting for handshake to finish")
-        with self.cv:
-            # Wait for the DUT to setup
-            while self.awaiting_success:
-                self.cv.wait()
-
-        for recv_dev in recv_devs:
-            await recv_dev.stop_auto_message_fetching()
-
-        timeouts = self.get_timeouts(min_times)
+        timeouts = self.__calculate_timeouts(min_times)
         frames_received = np.full(timeouts.shape, np.nan)
 
         print("Starting Test!")
@@ -322,9 +354,18 @@ class Loss(Test):
         return file_id
 
 
-# TODO: TEST THIS BADDIE
 async def main():
     """For testing purposes"""
+    import os
+
+    from dotenv import load_dotenv
+
+    load_dotenv()
+    path_0 = os.getenv("MESH_PATH")
+    path_1 = os.getenv("MESH_PATH_2")
+    assert path_0 is not None
+    assert path_1 is not None
+
     contact_under_test = "T114_0"
     frame_count = 5
     granularity = 0.1  # 10% is maximum granularity
@@ -342,8 +383,8 @@ async def main():
     file_id = 1
 
     # Connect to your device
-    send_mesh = await MeshCore.create_serial("/dev/ttyUSB0")
-    recv_mesh = await MeshCore.create_serial("/dev/ttyUSB1")
+    send_mesh = await MeshCore.create_serial(path_0)
+    recv_mesh = await MeshCore.create_serial(path_1)
 
     source = [
         send_mesh,
