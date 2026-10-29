@@ -12,7 +12,8 @@ class MsgType(StrEnum):
 
     SENDER = auto()
     RECEIVER = auto()
-    SETUP_SUCCESS = auto()
+    HANDSHAKE_DONE = auto()
+    DONE_WITH_TEST = auto()
 
     @classmethod
     def _missing_(cls, value):
