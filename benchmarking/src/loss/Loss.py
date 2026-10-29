@@ -13,6 +13,8 @@ import numpy as np
 from meshcore import EventType, MeshCore
 from meshcore.events import Event
 
+from src.util.RDT import RDT
+
 from ..Test import Test
 from ..util.constants import N_CHAR_PUB_KEY_PREFIX
 from ..util.Device import Device
@@ -115,34 +117,30 @@ class Loss(Test):
                 self.awaiting_success = False
                 self.cv.notify()
 
-    async def __send_device_type(
+    async def __rdt_msg(
         self,
         device: MeshCore,
         contact: dict,
         msg_type: MsgType,
         timeout_time: float,
-    ):
-        no_ack = True
-        while no_ack:
-            # Send the message and get information about the sent message
-            sent_result = await device.commands.send_msg(
-                contact,
-                msg_type.name,
-            )
-            # Extract the expected acknowledgment code from the message sent event
-            if sent_result.type == EventType.ERROR:
-                continue
+    ) -> None:
+        """Await an ACK that the DUT knows this devices typ
 
-            expected_ack = sent_result.payload["expected_ack"].hex()
-
-            # Wait specifically for this acknowledgment
-            result = await device.wait_for_event(
-                EventType.ACK,
-                attribute_filters={"code": expected_ack},
-                timeout=timeout_time,
-            )
-            if result:
-                no_ack = False
+        Args:
+            device (MeshCore): sending device
+            contact (dict): contact info of DUT
+            msg_type (MsgType): the type of device this device is (sending to
+            device under test)
+            timeout_time (float): How long to wait for an acknowledgement before
+            retrying (seconds)
+        """
+        rdt = RDT()
+        await rdt.send_msg(
+            device=device,
+            contact=contact,
+            message=msg_type.name,
+            timeout_time=timeout_time,
+        )
 
     async def __handshake(
         self,
@@ -164,17 +162,25 @@ class Loss(Test):
         """
         print("Starting handshake")
         for i, device in enumerate(send_devs):
-            await self.__send_device_type(
+            await self.__rdt_msg(
                 device=device,
                 contact=send_contacts[i],
                 msg_type=MsgType.SENDER,
                 timeout_time=timeout_time,
             )
         for i, device in enumerate(recv_devs):
-            await self.__send_device_type(
+            await self.__rdt_msg(
                 device=device,
                 contact=recv_contacts[i],
                 msg_type=MsgType.RECEIVER,
+                timeout_time=timeout_time,
+            )
+
+        for i, device in enumerate(send_devs):
+            await self.__rdt_msg(
+                device=device,
+                contact=send_contacts[i],
+                msg_type=MsgType.HANDSHAKE_DONE,
                 timeout_time=timeout_time,
             )
 
@@ -350,6 +356,16 @@ class Loss(Test):
 
 async def main():
     """For testing purposes"""
+    import os
+
+    from dotenv import load_dotenv
+
+    load_dotenv()
+    path_0 = os.getenv("MESH_PATH")
+    path_1 = os.getenv("MESH_PATH_2")
+    assert path_0 is not None
+    assert path_1 is not None
+
     contact_under_test = "T114_0"
     frame_count = 5
     granularity = 0.1  # 10% is maximum granularity
@@ -367,8 +383,8 @@ async def main():
     file_id = 1
 
     # Connect to your device
-    send_mesh = await MeshCore.create_serial("/dev/ttyUSB0")
-    recv_mesh = await MeshCore.create_serial("/dev/ttyUSB1")
+    send_mesh = await MeshCore.create_serial(path_0)
+    recv_mesh = await MeshCore.create_serial(path_1)
 
     source = [
         send_mesh,
