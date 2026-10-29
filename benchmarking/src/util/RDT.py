@@ -1,6 +1,6 @@
 """Ooooh oooooooo, we all love RDT"""
 
-from meshcore import MeshCore, EventType
+from meshcore import EventType, MeshCore
 
 
 class RDT:

@@ -77,8 +77,8 @@ class DUT:
             - Reading messages from the payload with 'text':
                 https://pypi.org/project/meshcore/
         """
-        msg_type = MsgType(received_msg.payload['text'])
-        receiver_prefix = received_msg.payload['pubkey_prefix']
+        msg_type = MsgType(received_msg.payload["text"])
+        receiver_prefix = received_msg.payload["pubkey_prefix"]
 
         match msg_type:
             case MsgType.SENDER:
@@ -89,10 +89,10 @@ class DUT:
                 contact = self.key_to_contact.get(receiver_prefix)
                 if contact:
                     self.sends.append(contact)
-            case MsgType.
+            case MsgType.HANDSHAKE_DONE:
+                raise NotImplementedError
             case _:
                 warn(f"Unexpected MsgType in handshake: {msg_type}")
-
 
     async def destroy(self) -> None:
         """Do all the termination things: delete threads, stop expecting
