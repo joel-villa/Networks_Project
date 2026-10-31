@@ -5,18 +5,15 @@ Resources:
 """
 
 import asyncio
-import sys
 from threading import Condition
 
 import numpy as np
-from meshcore import EventType, MeshCore
-from meshcore.events import Event
+from meshcore import MeshCore
 
 from src.loss.util.Handshaker import Handshaker
 from src.util.RDT import RDT
 
 from ..Test import Test
-from ..util.constants import N_CHAR_PUB_KEY_PREFIX
 from ..util.Device import Device
 from .LossResults import LossResults
 from .Receiver import Receiver
@@ -34,7 +31,6 @@ class Loss(Test):
     awaiting_success: bool
     cv: Condition
     handshaker: Handshaker
-
 
     def __init__(
         self,
@@ -165,7 +161,7 @@ class Loss(Test):
             timeout_time=max_times[-1],
         )
 
-        send_devs, recv_devs, send_contacts, recv_contacts  = handshake_result
+        send_devs, recv_devs, send_contacts, recv_contacts = handshake_result
 
         needs_thread = False
         if len(send_devs) > 1:
@@ -191,7 +187,6 @@ class Loss(Test):
                 dut_pub_key=recv_contacts[i]["public_key"],
             )
             receivers.append(new_receiver)
-
 
         timeouts = self.__calculate_timeouts(min_times)
         frames_received = np.full(timeouts.shape, np.nan)

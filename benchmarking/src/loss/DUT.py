@@ -38,7 +38,6 @@ class DUT:
         self.cv = Condition()
         asyncio.run(self.__init_dut())
 
-
     async def __init_dut(self) -> None:
         """You know the vibes, put the asynchronous stuff here (including
         handshake)
@@ -56,7 +55,9 @@ class DUT:
                 key_to_contact[pub_key_pref] = contact
         else:
             raise ValueError("device under test contacts inaccessible")
-        self.device_map = await self.handshaker.dut_handshake(dut=self.dut, key_to_contact=key_to_contact)
+        self.device_map = await self.handshaker.dut_handshake(
+            dut=self.dut, key_to_contact=key_to_contact
+        )
 
     async def __handle_message(
         self,
@@ -71,7 +72,9 @@ class DUT:
         reciever_contact = self.device_map.get(sender_prefix)
 
         if reciever_contact:
-            await self.dut.commands.send_msg(reciever_contact, received_msg.payload['text'])
+            await self.dut.commands.send_msg(
+                reciever_contact, received_msg.payload["text"]
+            )
         else:
             warn(f"No contact associated with pubkey: {sender_prefix}")
 

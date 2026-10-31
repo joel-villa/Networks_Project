@@ -1,8 +1,8 @@
 """The device which handles the initial handshake"""
 
-from functools import Placeholder, partial
 import sys
 import warnings
+from functools import partial
 from threading import BoundedSemaphore, Condition
 from typing import Any
 
@@ -114,7 +114,7 @@ class Handshaker:
             receivers=receivers,
             senders=senders,
             recv_semaphore=recv_semaphore,
-            send_semaphore=send_semaphore
+            send_semaphore=send_semaphore,
         )
         dut.subscribe(
             event_type=EventType.CONTACT_MSG_RECV,
@@ -240,7 +240,7 @@ class Handshaker:
 
         callback_func = partial(
             self.__handle_msg_from_dut,
-            dut_key_pref=recv_contacts[0]["public_key"][:N_CHAR_PUB_KEY_PREFIX]
+            dut_key_pref=recv_contacts[0]["public_key"][:N_CHAR_PUB_KEY_PREFIX],
         )
         for recv_dev in recv_devs:
             await recv_dev.start_auto_message_fetching()
