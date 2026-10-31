@@ -245,8 +245,6 @@ class Loss(Test):
         assert distance is None or len(source) == len(distance), (
             f"{len(source)} != {len(src_type)}"
         )
-        if len(source) % 2 != 0:
-            warnings.warn(f"Odd number of source devices: {len(source)}")
 
         dut_contacts = await self.get_contacts(
             local_devices=source,
