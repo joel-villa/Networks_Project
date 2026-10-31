@@ -6,7 +6,6 @@ Resources:
 
 import asyncio
 import sys
-import warnings
 from threading import Condition
 
 import numpy as np

@@ -1,25 +1,25 @@
 """The device which handles the initial handshake"""
 
 import sys
-from threading import BoundedSemaphore, Condition, Lock
-from typing import Any
 import warnings
+from threading import BoundedSemaphore, Condition
+from typing import Any
 
 from meshcore import EventType, MeshCore
 from meshcore.events import Event
 
 from src.loss.util.MsgType import MsgType
-from src.util.RDT import RDT
 from src.util.constants import N_CHAR_PUB_KEY_PREFIX
+from src.util.RDT import RDT
 
 
 class Handshaker:
     """Yktv"""
+
     device_type: int
     awaiting_done_msg: bool
     cv: Condition
     rdt: RDT
-
 
     def __init__(self, device_type: int) -> None:
         """Initiliaze this handshaker either as the DUT or the time keeper
@@ -28,7 +28,7 @@ class Handshaker:
             device_type (int):
                 1 -> Time Keeper
                 2 -> Device Under Test (DUT)
-	    """
+        """
         self.device_type = device_type
         self.awaiting_done_msg = False
         self.cv = Condition()
@@ -38,8 +38,8 @@ class Handshaker:
         self,
         received_msg: Event,
         key_to_contact: dict[str, dict],
-        receivers:list[str],
-        senders:list[dict],
+        receivers: list[str],
+        senders: list[dict],
         recv_semaphore: BoundedSemaphore,
         send_semaphore: BoundedSemaphore,
     ) -> None:
@@ -75,9 +75,7 @@ class Handshaker:
                 warnings.warn(f"Unexpected MsgType in handshake: {msg_type}")
 
     async def dut_handshake(
-        self,
-        dut: MeshCore,
-        key_to_contact: dict[str, dict]
+        self, dut: MeshCore, key_to_contact: dict[str, dict]
     ) -> tuple[list[str], list[dict[str, Any]]]:
         """The device under test calls this method to do the handshake, it will
         return when complete
@@ -98,8 +96,10 @@ class Handshaker:
                 https://www.geeksforgeeks.org/python/python-check-if-list-empty-not/
             - Semaphores:
                 https://docs.python.org/3/library/threading.html
-	    """
-        assert self.device_type == 2, f"Handshaker initialized with type f{self.device_type} cannot call this method"
+        """
+        assert self.device_type == 2, (
+            f"Handshaker initialized with type f{self.device_type} cannot call this method"
+        )
 
         receivers = []
         senders = []
@@ -110,7 +110,7 @@ class Handshaker:
         dut.subscribe(
             event_type=EventType.CONTACT_MSG_RECV,
             callback=self.__dut_handshake_msg,  # TODO: handhsake confirmation failing
-            attribute_filters={ #TODO: partial
+            attribute_filters={  # TODO: partial
                 # Only need 12 characters of the dut's pub key to confirm
                 "key_to_contact": key_to_contact,
                 "receivers": receivers,
@@ -131,16 +131,19 @@ class Handshaker:
             pass
 
         if not receivers or not senders:
-            raise ValueError(f"handshake failed: num recievers is {len(receivers)}, num senders is {len(senders)}")
+            raise ValueError(
+                f"handshake failed: num recievers is {len(receivers)}, num senders is {len(senders)}"
+            )
 
         if len(receivers) != len(senders):
             min_count = min(len(receivers), len(senders))
-            warnings.warn(f"recieved unequal number of recievers ({len(receivers)}) and senders ({len(senders)}), reducing both to {min_count}")
+            warnings.warn(
+                f"recieved unequal number of recievers ({len(receivers)}) and senders ({len(senders)}), reducing both to {min_count}"
+            )
             receivers = receivers[:min_count]
             senders = senders[:min_count]
 
         return receivers, senders
-
 
     def __handle_msg_from_dut(
         self,
@@ -165,7 +168,9 @@ class Handshaker:
         devices: list[MeshCore],
         contacts: list[dict[str, Any]],
         timeout_time: float,
-    ) -> tuple[list[MeshCore], list[MeshCore], list[dict[str, Any]], list[dict[str, Any]]]:
+    ) -> tuple[
+        list[MeshCore], list[MeshCore], list[dict[str, Any]], list[dict[str, Any]]
+    ]:
         """Do tha dang handshake
 
         Args:
@@ -176,8 +181,12 @@ class Handshaker:
             timeout_time (int): How long to wait for an acknowledgement before
             retrying
         """
-        assert self.device_type == 1, f"Handshaker initialized with type f{self.device_type} cannot call this method"
-        assert len(devices) == len(contacts), f"Shape mismatch: {len(devices)} != {len(contacts)}"
+        assert self.device_type == 1, (
+            f"Handshaker initialized with type f{self.device_type} cannot call this method"
+        )
+        assert len(devices) == len(contacts), (
+            f"Shape mismatch: {len(devices)} != {len(contacts)}"
+        )
 
         self.awaiting_done_msg = True
 
@@ -189,7 +198,9 @@ class Handshaker:
 
         odd = len(devices) % 2 != 0
         if odd:
-            warnings.warn(f"Odd number of source devices ({len(devices)}), ignoring last")
+            warnings.warn(
+                f"Odd number of source devices ({len(devices)}), ignoring last"
+            )
             recv_devs = recv_devs[:-1]
             recv_contacts = recv_contacts[:-1]
 
@@ -231,7 +242,7 @@ class Handshaker:
             )
 
         print("Waiting for handshake to finish")
-            # Wait for the DUT to setup
+        # Wait for the DUT to setup
         while self.awaiting_done_msg:
             with self.cv:
                 self.cv.wait()
