@@ -1,5 +1,6 @@
 """The device which handles the initial handshake"""
 
+from functools import Placeholder, partial
 import sys
 import warnings
 from threading import BoundedSemaphore, Condition
@@ -54,19 +55,18 @@ class Handshaker:
                 https://pypi.org/project/meshcore/
         """
         msg_type = MsgType(received_msg.payload["text"])
-        receiver_prefix = received_msg.payload["pubkey_prefix"]
+        pubkey_prefix = received_msg.payload["pubkey_prefix"]
 
         match msg_type:
             case MsgType.SENDER:
                 # Test sender => DUT reciever
-                with recv_semaphore:
-                    receivers.append(receiver_prefix)
-            case MsgType.RECEIVER:
-                # Test receiver => DUT sender
-                contact = key_to_contact.get(receiver_prefix)
+                contact = key_to_contact.get(pubkey_prefix)
                 if contact:
                     with send_semaphore:
                         senders.append(contact)
+            case MsgType.RECEIVER:
+                with recv_semaphore:
+                    receivers.append(pubkey_prefix)
             case MsgType.HANDSHAKE_DONE:
                 with self.cv:
                     self.awaiting_done_msg = False
@@ -76,7 +76,7 @@ class Handshaker:
 
     async def dut_handshake(
         self, dut: MeshCore, key_to_contact: dict[str, dict]
-    ) -> tuple[list[str], list[dict[str, Any]]]:
+    ) -> dict[str, dict[str, Any]]:
         """The device under test calls this method to do the handshake, it will
         return when complete
 
@@ -86,16 +86,17 @@ class Handshaker:
             prefixes to contact dictionary object
 
         Returns:
-             receivers (list[str]): The public key prefixes of the receivers
-             (from DUT perspective)
-             senders (list[dict[str, Any]]): The contacts of the senders (from
-             DUT perspective)
+            device_map (dict[str, dict[str, Any]]): A map of sending device
+            public key prefixes to receiving device contacts (from timekeeper
+            perspective)
 
         Resources:
             - Empyt list check:
                 https://www.geeksforgeeks.org/python/python-check-if-list-empty-not/
             - Semaphores:
                 https://docs.python.org/3/library/threading.html
+            - Partial Functions:
+                https://docs.python.org/3/library/functools.html
         """
         assert self.device_type == 2, (
             f"Handshaker initialized with type f{self.device_type} cannot call this method"
@@ -107,17 +108,17 @@ class Handshaker:
         send_semaphore = BoundedSemaphore(value=1)
 
         await dut.start_auto_message_fetching()
+        callback_func = partial(
+            self.__dut_handshake_msg,
+            key_to_contact=key_to_contact,
+            receivers=receivers,
+            senders=senders,
+            recv_semaphore=recv_semaphore,
+            send_semaphore=send_semaphore
+        )
         dut.subscribe(
             event_type=EventType.CONTACT_MSG_RECV,
-            callback=self.__dut_handshake_msg,  # TODO: handhsake confirmation failing
-            attribute_filters={  # TODO: partial
-                # Only need 12 characters of the dut's pub key to confirm
-                "key_to_contact": key_to_contact,
-                "receivers": receivers,
-                "senders": senders,
-                "recv_semaphore": recv_semaphore,
-                "send_semaphore": send_semaphore,
-            },
+            callback=callback_func,
         )
 
         while self.awaiting_done_msg:
@@ -143,7 +144,11 @@ class Handshaker:
             receivers = receivers[:min_count]
             senders = senders[:min_count]
 
-        return receivers, senders
+        device_map = {}
+        for i, sender in enumerate(senders):
+            device_map[sender] = receivers[i]
+
+        return device_map
 
     def __handle_msg_from_dut(
         self,
@@ -174,12 +179,17 @@ class Handshaker:
         """Do tha dang handshake
 
         Args:
+            devices (list[MeshCore]): the devices to do the handshake with
+            contacts (list[dict[str, Any]]): The contact of the dut for each
+            device
+            timeout_time (int): How long to wait for an acknowledgement before
+            retrying
+
+        Return:
             send_devs (list[MeshCore]): The sending MeshCore devices
             recv_devs (list[MeshCore]): The receiving MeshCore devices
             send_contacts(list[dict]): The contact of the DUT for all senders
             recv_contacts(list[dict]): The contact of the DUT for all receivers
-            timeout_time (int): How long to wait for an acknowledgement before
-            retrying
         """
         assert self.device_type == 1, (
             f"Handshaker initialized with type f{self.device_type} cannot call this method"
@@ -228,17 +238,15 @@ class Handshaker:
                 timeout_time=timeout_time,
             )
 
+        callback_func = partial(
+            self.__handle_msg_from_dut,
+            dut_key_pref=recv_contacts[0]["public_key"][:N_CHAR_PUB_KEY_PREFIX]
+        )
         for recv_dev in recv_devs:
             await recv_dev.start_auto_message_fetching()
             recv_dev.subscribe(
                 event_type=EventType.CONTACT_MSG_RECV,
-                callback=self.__handle_msg_from_dut,  # TODO: handhsake confirmation failing
-                attribute_filters={
-                    # Only need 12 characters of the dut's pub key to confirm
-                    "dut_key_pref": recv_contacts[0]["public_key"][
-                        :N_CHAR_PUB_KEY_PREFIX
-                    ]
-                },
+                callback=callback_func,
             )
 
         print("Waiting for handshake to finish")
