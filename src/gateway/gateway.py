@@ -30,7 +30,7 @@ class Gateway:
         if sender in self.users:
             return
         
-        #so this is so that the thread handles its own message
+        #so this is so that the thread handles its own message, it will have to pass the first message to the user
 
         self.users[sender] = user(self.device, (self.device.get_contact_by_key_prefix(sender)),UserType.COMPUTER_USER,text)
 

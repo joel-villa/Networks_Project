@@ -5,6 +5,10 @@ User object will be directly interfacing with the user
 - Send state to the gateway
 - If multiple results, send the top n article names w/ one sentence
 - This is doing all of the querying/section and selection
+
+Added an inbox, as the gateway will recieve the first message, because the client does not know what they are supposed to be listening to
+most likely this message with be inocous, such as a hello, but we don't want to miss queries, this way we recive them in
+the order in which the mesh recives them
 """
 
 import threading
