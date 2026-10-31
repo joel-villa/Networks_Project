@@ -12,6 +12,7 @@ import numpy as np
 from meshcore import EventType, MeshCore
 from meshcore.events import Event
 
+from src.loss.util.Handshaker import Handshaker
 from src.util.RDT import RDT
 
 from ..Test import Test
@@ -32,6 +33,8 @@ class Loss(Test):
     granularity: float
     awaiting_success: bool
     cv: Condition
+    handshaker: Handshaker
+
 
     def __init__(
         self,
@@ -57,6 +60,7 @@ class Loss(Test):
         self.granularity = granularity
         self.awaiting_success = True
         self.cv = Condition()
+        self.handshaker = Handshaker(device_type=1)
         if prop_min_time:
             assert prop_min_time < 1, f"{prop_min_time} >= 1"
             self.prop_min_time = prop_min_time
@@ -98,112 +102,6 @@ class Loss(Test):
             fpss[i] = percentages * max_fps[i]
 
         return 1 / fpss
-
-    def handshake_finish(
-        self,
-        received_msg: Event,
-        dut_key_pref: str,
-    ) -> None:
-        """Continue the count!
-
-        Args:
-            recieved_msg (EventType): Message recieved o7
-        """
-        print(received_msg.payload["text"])
-        sys.stdout.flush()
-        if received_msg.payload["pubkey_prefix"] == dut_key_pref:
-            with self.cv:
-                self.awaiting_success = False
-                self.cv.notify()
-
-    async def __rdt_msg(
-        self,
-        device: MeshCore,
-        contact: dict,
-        msg_type: MsgType,
-        timeout_time: float,
-    ) -> None:
-        """Await an ACK that the DUT knows this devices typ
-
-        Args:
-            device (MeshCore): sending device
-            contact (dict): contact info of DUT
-            msg_type (MsgType): the type of device this device is (sending to
-            device under test)
-            timeout_time (float): How long to wait for an acknowledgement before
-            retrying (seconds)
-        """
-        rdt = RDT()
-        await rdt.send_msg(
-            device=device,
-            contact=contact,
-            message=msg_type.name,
-            timeout_time=timeout_time,
-        )
-
-    async def __handshake(
-        self,
-        send_devs: list[MeshCore],
-        recv_devs: list[MeshCore],
-        send_contacts: list[dict],
-        recv_contacts: list[dict],
-        timeout_time: float,
-    ) -> None:
-        """Do tha dang handshake
-
-        Args:
-            send_devs (list[MeshCore]): The sending MeshCore devices
-            recv_devs (list[MeshCore]): The receiving MeshCore devices
-            send_contacts(list[dict]): The contact of the DUT for all senders
-            recv_contacts(list[dict]): The contact of the DUT for all receivers
-            timeout_time (int): How long to wait for an acknowledgement before
-            retrying
-        """
-        print("Starting handshake")
-        for i, device in enumerate(send_devs):
-            await self.__rdt_msg(
-                device=device,
-                contact=send_contacts[i],
-                msg_type=MsgType.SENDER,
-                timeout_time=timeout_time,
-            )
-        for i, device in enumerate(recv_devs):
-            await self.__rdt_msg(
-                device=device,
-                contact=recv_contacts[i],
-                msg_type=MsgType.RECEIVER,
-                timeout_time=timeout_time,
-            )
-
-        for i, device in enumerate(send_devs):
-            await self.__rdt_msg(
-                device=device,
-                contact=send_contacts[i],
-                msg_type=MsgType.HANDSHAKE_DONE,
-                timeout_time=timeout_time,
-            )
-
-        for recv_dev in recv_devs:
-            await recv_dev.start_auto_message_fetching()
-            recv_dev.subscribe(
-                event_type=EventType.CONTACT_MSG_RECV,
-                callback=self.handshake_finish,  # TODO: handhsake confirmation failing
-                attribute_filters={
-                    # Only need 12 characters of the dut's pub key to confirm
-                    "dut_key_pref": recv_contacts[0]["public_key"][
-                        :N_CHAR_PUB_KEY_PREFIX
-                    ]
-                },
-            )
-
-        print("Waiting for handshake to finish")
-        with self.cv:
-            # Wait for the DUT to setup
-            while self.awaiting_success:
-                self.cv.wait()
-
-        for recv_dev in recv_devs:
-            await recv_dev.stop_auto_message_fetching()
 
     async def run_test(
         self,
@@ -251,49 +149,49 @@ class Loss(Test):
         )
         assert type(dut_contacts) is list, "How do we have singular contact?"
 
-        num_src = len(source) // 2
-        send_devs = source[:num_src]
-        recv_devs = source[num_src:]
-        senders: list[Sender] = []
-        receivers: list[Receiver] = []
-        needs_thread = False
-        frames_per_dev = self.frames_sent // num_src
-        actual_frames_sent = frames_per_dev * num_src
-
-        if len(send_devs) > 1:
-            # More than one sending device -> give 'em all a thread
-            needs_thread = True
-
-        for i in range(num_src):
-            new_sender = Sender(
-                sender=send_devs[i],
-                dut=dut_contacts[i],
-                frames_to_send=frames_per_dev,
-                needs_thread=needs_thread,
-            )
-            new_receiver = Receiver(
-                reciever=recv_devs[i],
-                dut_pub_key=dut_contacts[i]["public_key"],
-            )
-            senders.append(new_sender)
-            receivers.append(new_receiver)
-
         frame_sizes = self.get_frame_sizes(num_frame_sizes=num_frame_sizes)
 
         print("Measuring some rtts based on ACKs")
         min_times, max_times = await self.rtt_time(
-            source=send_devs,
+            source=source,
             dut=dut_contacts,
             frame_sizes=frame_sizes,
         )
 
-        await self.__handshake(
-            send_devs=send_devs,
-            recv_devs=recv_devs,
-            send_contacts=dut_contacts[:num_src],
-            recv_contacts=dut_contacts[num_src:],
+        # Handshake time
+        handshake_result = await self.handshaker.timekeeper_handshake(
+            devices=source,
+            contacts=dut_contacts,
             timeout_time=max_times[-1],
         )
+
+        send_devs, recv_devs, send_contacts, recv_contacts  = handshake_result
+
+        needs_thread = False
+        if len(send_devs) > 1:
+            # More than one sending device -> give 'em all a thread
+            needs_thread = True
+
+        frames_per_dev = self.frames_sent // len(send_devs)
+        actual_frames_sent = frames_per_dev * len(send_devs)
+
+        senders = []
+        receivers = []
+        for i, send_mesh in enumerate(send_devs):
+            new_sender = Sender(
+                sender=send_mesh,
+                dut=send_contacts[i],
+                frames_to_send=frames_per_dev,
+                needs_thread=needs_thread,
+            )
+            senders.append(new_sender)
+        for i, recv_mesh in enumerate(recv_devs):
+            new_receiver = Receiver(
+                reciever=recv_mesh,
+                dut_pub_key=recv_contacts[i]["public_key"],
+            )
+            receivers.append(new_receiver)
+
 
         timeouts = self.__calculate_timeouts(min_times)
         frames_received = np.full(timeouts.shape, np.nan)
@@ -331,6 +229,15 @@ class Loss(Test):
                     break
                 no_loss_prev = no_loss_curr
 
+        print("Test done!")
+        rdt = RDT()
+        for i, device in enumerate(send_devs):
+            await rdt.send_msg(
+                device=device,
+                contact=send_contacts[i],
+                message=MsgType.DONE_WITH_TEST.name,
+                timeout_time=max_times[-1],
+            )
         results = LossResults(
             src_type=src_type,
             dst_type=dst_type,
