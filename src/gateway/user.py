@@ -22,8 +22,9 @@ class User:
     device: MeshCore
     contact: dict
     thread: threading.Thread
+    first_message:str
 
-    def __init__(self, device: MeshCore, contact: dict, user_type: UserType) -> None:
+    def __init__(self, device: MeshCore, contact: dict, user_type: UserType, first_message:str) -> None:
         """Construct her I hardly know her
 
         Args:
@@ -31,18 +32,33 @@ class User:
         """
         self.device = device
         self.contact = contact
+        self.first_message=first_message
+        self.inbox: queue.Queue[str | None] = queue.Queue() #The reason for this is handling them at once, and because the gateway gets the first message
         self.thread = threading.Thread(target=self.run)
         self.thread.start()
-
-    async def run(self) -> None:
-        await self.device.start_auto_message_fetching()
+        self.inbox.put(first_message)
         self.device.subscribe(
             event_type=EventType.CONTACT_MSG_RECV,
             callback=self.handle_message,
+            attribute_filters={"pubkey_prefix": contact["public_key"][:12]},
         )
+
+    async def run(self) -> None:
+        while True:
+            text = self.inbox.get()
+            if text is None:
+                break
+            self.handle_message(text)
+        # await self.device.start_auto_message_fetching()
+        
+        
 
     async def handle_message(self, recieve_message: Event) -> None:
         raise NotImplementedError
 
     def destroy(self) -> None:
-        raise NotImplementedError
+        self.subscription.unsubscribe()
+        self.thread.join()
+
+    def on_message(self, event: Event) -> None:
+        self.inbox.put(event.payload["text"])
