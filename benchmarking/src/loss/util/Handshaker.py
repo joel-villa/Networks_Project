@@ -1,7 +1,7 @@
 """The device which handles the initial handshake"""
 
 import sys
-from threading import Condition, Lock
+from threading import BoundedSemaphore, Condition, Lock
 from typing import Any
 import warnings
 
@@ -18,7 +18,6 @@ class Handshaker:
     device_type: int
     awaiting_done_msg: bool
     cv: Condition
-    lock: Lock | None
     rdt: RDT
 
 
@@ -34,15 +33,15 @@ class Handshaker:
         self.awaiting_done_msg = False
         self.cv = Condition()
         self.rdt = RDT()
-        if device_type == 2: # TODO: SEMAPHORE
-            self.lock = Lock()
 
     def __dut_handshake_msg(
         self,
         received_msg: Event,
         key_to_contact: dict[str, dict],
-        recvs:list[str],
-        sends:list[dict],
+        receivers:list[str],
+        senders:list[dict],
+        recv_semaphore: BoundedSemaphore,
+        send_semaphore: BoundedSemaphore,
     ) -> None:
         """Handle a message received while doing the handshake
 
@@ -54,34 +53,94 @@ class Handshaker:
             - Reading messages from the payload with 'text':
                 https://pypi.org/project/meshcore/
         """
-        assert self.lock is not None, "Huh? Null lock"
         msg_type = MsgType(received_msg.payload["text"])
         receiver_prefix = received_msg.payload["pubkey_prefix"]
 
-        with self.lock:
-            match msg_type:
-                case MsgType.SENDER:
-                    # Test sender => DUT reciever
-                    recvs.append(receiver_prefix)
-                case MsgType.RECEIVER:
-                    # Test receiver => DUT sender
-                    contact = key_to_contact.get(receiver_prefix)
-                    if contact:
-                        sends.append(contact)
-                case MsgType.HANDSHAKE_DONE:
-                    with self.cv:
-                        self.awaiting_done_msg = False
-                        self.cv.notify()
-                case _:
-                    warnings.warn(f"Unexpected MsgType in handshake: {msg_type}")
+        match msg_type:
+            case MsgType.SENDER:
+                # Test sender => DUT reciever
+                with recv_semaphore:
+                    receivers.append(receiver_prefix)
+            case MsgType.RECEIVER:
+                # Test receiver => DUT sender
+                contact = key_to_contact.get(receiver_prefix)
+                if contact:
+                    with send_semaphore:
+                        senders.append(contact)
+            case MsgType.HANDSHAKE_DONE:
+                with self.cv:
+                    self.awaiting_done_msg = False
+                    self.cv.notify()
+            case _:
+                warnings.warn(f"Unexpected MsgType in handshake: {msg_type}")
 
     async def dut_handshake(
         self,
         dut: MeshCore,
         key_to_contact: dict[str, dict]
     ) -> tuple[list[str], list[dict[str, Any]]]:
+        """The device under test calls this method to do the handshake, it will
+        return when complete
+
+        Args:
+            dut (MeshCore): The MeshCore object
+            key_to_contact (dict[str, dict]): A dictionary of public key
+            prefixes to contact dictionary object
+
+        Returns:
+             receivers (list[str]): The public key prefixes of the receivers
+             (from DUT perspective)
+             senders (list[dict[str, Any]]): The contacts of the senders (from
+             DUT perspective)
+
+        Resources:
+            - Empyt list check:
+                https://www.geeksforgeeks.org/python/python-check-if-list-empty-not/
+            - Semaphores:
+                https://docs.python.org/3/library/threading.html
+	    """
         assert self.device_type == 2, f"Handshaker initialized with type f{self.device_type} cannot call this method"
-        raise NotImplementedError
+
+        receivers = []
+        senders = []
+        recv_semaphore = BoundedSemaphore(value=1)
+        send_semaphore = BoundedSemaphore(value=1)
+
+        await dut.start_auto_message_fetching()
+        dut.subscribe(
+            event_type=EventType.CONTACT_MSG_RECV,
+            callback=self.__dut_handshake_msg,  # TODO: handhsake confirmation failing
+            attribute_filters={ #TODO: partial
+                # Only need 12 characters of the dut's pub key to confirm
+                "key_to_contact": key_to_contact,
+                "receivers": receivers,
+                "senders": senders,
+                "recv_semaphore": recv_semaphore,
+                "send_semaphore": send_semaphore,
+            },
+        )
+
+        while self.awaiting_done_msg:
+            with self.cv:
+                self.cv.wait()
+
+        # Ensure all processing is good to go
+        with recv_semaphore:
+            pass
+        with send_semaphore:
+            pass
+
+        if not receivers or not senders:
+            raise ValueError(f"handshake failed: num recievers is {len(receivers)}, num senders is {len(senders)}")
+
+        if len(receivers) != len(senders):
+            min_count = min(len(receivers), len(senders))
+            warnings.warn(f"recieved unequal number of recievers ({len(receivers)}) and senders ({len(senders)}), reducing both to {min_count}")
+            receivers = receivers[:min_count]
+            senders = senders[:min_count]
+
+        return receivers, senders
+
 
     def __handle_msg_from_dut(
         self,
@@ -92,6 +151,7 @@ class Handshaker:
 
         Args:
             recieved_msg (EventType): Message recieved o7
+            dut_key_pref (str): The dut public key prefix
         """
         print(received_msg.payload["text"])
         sys.stdout.flush()
@@ -171,9 +231,9 @@ class Handshaker:
             )
 
         print("Waiting for handshake to finish")
-        with self.cv:
             # Wait for the DUT to setup
-            while self.awaiting_done_msg:
+        while self.awaiting_done_msg:
+            with self.cv:
                 self.cv.wait()
 
         for recv_dev in recv_devs:
