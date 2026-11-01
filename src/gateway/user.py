@@ -23,6 +23,7 @@ from ..utils.UserType import UserType
 from ..utils.State import State
 from .Service import Service
 
+MAX_MSG_LEN = 130 #TODO: Check with Joel, see what the best message length is with respect to the latency and loss tests
 
 # class syntax
 class User:
@@ -36,6 +37,8 @@ class User:
     user_state:State
     user_type : UserType
     handlers :dict
+    current_responce : Any
+    responce_index : int
 
     def __init__(self, device, contact, user_type, first_message):
         """Construct her I hardly know her
@@ -50,6 +53,7 @@ class User:
         self.device = device
         self.contact = contact
         self.user_type = user_type
+        self.current_responce = "Please query an API first"
         
         self.service = Service(user_type) # this will break silently if you dont have the secrets.jon, ask Joel or Natalie
 
@@ -64,6 +68,7 @@ class User:
             State.MENU: self.handle_menu,
             State.CHOOSING_API: self.handle_choosing_api,
             State.INITIALIZING: self.handle_query,
+            State.RECEIVING_PAGE: self.continue_serving,
         }
         
         self.subscription = device.subscribe(
@@ -91,13 +96,14 @@ class User:
             except Exception as e:
                 print(e)
 
-    def handle_message(self, text: str) -> None:        
+    def handle_message(self, text: str) -> None: 
+        print(f"[user {id(self)} | state={self.user_state.name}] got: {text!r}")       
         handler = self.handlers[self.user_state]
         handler(text)                                    
 
-    def handle_menu(self, text: str) -> None:            
-        self.reply(self.service.available_services())
+    def handle_menu(self, text: str) -> None:
         self.user_state = State.CHOOSING_API
+        self.reply(self.service.available_services())
 
     def handle_choosing_api(self, text: str) -> None:    
         name = text.strip().lower()
@@ -111,8 +117,30 @@ class User:
     #TODO: This method need to be rewriten with respect to the differences between the user types
     def handle_query(self, text: str) -> None:          
         result = self.service.call_api(self.current_api, text)
-        self.reply(str(result))
-        self.user_state = State.MENU 
+        self.current_responce = (str(result))
+        self.user_state = State.RECEIVING_PAGE 
+        self.start_serving_mesh()
+        
+
+    def start_serving_mesh(self):
+        self.reply("To continue: type any letter, to stop type : menu or stop or exit")
+        first_chunk = self.current_responce[:MAX_MSG_LEN]
+        self.responce_index =1
+        self.reply(first_chunk)
+
+
+
+    def continue_serving(self, text:str):
+        if text.lower() in ("menu", "stop", "exit"):
+            self.user_state = State.MENU 
+            return
+        
+        # something something index * message size to get next chunk
+        current_starter = self.responce_index *MAX_MSG_LEN
+        nextChunk = self.current_responce[current_starter:current_starter+MAX_MSG_LEN]
+        self.reply(nextChunk)
+        self.responce_index+=1
+        
 
     def destroy(self) -> None:
         self.subscription.unsubscribe()      

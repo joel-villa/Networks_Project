@@ -60,6 +60,18 @@ class Service:
 
 
     def wikipedia(self, string_to_be_queried: str) -> Any:
+        wiki_wiki = wikipediaapi.Wikipedia(
+            user_agent='WikiMesh (nrunyan@unm.edu)', #wikapedia requires that u ID yourself
+            language='en',
+            extract_format=wikipediaapi.ExtractFormat.WIKI
+        )
+        
+        results = wiki_wiki.page(string_to_be_queried)
+        print("here sir")
+        print(results.text)
+        print("here")
+
+
         """Wikipedia query
 
         Args:
@@ -71,7 +83,7 @@ class Service:
         assert type(string_to_be_queried) is str, (
             f"you bad bad bad bad you, I want strings not, {type(string_to_be_queried)}s"
         )
-        return "Im not implemented, I've never been implemented"
+        return results.text
         # raise NotImplementedError
 
 
