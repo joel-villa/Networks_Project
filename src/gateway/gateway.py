@@ -28,6 +28,7 @@ class Gateway:
         await self.device.start_auto_message_fetching()
 
     async def onMessage(self, event:Event)-> None:
+        # print(f"[gateway {id(self)}] sender={sender!r} known={list(self.users)}")
         
         sender = event.payload["pubkey_prefix"]
         text = event.payload["text"]
@@ -52,7 +53,7 @@ class Gateway:
         
         print(f"contact = {contact!r}")
         print("constructing user")
-        user = User(self.device, contact, UserType.COMPUTER_USER, text)
+        self.users[sender]=user = User(self.device, contact, UserType.COMPUTER_USER, text)
         print("constructed")
         # print("Attempting to create a new user")
         # self.users[sender] = User(self.device, (self.device.get_contact_by_key_prefix(sender)),UserType.COMPUTER_USER,text)
