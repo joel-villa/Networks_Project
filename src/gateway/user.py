@@ -107,10 +107,11 @@ class User:
         self.reply("Send: " + " ".join(self.service.get_params(name)))
         self.user_state = State.INITIALIZING
 
+    #TODO: This method need to be rewriten with respect to the differences between the user types
     def handle_query(self, text: str) -> None:          
         result = self.service.call_api(self.current_api, text)
         self.reply(str(result))
-        self.user_state = State.MENU
+        self.user_state = State.MENU 
 
     def destroy(self) -> None:
         self.subscription.unsubscribe()      
