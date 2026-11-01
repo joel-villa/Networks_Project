@@ -5,7 +5,9 @@ from enum import Enum
 
 class State(Enum):
     """state of clients"""
-
-    INITIALIZING = 1
-    USER_DECIDING = 2
-    RECEIVING_PAGE = 3
+    
+    MENU = 0
+    CHOOSING_API =1
+    INITIALIZING = 2
+    USER_DECIDING = 3
+    RECEIVING_PAGE = 4

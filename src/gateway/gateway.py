@@ -7,13 +7,15 @@ Main Class that will handle most of the server side functionality.
 """
 
 from meshcore import EventType, MeshCore
+from .user import User
+from ..utils.UserType import UserType
 
 
 class Gateway:
     """The client handler"""
 
     device: MeshCore
-    users: dict[str, user]
+    users: dict[str, User]
 
     def __init__(self, device: MeshCore) -> None:
         self.device = device
@@ -21,16 +23,47 @@ class Gateway:
 
 
     async def run(self) -> None:
+        print("gateway started:")
         self.device.subscribe(EventType.CONTACT_MSG_RECV, self.onMessage)
         await self.device.start_auto_message_fetching()
 
-    def onMessage(self, event:Event)-> None:
+    async def onMessage(self, event:Event)-> None:
+        
         sender = event.payload["pubkey_prefix"]
         text = event.payload["text"]
+        print(f"Message: {text}")
         if sender in self.users:
+            print("Sender is already know, let its thread deal with it")
             return
         
         #so this is so that the thread handles its own message, it will have to pass the first message to the user
+        print("looking up contact")
+        contact = self.device.get_contact_by_key_prefix(sender)
+        if contact is None:
+            await self.device.ensure_contacts(follow=True)  
+            await self.device.start_auto_message_fetching()
+            contact = self.device.get_contact_by_key_prefix(sender)
+            print("contact none?")
+        if contact is None:
+            print(f"Message from unknown contact {sender}, ignoring")
+            return
+        print("Found contact")
+        
+        
+        print(f"contact = {contact!r}")
+        print("constructing user")
+        user = User(self.device, contact, UserType.COMPUTER_USER, text)
+        print("constructed")
+        # print("Attempting to create a new user")
+        # self.users[sender] = User(self.device, (self.device.get_contact_by_key_prefix(sender)),UserType.COMPUTER_USER,text)
+        # self.users[sender].run()
 
-        self.users[sender] = user(self.device, (self.device.get_contact_by_key_prefix(sender)),UserType.COMPUTER_USER,text)
+    
+ 
+    def remove_user(self, sender: str) -> None:
+        user = self.users.pop(sender, None)
+        if user:
+            user.destroy()
+
+        
 

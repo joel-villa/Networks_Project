@@ -29,10 +29,12 @@ class Service:
             "wikipedia": self.wikipedia,
             # TODO: add more here
         }
+        print("added services")
         # Opening JSON file
         with open("secrets.json") as json_file:
             data = json.load(json_file)
             self.api_dict = data[DICT_VALUE]
+        print("added api keys")
 
     def call_api(self, service_name: str, query_args: Any) -> Any:
         """Call the api by name of website/service and query string
@@ -54,19 +56,20 @@ class Service:
         return param_names
 
 
-    def wikipedia(self, query_term: str) -> Any:
+    def wikipedia(self, string_to_be_queried: str) -> Any:
         """Wikipedia query
 
         Args:
-            query_term (str): Thing to look up on wikepedia (Ex: Ghonnerrea)
+            string_to_be_queried (str): Thing to look up on wikepedia (Ex: Ghonnerrea), it is a verbose name as that is what is printed by the device
 
         Returns:
              returned_obj (TBD): The test file returned
         """
-        assert type(query_term) is str, (
-            f"you bad bad bad bad you, I want strings not, {type(query_term)}s"
+        assert type(string_to_be_queried) is str, (
+            f"you bad bad bad bad you, I want strings not, {type(string_to_be_queried)}s"
         )
-        raise NotImplementedError
+        return "Im not implemented, I've never been implemented"
+        # raise NotImplementedError
 
     def available_services(self) -> str:
         return "Available services: " + ", ".join(self.func_dict)   

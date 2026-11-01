@@ -4,7 +4,7 @@ import os
 import asyncio
 
 from dotenv import load_dotenv
-from gateway import Gateway
+from .gateway import Gateway
 
 from meshcore import EventType, MeshCore
 from meshcore.events import Event
