@@ -65,12 +65,8 @@ class User:
             if text is None:
                 break
             self.handle_message(text)
-        # await self.device.start_auto_message_fetching()
         
-
-
-
-    #     # raise NotImplementedError
+        
     async def handle_message(self, text: str) -> None:
         handler = self._handlers[self.user_state]
         await handler(text)
