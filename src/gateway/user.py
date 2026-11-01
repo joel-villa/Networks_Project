@@ -50,6 +50,7 @@ class User:
             first_message : the gateway is the original listner, thus captures the first message, so this has to be passed in
         """
         print("attempting to construct")
+        
         self.device = device
         self.contact = contact
         self.user_type = user_type
@@ -71,17 +72,21 @@ class User:
             State.RECEIVING_PAGE: self.continue_serving,
         }
         
-        self.subscription = device.subscribe(
-            event_type=EventType.CONTACT_MSG_RECV,
-            callback=self.on_message,
-            attribute_filters={"pubkey_prefix": contact["public_key"][:12]},
-        )
+        
 
         self.inbox.put(first_message)
   
         self.thread = threading.Thread(target=self.run, daemon=True)
  
         self.thread.start()
+        self.subscription = device.subscribe(
+            event_type=EventType.CONTACT_MSG_RECV,
+            callback=self.on_message,
+            attribute_filters={"pubkey_prefix": contact["public_key"][:12]},
+        )
+
+        
+        
 
 
     def run(self) -> None:
@@ -96,8 +101,7 @@ class User:
             except Exception as e:
                 print(e)
 
-    def handle_message(self, text: str) -> None: 
-        print(f"[user {id(self)} | state={self.user_state.name}] got: {text!r}")       
+    def handle_message(self, text: str) -> None:       
         handler = self.handlers[self.user_state]
         handler(text)                                    
 
@@ -111,7 +115,7 @@ class User:
             self.reply("Unknown service. " + self.service.available_services())
             return
         self.current_api = name
-        self.reply("Send: " + " ".join(self.service.get_params(name)))
+        self.reply("Please send me: " + " ".join(self.service.get_params(name)))
         self.user_state = State.INITIALIZING
 
     #TODO: This method need to be rewriten with respect to the differences between the user types
