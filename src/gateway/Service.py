@@ -9,6 +9,7 @@ import json
 from collections.abc import Callable
 from typing import Any
 import inspect
+import wikipediaapi
 
 DICT_VALUE = "api_keys"
 
@@ -18,13 +19,15 @@ class Service:
 
     func_dict: dict[str, Callable[[Any], Any]]
     api_dict: dict[str, str]
+    user_type : UserType
 
-    def __init__(self) -> None:
+    def __init__(self, user_type) -> None:
         """Initialize that service guy
         Resources:
             - json to dict:
                 https://www.geeksforgeeks.org/python/convert-json-to-dictionary-in-python/
         """
+        self.user_type = user_type
         self.func_dict = {
             "wikipedia": self.wikipedia,
             # TODO: add more here
@@ -71,5 +74,7 @@ class Service:
         return "Im not implemented, I've never been implemented"
         # raise NotImplementedError
 
+
+    
     def available_services(self) -> str:
         return "Available services: " + ", ".join(self.func_dict)   

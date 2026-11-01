@@ -49,8 +49,9 @@ class User:
         print("attempting to construct")
         self.device = device
         self.contact = contact
+        self.user_type = user_type
         
-        self.service = Service() # this will break silently if you dont have the secrets.jon, ask Joel or Natalie
+        self.service = Service(user_type) # this will break silently if you dont have the secrets.jon, ask Joel or Natalie
 
         self.user_state = State.MENU
         self.current_api = ""
