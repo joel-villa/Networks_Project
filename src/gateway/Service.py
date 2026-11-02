@@ -38,7 +38,7 @@ class Service:
             "wikipedia": self.wikipedia,
             "weather": self.weather,
             "pokemon": self.pokemon,
-            "nasa": self.nasa,
+            # "nasa": self.nasa,
             # "country": self.country,
             "book": self.book,
             # TODO: add more here
@@ -149,13 +149,13 @@ class Service:
         response.raise_for_status()
         return response.json()
 
-    def nasa(self):
-        response = requests.get(
-            "https://api.nasa.gov/planetary/apod",
-            params={"api_key": self.api_dict[nasa]},
-        )
-        response.raise_for_status()
-        return response.json()
+    # def nasa(self, nothing_required:str):
+    #     response = requests.get(
+    #         "https://api.nasa.gov/planetary/insight_weather",
+    #         params={"api_key": self.api_dict[nasa]},
+    #     )
+    #     response.raise_for_status()
+    #     return response.json()
 
     def book(self, name):
         response = requests.get(
