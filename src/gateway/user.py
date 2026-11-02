@@ -95,7 +95,7 @@ class User:
             text = self.inbox.get()
             if text is None:
                 break
-            print(f"Received: {text}")
+            # print(f"Received: {text}")
             try:
                 self.handle_message(text)
             except Exception as e:
@@ -175,6 +175,7 @@ class User:
 
     #         message = Message((current_responce), package_id, i, (len(current_responce)/MAX_MSG_LEN))
 
+    # this needs to be changed ASAP to reflect the message class so that there is RDT
     def start_serving_computer(self):
         i = 0
         final_sequence_number = (len(self.current_responce) / MAX_MSG_LEN) - 1
@@ -208,13 +209,31 @@ class User:
         self.responce_index += 1
 
     def destroy(self) -> None:
+        """Destroys the thread and unsubscribes
+
+        Args:
+            self: This User instance
+           
+        """
         self.subscription.unsubscribe()
         self.thread.join()
 
     async def on_message(self, event: Event) -> None:
+        """Puts the recived message in the inbox queque
+
+        Args:
+            self: This User instance
+            event: the message recieved meshcore event
+        """
         self.inbox.put(event.payload["text"])
 
     def reply(self, text: str) -> None:
+        """Sends a message to the user
+
+        Args:
+            self: This User instance
+            text: The message to be sent to the user
+        """
         print(f"Sending: {text}")
         future = asyncio.run_coroutine_threadsafe(
             self.device.commands.send_msg(self.contact, text), self.loop

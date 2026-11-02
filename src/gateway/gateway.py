@@ -65,6 +65,7 @@ class Gateway:
         # self.users[sender].run()
 
     def remove_user(self, sender: str) -> None:
+        
         user = self.users.pop(sender, None)
         if user:
             user.destroy()
