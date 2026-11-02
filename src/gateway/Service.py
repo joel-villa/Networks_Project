@@ -6,12 +6,17 @@ Repository of APIS
 """
 
 import json
+import uuid
+import requests
 from collections.abc import Callable
 from typing import Any
 import inspect
 import wikipediaapi
+from ..utils.Message import Message
+from ..utils.UserType import UserType
 
 DICT_VALUE = "api_keys"
+MAX_MSG_LEN = 130
 
 
 class Service:
@@ -53,38 +58,89 @@ class Service:
     
     
     def get_params(self, service_name:str)->Any:
+        """Gets the required params of the api
+
+        Args:
+            service_name (str): What website
+
+        Returns:
+             Any: the params required
+        """
         function = self.func_dict[service_name]
         sig = inspect.signature(function)
         param_names = list(sig.parameters.keys())
         return param_names
 
-
+    #TODO: I will fix this, I wanted to use the python wiki instead of the url, but I couldn't get the plain
+    # wiki stlying out of it
     def wikipedia(self, string_to_be_queried: str) -> Any:
-        wiki_wiki = wikipediaapi.Wikipedia(
-            user_agent='WikiMesh (nrunyan@unm.edu)', #wikapedia requires that u ID yourself
-            language='en',
-            extract_format=wikipediaapi.ExtractFormat.WIKI
-        )
         
-        results = wiki_wiki.page(string_to_be_queried)
-        print("here sir")
-        print(results.text)
-        print("here")
-
-
         """Wikipedia query
 
         Args:
-            string_to_be_queried (str): Thing to look up on wikepedia (Ex: Ghonnerrea), it is a verbose name as that is what is printed by the device
+            string_to_be_queried (str): Thing to look up on wikepedia (Ex: Ghonnerrea), 
+            it is a verbose name as that is what is printed by the device
 
         Returns:
              returned_obj (TBD): The test file returned
         """
+        
         assert type(string_to_be_queried) is str, (
             f"you bad bad bad bad you, I want strings not, {type(string_to_be_queried)}s"
         )
-        return results.text
-        # raise NotImplementedError
+
+        if(self.user_type is UserType.BASIC_MESH):
+            wiki_wiki = wikipediaapi.Wikipedia(
+                user_agent='WikiMesh (nrunyan@unm.edu)', #wikapedia requires that u ID yourself
+                language='en',
+                extract_format=wikipediaapi.ExtractFormat.WIKI
+            )
+        
+            results = wiki_wiki.page(string_to_be_queried)
+            print(results.text)
+       
+            return results.text
+
+
+        url = "https://en.wikipedia.org/w/api.php"
+
+        params = {
+            "action": "query",
+            "format": "json",
+            "formatversion": 2,
+            "prop": "revisions",
+            "titles": string_to_be_queried,
+            "redirects": 1,
+            "rvprop": "content",
+            "rvslots": "main"
+        }
+
+        headers = {
+            "User-Agent": "WikiMesh (nrunyan@unm.edu)"
+        }
+
+        response = requests.get(
+            url,
+            params=params,
+            headers=headers,
+            timeout=20
+        )
+
+        response.raise_for_status()
+        data = response.json()
+
+        page = data["query"]["pages"][0]
+
+        if "missing" in page:
+            return None
+
+        wiki_text = page["revisions"][0]["slots"]["main"]["content"]        
+
+        print(wiki_text)
+        return wiki_text
+
+        
+       
 
 
     
