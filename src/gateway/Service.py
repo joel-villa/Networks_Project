@@ -25,7 +25,7 @@ class Service:
 
     func_dict: dict[str, Callable[[Any], Any]]
     api_dict: dict[str, str]
-    user_type : UserType
+    user_type: UserType
 
     def __init__(self, user_type) -> None:
         """Initialize that service guy
@@ -36,7 +36,7 @@ class Service:
         self.user_type = user_type
         self.func_dict = {
             "wikipedia": self.wikipedia,
-            "weather" : self.weather,
+            "weather": self.weather,
             "pokemon": self.pokemon,
             "nasa": self.nasa,
             # "country": self.country,
@@ -61,9 +61,8 @@ class Service:
         """
         function = self.func_dict[service_name]
         return function(query_args)
-    
-    
-    def get_params(self, service_name:str)->Any:
+
+    def get_params(self, service_name: str) -> Any:
         """Gets the required params of the api
 
         Args:
@@ -77,36 +76,34 @@ class Service:
         param_names = list(sig.parameters.keys())
         return param_names
 
-    #TODO: I will fix this, I wanted to use the python wiki instead of the url, but I couldn't get the plain
+    # TODO: I will fix this, I wanted to use the python wiki instead of the url, but I couldn't get the plain
     # wiki stlying out of it
     def wikipedia(self, string_to_be_queried: str) -> Any:
-        
         """Wikipedia query
 
         Args:
-            string_to_be_queried (str): Thing to look up on wikepedia (Ex: Ghonnerrea), 
+            string_to_be_queried (str): Thing to look up on wikepedia (Ex: Ghonnerrea),
             it is a verbose name as that is what is printed by the device
 
         Returns:
              returned_obj (TBD): The test file returned
         """
-        
+
         assert type(string_to_be_queried) is str, (
             f"you bad bad bad bad you, I want strings not, {type(string_to_be_queried)}s"
         )
 
-        if(self.user_type is UserType.BASIC_MESH):
+        if self.user_type is UserType.BASIC_MESH:
             wiki_wiki = wikipediaapi.Wikipedia(
-                user_agent='WikiMesh (nrunyan@unm.edu)', #wikapedia requires that u ID yourself
-                language='en',
-                extract_format=wikipediaapi.ExtractFormat.WIKI
+                user_agent="WikiMesh (nrunyan@unm.edu)",  # wikapedia requires that u ID yourself
+                language="en",
+                extract_format=wikipediaapi.ExtractFormat.WIKI,
             )
-        
+
             results = wiki_wiki.page(string_to_be_queried)
             print(results.text)
-       
-            return results.text
 
+            return results.text
 
         url = "https://en.wikipedia.org/w/api.php"
 
@@ -118,19 +115,12 @@ class Service:
             "titles": string_to_be_queried,
             "redirects": 1,
             "rvprop": "content",
-            "rvslots": "main"
+            "rvslots": "main",
         }
 
-        headers = {
-            "User-Agent": "WikiMesh (nrunyan@unm.edu)"
-        }
+        headers = {"User-Agent": "WikiMesh (nrunyan@unm.edu)"}
 
-        response = requests.get(
-            url,
-            params=params,
-            headers=headers,
-            timeout=20
-        )
+        response = requests.get(url, params=params, headers=headers, timeout=20)
 
         response.raise_for_status()
         data = response.json()
@@ -140,12 +130,10 @@ class Service:
         if "missing" in page:
             return None
 
-        wiki_text = page["revisions"][0]["slots"]["main"]["content"]        
+        wiki_text = page["revisions"][0]["slots"]["main"]["content"]
 
         print(wiki_text)
         return wiki_text
-
-
 
     def weather(self, latitude=35.0844, longitude=-106.6504):
         response = requests.get(
@@ -153,31 +141,28 @@ class Service:
             params={
                 "latitude": latitude,
                 "longitude": longitude,
-                "current": "temperature_2m,relative_humidity_2m,wind_speed_10m"
-            }
+                "current": "temperature_2m,relative_humidity_2m,wind_speed_10m",
+            },
         )
         response.raise_for_status()
         return response.json()
 
     def pokemon(self, name):
-        response = requests.get(
-            f"https://pokeapi.co/api/v2/pokemon/{name}"
-        )
+        response = requests.get(f"https://pokeapi.co/api/v2/pokemon/{name}")
         response.raise_for_status()
         return response.json()
 
     def nasa(self):
         response = requests.get(
             "https://api.nasa.gov/planetary/apod",
-            params={"api_key": self.api_dict[nasa]}
+            params={"api_key": self.api_dict[nasa]},
         )
         response.raise_for_status()
         return response.json()
 
     def book(self, name):
         response = requests.get(
-            "https://openlibrary.org/search.json",
-            params={"q": name, "limit": 5}
+            "https://openlibrary.org/search.json", params={"q": name, "limit": 5}
         )
         response.raise_for_status()
         return response.json()
@@ -189,7 +174,5 @@ class Service:
     #     response.raise_for_status()
     #     return response.json()
 
-
-    
     def available_services(self) -> str:
-        return "Available services: " + ", ".join(self.func_dict)   
+        return "Available services: " + ", ".join(self.func_dict)

@@ -2,8 +2,9 @@
 
 from .UserType import UserType
 
-#Due to the fact that meshnodes should recives slower and that for users, it would be confusing to add an id an message numbers
-#I think we should just use this for the computer
+
+# Due to the fact that meshnodes should recives slower and that for users, it would be confusing to add an id an message numbers
+# I think we should just use this for the computer
 class Message:
     message: str
     id: int
@@ -29,4 +30,4 @@ class Message:
         self.final_sequence_number = final_sequence_number
 
     def to_string(self) -> str:
-        return(f"{id}:{sequence_number}:message")
+        return f"{id}:{sequence_number}:message"

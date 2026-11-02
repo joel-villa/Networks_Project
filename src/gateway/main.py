@@ -10,7 +10,6 @@ from meshcore import EventType, MeshCore
 from meshcore.events import Event
 
 
-
 async def main() -> None:
     load_dotenv()
     path = os.getenv("MESH_PATH")
@@ -22,4 +21,3 @@ async def main() -> None:
 
 if __name__ == "__main__":
     asyncio.run(main())
-

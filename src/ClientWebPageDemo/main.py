@@ -9,8 +9,6 @@ from src.client.services.wikitohtml import generatePage
 from src.client.services.getWikitext import getWikitext
 
 
-
-
 """
 required packages:
 pip install fastapi uvicorn jinja2
@@ -24,12 +22,14 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="clientPages")
 
+
 @app.get("/")
 async def menu(request: Request):
     # todo: will need code to try to initiate the connection with client
     # if wikipedia Api is pressed -> initiate_wikipedia_connection()
     # return templates.TemplateResponse("index.html", {"request": request})
     return templates.TemplateResponse(request=request, name="index.html")
+
 
 @app.get("/errorScreen")
 async def error(request: Request):
@@ -60,12 +60,16 @@ async def embeddedText(request: Request, q: str = None):
 
         # turn the wiki format into html
         css_string = '<link rel="stylesheet" href="/static/wikipedia.css">'
-        generated_html_string = (generatePage(q, sample_wikitext))
-        generated_html_string = generated_html_string.replace("</head>", f"{css_string}\n</head>")
+        generated_html_string = generatePage(q, sample_wikitext)
+        generated_html_string = generated_html_string.replace(
+            "</head>", f"{css_string}\n</head>"
+        )
         return HTMLResponse(content=generated_html_string)
 
-    return templates.TemplateResponse(request=request,name="embeddedText.html",context={"search_query": q}
+    return templates.TemplateResponse(
+        request=request, name="embeddedText.html", context={"search_query": q}
     )
+
 
 # todo def initiate_connection()
 
