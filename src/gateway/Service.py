@@ -76,6 +76,7 @@ class Service:
         param_names = list(sig.parameters.keys())
         return param_names
 
+    
     # TODO: I will fix this, I wanted to use the python wiki instead of the url, but I couldn't get the plain
     # wiki stlying out of it
     def wikipedia(self, string_to_be_queried: str) -> Any:
