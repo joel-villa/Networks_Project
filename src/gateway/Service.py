@@ -15,6 +15,7 @@ import inspect
 import wikipediaapi
 from ..utils.Message import Message
 from ..utils.UserType import UserType
+from ddgs import DDGS
 
 DICT_VALUE = "api_keys"
 MAX_MSG_LEN = 130
@@ -36,9 +37,10 @@ class Service:
         self.user_type = user_type
         self.func_dict = {
             "wikipedia": self.wikipedia,
+            "duckduckgo": self.duckduckgo,
             "weather": self.weather,
             "pokemon": self.pokemon,
-            # "nasa": self.nasa,
+            "nasa": self.nasa,
             # "country": self.country,
             "book": self.book,
             # TODO: add more here
@@ -144,18 +146,23 @@ class Service:
         response.raise_for_status()
         return response.json()
 
+    def duckduckgo(self, string_to_be_queried):
+        results = DDGS().text(string_to_be_queried, max_results=5)
+        print(results)   
+        return results
+
     def pokemon(self, name):
         response = requests.get(f"https://pokeapi.co/api/v2/pokemon/{name}")
         response.raise_for_status()
         return response.json()
 
-    # def nasa(self, nothing_required:str):
-    #     response = requests.get(
-    #         "https://api.nasa.gov/planetary/insight_weather",
-    #         params={"api_key": self.api_dict[nasa]},
-    #     )
-    #     response.raise_for_status()
-    #     return response.json()
+    def nasa(self, nothing_required:str):
+        response = requests.get(
+            "https://api.nasa.gov/planetary/insight_weather",
+            params={"api_key": self.api_dict["nasa"]},
+        )
+        response.raise_for_status()
+        return response.json()
 
     def book(self, name):
         response = requests.get(
