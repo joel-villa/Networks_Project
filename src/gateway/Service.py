@@ -8,6 +8,7 @@ Repository of APIS
 import json
 import uuid
 import requests
+import requests
 from collections.abc import Callable
 from typing import Any
 import inspect
@@ -35,6 +36,11 @@ class Service:
         self.user_type = user_type
         self.func_dict = {
             "wikipedia": self.wikipedia,
+            "weather" : self.weather,
+            "pokemon": self.pokemon,
+            "nasa": self.nasa,
+            # "country": self.country,
+            "book": self.book,
             # TODO: add more here
         }
         print("added services")
@@ -139,8 +145,49 @@ class Service:
         print(wiki_text)
         return wiki_text
 
-        
-       
+
+
+    def weather(self, latitude=35.0844, longitude=-106.6504):
+        response = requests.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": latitude,
+                "longitude": longitude,
+                "current": "temperature_2m,relative_humidity_2m,wind_speed_10m"
+            }
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def pokemon(self, name):
+        response = requests.get(
+            f"https://pokeapi.co/api/v2/pokemon/{name}"
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def nasa(self):
+        response = requests.get(
+            "https://api.nasa.gov/planetary/apod",
+            params={"api_key": self.api_dict[nasa]}
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def book(self, name):
+        response = requests.get(
+            "https://openlibrary.org/search.json",
+            params={"q": name, "limit": 5}
+        )
+        response.raise_for_status()
+        return response.json()
+
+    # def country(self, name):
+    #     response = requests.get(
+    #         f"https://restcountries.com/v3.1/name/{name}"
+    #     )
+    #     response.raise_for_status()
+    #     return response.json()
 
 
     
