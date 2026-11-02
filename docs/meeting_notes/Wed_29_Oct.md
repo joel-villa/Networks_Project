@@ -17,3 +17,6 @@ write quick readme of what directory ur in and where to run
 run with -m flag, example of it in benchmarking test
 
 TODO by next week, everyone finishes their part and we connect it on wednesday
+
+Notes for next meeting:
+Issue with wiki api, providing wiki files, other api's, weather, etc does not provide wiki versions, should that be formated by the client? the client is hard to read as it splits sentences and words, is it fair to sacrifice some space so that words or sentences are not broken up in a naive way?
