@@ -118,14 +118,10 @@ class Service:
             "rvprop": "content",
             "rvslots": "main",
         }
-
         headers = {"User-Agent": "WikiMesh (nrunyan@unm.edu)"}
-
         response = requests.get(url, params=params, headers=headers, timeout=20)
-
         response.raise_for_status()
         data = response.json()
-
         page = data["query"]["pages"][0]
 
         if "missing" in page:
