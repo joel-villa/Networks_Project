@@ -5,7 +5,7 @@ Resources:
 """
 
 import asyncio
-from threading import Condition #TODO: replace with async Event
+from threading import Condition  # TODO: replace with async Event
 
 import numpy as np
 from meshcore import MeshCore

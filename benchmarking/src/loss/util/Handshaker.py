@@ -2,17 +2,15 @@
 
 import asyncio
 import os
-import sys
 import warnings
 from functools import partial
-from threading import BoundedSemaphore, Condition, Thread #TODO: replace with event
+from threading import BoundedSemaphore, Condition, Thread  # TODO: replace with event
 from typing import Any
 
 from dotenv import load_dotenv
 from meshcore import EventType, MeshCore
 from meshcore.events import Event
 
-from src.Test import Test
 from src.loss.util.MsgType import MsgType
 from src.util.constants import N_CHAR_PUB_KEY_PREFIX
 from src.util.RDT import RDT
@@ -169,7 +167,6 @@ class Handshaker:
         for i, sender in enumerate(senders):
             device_map[sender] = receivers[i]
 
-
         print("DUT: alerting receivers that the handshake is done")
         for receiver in device_map.values():
             await dut.commands.send_msg(
@@ -190,7 +187,7 @@ class Handshaker:
             recieved_msg (EventType): Message recieved o7
             dut_key_pref (str): The dut public key prefix
         """
-        print(f"in __handle_msg_from_dut: {received_msg.payload["text"]}")
+        print(f"in __handle_msg_from_dut: {received_msg.payload['text']}")
         if received_msg.payload["pubkey_prefix"] == dut_key_pref:
             with self.cv:
                 self.awaiting_done_msg = False
@@ -289,9 +286,11 @@ class Handshaker:
 
         return send_devs, recv_devs, send_contacts, recv_contacts
 
-def __wrap_dut_handshake(handshaker:Handshaker, mesh:MeshCore) -> None:
+
+def __wrap_dut_handshake(handshaker: Handshaker, mesh: MeshCore) -> None:
     """For testing purposes"""
     asyncio.run(handshaker.dut_handshake(mesh))
+
 
 async def main() -> None:
     """Run a loss test"""
@@ -334,7 +333,10 @@ async def main() -> None:
                     dut_contacts.append(contact)
                     break
 
-    dut_thread = Thread(target=__wrap_dut_handshake, kwargs={"handshaker":handshake_dut, "mesh":dut_mesh})
+    dut_thread = Thread(
+        target=__wrap_dut_handshake,
+        kwargs={"handshaker": handshake_dut, "mesh": dut_mesh},
+    )
     dut_thread.start()
     await handshake_timekeeper.timekeeper_handshake(
         devices=local_devices,
@@ -342,6 +344,7 @@ async def main() -> None:
         timeout_time=5,
     )
     dut_thread.join()
+
 
 if __name__ == "__main__":
     """Python main"""

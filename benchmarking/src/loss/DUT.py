@@ -4,7 +4,7 @@ Also, the DUT needs a map of contacts to contacts (contacts to recv and send to
 accordingly)"""
 
 import asyncio
-from threading import Condition, Thread # Replace with asyncio.Event
+from threading import Condition, Thread  # Replace with asyncio.Event
 from typing import Any
 from warnings import warn
 
@@ -14,7 +14,6 @@ from meshcore.meshcore import MeshCore
 
 from src.loss.util.Handshaker import Handshaker
 from src.loss.util.MsgType import MsgType
-from src.util.constants import N_CHAR_PUB_KEY_PREFIX
 
 
 class DUT:
@@ -70,6 +69,7 @@ class DUT:
     def __wrap_run(self) -> None:
         """A non async function that calls the asyn __run_test() function"""
         asyncio.run(self.__run_test())
+
     async def __run_test(self) -> None:
         """The test!!
 
@@ -77,9 +77,7 @@ class DUT:
             - Loop through dictionary key value pairs:
                 https://www.w3schools.com/python/python_dictionaries_loop.asp
         """
-        self.device_map = await self.handshaker.dut_handshake(
-            dut=self.dut
-        )
+        self.device_map = await self.handshaker.dut_handshake(dut=self.dut)
 
         # The actual loss test
         self.awaiting_done_msg = True
