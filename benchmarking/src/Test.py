@@ -140,7 +140,6 @@ class Test(ABC):
 
         dut_contacts = []
         for device in local_devices:
-            print(f"source_dev: {device}")
             if device is None:
                 raise ValueError(f"None source: {local_devices}")
             # Get your contacts
