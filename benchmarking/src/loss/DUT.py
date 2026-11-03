@@ -4,7 +4,7 @@ Also, the DUT needs a map of contacts to contacts (contacts to recv and send to
 accordingly)"""
 
 import asyncio
-from threading import Condition
+from threading import Condition, Thread
 from typing import Any
 from warnings import warn
 
@@ -26,6 +26,7 @@ class DUT:
     device_map: dict[str, dict[str, Any]]
     awaiting_done_msg: bool
     cv: Condition
+    thread: Thread
 
     def __init__(
         self,
@@ -36,28 +37,7 @@ class DUT:
         self.device_map = {}
         self.awaiting_done_msg = False
         self.cv = Condition()
-        asyncio.run(self.__init_dut())
-
-    async def __init_dut(self) -> None:
-        """You know the vibes, put the asynchronous stuff here (including
-        handshake)
-        Resources:
-            - Loop through dictionary key value pairs:
-                https://www.w3schools.com/python/python_dictionaries_loop.asp
-        """
-        key_to_contact = {}
-
-        result = await self.dut.commands.get_contacts()
-        contacts = result.payload
-        if contacts:
-            for pub_key, contact in contacts.items():
-                pub_key_pref = pub_key[:N_CHAR_PUB_KEY_PREFIX]
-                key_to_contact[pub_key_pref] = contact
-        else:
-            raise ValueError("device under test contacts inaccessible")
-        self.device_map = await self.handshaker.dut_handshake(
-            dut=self.dut, key_to_contact=key_to_contact
-        )
+        self.thread = Thread(target=self.__run_test)
 
     async def __handle_message(
         self,
@@ -87,7 +67,30 @@ class DUT:
             case _:
                 pass
 
-    async def run_test(self) -> None:
+    async def __run_test(self) -> None:
+        """The test!!
+
+        Resources:
+            - Loop through dictionary key value pairs:
+                https://www.w3schools.com/python/python_dictionaries_loop.asp
+        """
+
+        # Setting key_to_contact dict via a handshake
+        key_to_contact = {}
+
+        result = await self.dut.commands.get_contacts()
+        contacts = result.payload
+        if contacts:
+            for pub_key, contact in contacts.items():
+                pub_key_pref = pub_key[:N_CHAR_PUB_KEY_PREFIX]
+                key_to_contact[pub_key_pref] = contact
+        else:
+            raise ValueError("device under test contacts inaccessible")
+        self.device_map = await self.handshaker.dut_handshake(
+            dut=self.dut, key_to_contact=key_to_contact
+        )
+
+        # The actual loss test
         self.awaiting_done_msg = True
         await self.dut.start_auto_message_fetching()
         self.dut.subscribe(
@@ -99,3 +102,13 @@ class DUT:
             with self.cv:
                 self.cv.wait()
         await self.dut.stop_auto_message_fetching()
+
+
+    def run_test(self) -> None:
+        """Run the loss test on the DUT side of things
+	    """
+        self.thread.start()
+
+    def finish(self) -> None:
+        """Wair for the loss test to finish"""
+        self.thread.join()
