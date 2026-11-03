@@ -5,7 +5,7 @@ Resources:
 """
 
 import asyncio
-from threading import Condition
+from threading import Condition #TODO: replace with async Event
 
 import numpy as np
 from meshcore import MeshCore
@@ -191,6 +191,8 @@ class Loss(Test):
         timeouts = self.__calculate_timeouts(min_times)
         frames_received = np.full(timeouts.shape, np.nan)
 
+        await asyncio.sleep(max_times[-1] * 2)
+
         print("Starting Test!")
         # TODO: do test for various frame sizes, setting timeouts along the way
         for i, frame_size in enumerate(frame_sizes):
@@ -213,7 +215,7 @@ class Loss(Test):
                     sender.stop()
 
                 # Sleep a bit to ensure everything has time to finish
-                await asyncio.sleep(max_times[i] * self.prop_max_time)
+                await asyncio.sleep(max_times[i] * 2)
 
                 # Stop the count!
                 for reciever in receivers:
