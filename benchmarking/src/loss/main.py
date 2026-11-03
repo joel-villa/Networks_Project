@@ -45,7 +45,7 @@ async def main() -> None:
 
     print("Connecting devices")
     # Connect to your device
-#    dut_mesh = await MeshCore.create_ble(bluetooth, pin=bluetooth_pin)
+    #    dut_mesh = await MeshCore.create_ble(bluetooth, pin=bluetooth_pin)
     dut_mesh = await MeshCore.create_serial(path_2)
     print("dut connected")
     send_mesh = await MeshCore.create_serial(path_0)
@@ -86,6 +86,7 @@ async def main() -> None:
     results = LossResults(file_name=file_id)
 
     results.disp_results()
+
 
 if __name__ == "__main__":
     """Python main"""

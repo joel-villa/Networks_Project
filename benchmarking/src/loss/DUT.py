@@ -3,7 +3,6 @@ needs a thread and is capable of sending and recieving through that mesh node.
 Also, the DUT needs a map of contacts to contacts (contacts to recv and send to
 accordingly)"""
 
-import asyncio
 from threading import Condition, Thread
 from typing import Any
 from warnings import warn
@@ -103,10 +102,8 @@ class DUT:
                 self.cv.wait()
         await self.dut.stop_auto_message_fetching()
 
-
     def run_test(self) -> None:
-        """Run the loss test on the DUT side of things
-	    """
+        """Run the loss test on the DUT side of things"""
         self.thread.start()
 
     def finish(self) -> None:
