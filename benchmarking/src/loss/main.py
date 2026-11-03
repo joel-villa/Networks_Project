@@ -27,7 +27,7 @@ async def main() -> None:
     assert path_1 is not None
     assert path_2 is not None
 
-    contact_under_test = "Jonah Caquin"
+    contact_under_test = "pro_0"
     frame_count = 5
     granularity = 0.1  # 10% is maximum granularity
     num_frame_sizes = 5  # 5 is minimum
@@ -46,12 +46,9 @@ async def main() -> None:
     print("Connecting devices")
     # Connect to your device
     #    dut_mesh = await MeshCore.create_ble(bluetooth, pin=bluetooth_pin)
-    dut_mesh = await MeshCore.create_serial(path_2)
-    print("dut connected")
     send_mesh = await MeshCore.create_serial(path_0)
-    print("send connected")
     recv_mesh = await MeshCore.create_serial(path_1)
-    print("recv connected")
+    dut_mesh = await MeshCore.create_serial(path_2)
 
     source = [
         send_mesh,
