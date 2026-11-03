@@ -52,4 +52,4 @@ class RDT:
             if result:
                 msg_acked = True
 
-        n_attempts += 1
+        return n_attempts
