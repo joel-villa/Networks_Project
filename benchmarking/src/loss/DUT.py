@@ -3,7 +3,8 @@ needs a thread and is capable of sending and recieving through that mesh node.
 Also, the DUT needs a map of contacts to contacts (contacts to recv and send to
 accordingly)"""
 
-from threading import Condition, Thread
+import asyncio
+from threading import Condition, Thread  # Replace with asyncio.Event
 from typing import Any
 from warnings import warn
 
@@ -13,7 +14,6 @@ from meshcore.meshcore import MeshCore
 
 from src.loss.util.Handshaker import Handshaker
 from src.loss.util.MsgType import MsgType
-from src.util.constants import N_CHAR_PUB_KEY_PREFIX
 
 
 class DUT:
@@ -36,7 +36,7 @@ class DUT:
         self.device_map = {}
         self.awaiting_done_msg = False
         self.cv = Condition()
-        self.thread = Thread(target=self.__run_test)
+        self.thread = Thread(target=self.__wrap_run)
 
     async def __handle_message(
         self,
@@ -66,6 +66,10 @@ class DUT:
             case _:
                 pass
 
+    def __wrap_run(self) -> None:
+        """A non async function that calls the asyn __run_test() function"""
+        asyncio.run(self.__run_test())
+
     async def __run_test(self) -> None:
         """The test!!
 
@@ -73,21 +77,7 @@ class DUT:
             - Loop through dictionary key value pairs:
                 https://www.w3schools.com/python/python_dictionaries_loop.asp
         """
-
-        # Setting key_to_contact dict via a handshake
-        key_to_contact = {}
-
-        result = await self.dut.commands.get_contacts()
-        contacts = result.payload
-        if contacts:
-            for pub_key, contact in contacts.items():
-                pub_key_pref = pub_key[:N_CHAR_PUB_KEY_PREFIX]
-                key_to_contact[pub_key_pref] = contact
-        else:
-            raise ValueError("device under test contacts inaccessible")
-        self.device_map = await self.handshaker.dut_handshake(
-            dut=self.dut, key_to_contact=key_to_contact
-        )
+        self.device_map = await self.handshaker.dut_handshake(dut=self.dut)
 
         # The actual loss test
         self.awaiting_done_msg = True

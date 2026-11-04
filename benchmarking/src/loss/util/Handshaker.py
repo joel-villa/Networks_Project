@@ -1,11 +1,19 @@
-"""The device which handles the initial handshake"""
+"""The device which handles the initial handshake
 
+Resources:
+    - Events (an asynchronous condition variable):
+        https://docs.python.org/3/library/asyncio-sync.html#asyncio.Event
+"""
+
+import asyncio
+import os
 import sys
 import warnings
 from functools import partial
-from threading import BoundedSemaphore, Condition
+from threading import BoundedSemaphore  # TODO: replace with event
 from typing import Any
 
+from dotenv import load_dotenv
 from meshcore import EventType, MeshCore
 from meshcore.events import Event
 
@@ -18,8 +26,8 @@ class Handshaker:
     """Yktv"""
 
     device_type: int
-    awaiting_done_msg: bool
-    cv: Condition
+    handshake_done: asyncio.Event
+    ready: asyncio.Event
     rdt: RDT
 
     def __init__(self, device_type: int) -> None:
@@ -31,16 +39,17 @@ class Handshaker:
                 2 -> Device Under Test (DUT)
         """
         self.device_type = device_type
-        self.awaiting_done_msg = False
-        self.cv = Condition()
+        self.handshake_done = asyncio.Event()
+        self.ready = asyncio.Event()
         self.rdt = RDT()
 
-    def __dut_handshake_msg(
+    async def __dut_handshake_msg(
         self,
         received_msg: Event,
         key_to_contact: dict[str, dict],
-        receivers: list[str],
-        senders: list[dict],
+        senders: list[str],
+        receivers: list[dict],
+        n_pairs: int,
         recv_semaphore: BoundedSemaphore,
         send_semaphore: BoundedSemaphore,
     ) -> None:
@@ -55,35 +64,38 @@ class Handshaker:
                 https://pypi.org/project/meshcore/
         """
         msg_type = MsgType(received_msg.payload["text"])
+        print(f"in __dut_handshake_msg: {msg_type}")
+        sys.stdout.flush()
         pubkey_prefix = received_msg.payload["pubkey_prefix"]
+        print(f"pubkey_prefix: {pubkey_prefix}")
+        sys.stdout.flush()
 
         match msg_type:
             case MsgType.SENDER:
-                # Test sender => DUT reciever
+                with send_semaphore:
+                    senders.append(pubkey_prefix)
+            case MsgType.RECEIVER:
                 contact = key_to_contact.get(pubkey_prefix)
                 if contact:
-                    with send_semaphore:
-                        senders.append(contact)
-            case MsgType.RECEIVER:
-                with recv_semaphore:
-                    receivers.append(pubkey_prefix)
-            case MsgType.HANDSHAKE_DONE:
-                with self.cv:
-                    self.awaiting_done_msg = False
-                    self.cv.notify()
+                    with recv_semaphore:
+                        receivers.append(contact)
             case _:
                 warnings.warn(f"Unexpected MsgType in handshake: {msg_type}")
+        if len(receivers) == n_pairs and len(senders) == n_pairs:
+            # DONE WITH HANDSHAKE!
+            self.handshake_done.set()
 
     async def dut_handshake(
-        self, dut: MeshCore, key_to_contact: dict[str, dict]
+        self,
+        dut: MeshCore,
+        n_pairs: int = 1,
     ) -> dict[str, dict[str, Any]]:
         """The device under test calls this method to do the handshake, it will
         return when complete
 
         Args:
             dut (MeshCore): The MeshCore object
-            key_to_contact (dict[str, dict]): A dictionary of public key
-            prefixes to contact dictionary object
+            n_pairs (int): Expected number of send and recv pairs
 
         Returns:
             device_map (dict[str, dict[str, Any]]): A map of sending device
@@ -101,11 +113,24 @@ class Handshaker:
         assert self.device_type == 2, (
             f"Handshaker initialized with type f{self.device_type} cannot call this method"
         )
+        # Setting key_to_contact dict via a handshake
+        key_to_contact = {}
+
+        result = await dut.commands.get_contacts()
+        contacts = result.payload
+        if contacts:
+            for pub_key, contact in contacts.items():
+                pub_key_pref = pub_key[:N_CHAR_PUB_KEY_PREFIX]
+                key_to_contact[pub_key_pref] = contact
+        else:
+            raise ValueError("device under test contacts inaccessible")
 
         receivers = []
         senders = []
         recv_semaphore = BoundedSemaphore(value=1)
         send_semaphore = BoundedSemaphore(value=1)
+
+        self.handshake_done.clear()
 
         await dut.start_auto_message_fetching()
         callback_func = partial(
@@ -113,6 +138,7 @@ class Handshaker:
             key_to_contact=key_to_contact,
             receivers=receivers,
             senders=senders,
+            n_pairs=n_pairs,
             recv_semaphore=recv_semaphore,
             send_semaphore=send_semaphore,
         )
@@ -121,9 +147,12 @@ class Handshaker:
             callback=callback_func,
         )
 
-        while self.awaiting_done_msg:
-            with self.cv:
-                self.cv.wait()
+        self.ready.set()
+
+        print("DUT: Waiting for Handshake to finish")
+        sys.stdout.flush()
+
+        await self.handshake_done.wait()
 
         # Ensure all processing is good to go
         with recv_semaphore:
@@ -148,9 +177,17 @@ class Handshaker:
         for i, sender in enumerate(senders):
             device_map[sender] = receivers[i]
 
+        print("DUT: alerting receivers that the handshake is done")
+        sys.stdout.flush()
+        for receiver in device_map.values():
+            await dut.commands.send_msg(
+                receiver,
+                MsgType.HANDSHAKE_DONE.name,
+            )
+
         return device_map
 
-    def __handle_msg_from_dut(
+    async def __handle_msg_from_dut(
         self,
         received_msg: Event,
         dut_key_pref: str,
@@ -161,12 +198,10 @@ class Handshaker:
             recieved_msg (EventType): Message recieved o7
             dut_key_pref (str): The dut public key prefix
         """
-        print(received_msg.payload["text"])
+        print(f"in __handle_msg_from_dut: {received_msg.payload['text']}")
         sys.stdout.flush()
         if received_msg.payload["pubkey_prefix"] == dut_key_pref:
-            with self.cv:
-                self.awaiting_done_msg = False
-                self.cv.notify()
+            self.handshake_done.set()
 
     async def timekeeper_handshake(
         self,
@@ -198,7 +233,7 @@ class Handshaker:
             f"Shape mismatch: {len(devices)} != {len(contacts)}"
         )
 
-        self.awaiting_done_msg = True
+        self.handshake_done.clear()
 
         n_pairs = len(devices) // 2
         send_devs = devices[:n_pairs]
@@ -214,7 +249,20 @@ class Handshaker:
             recv_devs = recv_devs[:-1]
             recv_contacts = recv_contacts[:-1]
 
-        print("Starting handshake")
+        # When receive done message -> done
+        callback_func = partial(
+            self.__handle_msg_from_dut,
+            dut_key_pref=recv_contacts[0]["public_key"][:N_CHAR_PUB_KEY_PREFIX],
+        )
+        for recv_dev in recv_devs:
+            await recv_dev.start_auto_message_fetching()
+            recv_dev.subscribe(
+                event_type=EventType.CONTACT_MSG_RECV,
+                callback=callback_func,
+            )
+
+        print("TimeKeeper: Starting handshake")
+        sys.stdout.flush()
         for i, device in enumerate(send_devs):
             await self.rdt.send_msg(
                 device=device,
@@ -230,32 +278,87 @@ class Handshaker:
                 timeout_time=timeout_time,
             )
 
-        for i, device in enumerate(send_devs):
-            await self.rdt.send_msg(
-                device=device,
-                contact=send_contacts[i],
-                message=MsgType.HANDSHAKE_DONE.name,
-                timeout_time=timeout_time,
-            )
-
-        callback_func = partial(
-            self.__handle_msg_from_dut,
-            dut_key_pref=recv_contacts[0]["public_key"][:N_CHAR_PUB_KEY_PREFIX],
-        )
-        for recv_dev in recv_devs:
-            await recv_dev.start_auto_message_fetching()
-            recv_dev.subscribe(
-                event_type=EventType.CONTACT_MSG_RECV,
-                callback=callback_func,
-            )
-
-        print("Waiting for handshake to finish")
+        print("TimeKeeper: Waiting for handshake to finish")
+        sys.stdout.flush()
         # Wait for the DUT to setup
-        while self.awaiting_done_msg:
-            with self.cv:
-                self.cv.wait()
+        await self.handshake_done.wait()
 
         for recv_dev in recv_devs:
             await recv_dev.stop_auto_message_fetching()
 
         return send_devs, recv_devs, send_contacts, recv_contacts
+
+
+def __wrap_dut_handshake(handshaker: Handshaker, mesh: MeshCore) -> None:
+    """For testing purposes"""
+    asyncio.run(handshaker.dut_handshake(mesh))
+
+
+async def main() -> None:
+    """Run a loss test"""
+
+    load_dotenv()
+    # bluetooth = os.getenv("BLUETOOTH")
+    # bluetooth_pin = os.getenv("BLE_PIN")
+    path_0 = os.getenv("MESH_PATH")
+    path_1 = os.getenv("MESH_PATH_1")
+    path_2 = os.getenv("MESH_PATH_2")
+    # assert bluetooth is not None
+    # assert bluetooth_pin is not None
+    assert path_0 is not None
+    assert path_1 is not None
+    assert path_2 is not None
+
+    print("Connecting devices")
+    sys.stdout.flush()
+    # Connect to your device
+    #    dut_mesh = await MeshCore.create_ble(bluetooth, pin=bluetooth_pin)
+    send_mesh = await MeshCore.create_serial(path_0)
+    recv_mesh = await MeshCore.create_serial(path_1)
+    dut_mesh = await MeshCore.create_serial(path_2)
+
+    handshake_timekeeper = Handshaker(device_type=1)
+    handshake_dut = Handshaker(device_type=2)
+
+    dut_name = "pro_0"
+    local_devices = [send_mesh, recv_mesh]
+    dut_contacts = []
+    for device in local_devices:
+        if device is None:
+            raise ValueError(f"None source: {local_devices}")
+        # Get your contacts
+        result = await device.commands.get_contacts()
+        contacts = result.payload
+        if contacts:
+            for contact in contacts.values():
+                #                    print(f"contact: {contact}")
+                if contact["adv_name"] == dut_name:
+                    dut_contacts.append(contact)
+                    break
+
+    dut_task = asyncio.create_task(handshake_dut.dut_handshake(dut_mesh, 1))
+
+    # Don't transmit until the DUT has subscribed.
+    await handshake_dut.ready.wait()
+
+    (
+        send_devs,
+        recv_devs,
+        send_contacts,
+        recv_contacts,
+    ) = await handshake_timekeeper.timekeeper_handshake(
+        devices=local_devices,
+        contacts=dut_contacts,
+        timeout_time=5,
+    )
+
+    device_map = await dut_task
+
+    print(
+        f"send_devs:{send_devs}, recv_devs:{recv_devs}, send_contacts: {send_contacts}, recv_contacts: {recv_contacts}\ndevice_map:{device_map}"
+    )
+
+
+if __name__ == "__main__":
+    """Python main"""
+    asyncio.run(main())
