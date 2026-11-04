@@ -28,8 +28,6 @@ class Loss(Test):
 
     frames_sent: int
     granularity: float
-    awaiting_success: bool
-    cv: Condition
     handshaker: Handshaker
 
     def __init__(
@@ -54,9 +52,7 @@ class Loss(Test):
         """
         self.frames_sent = frames_sent
         self.granularity = granularity
-        self.awaiting_success = True
-        self.cv = Condition()
-        self.handshaker = Handshaker(device_type=1)
+        self.handshaker = Handshaker()
         if prop_min_time:
             assert prop_min_time < 1, f"{prop_min_time} >= 1"
             self.prop_min_time = prop_min_time
