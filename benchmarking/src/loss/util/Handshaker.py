@@ -10,7 +10,7 @@ import os
 import sys
 import warnings
 from functools import partial
-from threading import BoundedSemaphore, Condition, Thread  # TODO: replace with event
+from threading import BoundedSemaphore  # TODO: replace with event
 from typing import Any
 
 from dotenv import load_dotenv
@@ -84,7 +84,6 @@ class Handshaker:
         if len(receivers) == n_pairs and len(senders) == n_pairs:
             # DONE WITH HANDSHAKE!
             self.handshake_done.set()
-
 
     async def dut_handshake(
         self,
@@ -337,14 +336,17 @@ async def main() -> None:
                     dut_contacts.append(contact)
                     break
 
-    dut_task = asyncio.create_task(
-        handshake_dut.dut_handshake(dut_mesh, 1)
-    )
+    dut_task = asyncio.create_task(handshake_dut.dut_handshake(dut_mesh, 1))
 
     # Don't transmit until the DUT has subscribed.
     await handshake_dut.ready.wait()
 
-    send_devs, recv_devs, send_contacts, recv_contacts = await handshake_timekeeper.timekeeper_handshake(
+    (
+        send_devs,
+        recv_devs,
+        send_contacts,
+        recv_contacts,
+    ) = await handshake_timekeeper.timekeeper_handshake(
         devices=local_devices,
         contacts=dut_contacts,
         timeout_time=5,
@@ -352,7 +354,9 @@ async def main() -> None:
 
     device_map = await dut_task
 
-    print(f"send_devs:{send_devs}, recv_devs:{recv_devs}, send_contacts: {send_contacts}, recv_contacts: {recv_contacts}\ndevice_map:{device_map}")
+    print(
+        f"send_devs:{send_devs}, recv_devs:{recv_devs}, send_contacts: {send_contacts}, recv_contacts: {recv_contacts}\ndevice_map:{device_map}"
+    )
 
 
 if __name__ == "__main__":
