@@ -23,20 +23,16 @@ class DUT:
     dut: MeshCore
     handshaker: Handshaker
     device_map: dict[str, dict[str, Any]]
-    awaiting_done_msg: bool
-    cv: Condition
-    thread: Thread
+    done_with_test: asyncio.Event
 
     def __init__(
         self,
         dut: MeshCore,
     ) -> None:
         self.dut = dut
-        self.handshaker = Handshaker(device_type=2)
+        self.handshaker = Handshaker()
         self.device_map = {}
-        self.awaiting_done_msg = False
-        self.cv = Condition()
-        self.thread = Thread(target=self.__wrap_run)
+        self.done_with_test = asyncio.Event()
 
     async def __handle_message(
         self,
@@ -60,42 +56,33 @@ class DUT:
         msg_type = MsgType(received_msg.payload["text"])
         match msg_type:
             case MsgType.DONE_WITH_TEST:
-                with self.cv:
-                    self.awaiting_done_msg = False
-                    self.cv.notify()
+                self.done_with_test.set()
             case _:
                 pass
 
-    def __wrap_run(self) -> None:
-        """A non async function that calls the asyn __run_test() function"""
-        asyncio.run(self.__run_test())
+    async def run_test(self, n_pairs: int) -> None:
+        """Run the loss test on the DUT side of things
 
-    async def __run_test(self) -> None:
-        """The test!!
+        Args:
+            n_pairs (int): number of recv+send pairs expected
 
         Resources:
             - Loop through dictionary key value pairs:
                 https://www.w3schools.com/python/python_dictionaries_loop.asp
         """
-        self.device_map = await self.handshaker.dut_handshake(dut=self.dut)
+        await self.handshaker.prep(dut=self.dut, n_pairs=self.n_pairs)
+        self.device_map = await self.handshaker.start_dut()
 
         # The actual loss test
-        self.awaiting_done_msg = True
-        await self.dut.start_auto_message_fetching()
+        self.done_with_test.clear()
         self.dut.subscribe(
             event_type=EventType.CONTACT_MSG_RECV,
             callback=self.__handle_message,
         )
+        await self.dut.start_auto_message_fetching()
 
-        while self.awaiting_done_msg:
-            with self.cv:
-                self.cv.wait()
-        await self.dut.stop_auto_message_fetching()
-
-    def run_test(self) -> None:
-        """Run the loss test on the DUT side of things"""
-        self.thread.start()
 
     def finish(self) -> None:
         """Wair for the loss test to finish"""
-        self.thread.join()
+        await self.done_with_test.wait()
+        await self.dut.stop_auto_message_fetching()
