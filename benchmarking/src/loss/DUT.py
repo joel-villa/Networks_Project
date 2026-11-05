@@ -10,7 +10,7 @@ from typing import Any
 from warnings import warn
 
 from meshcore import EventType
-from meshcore.events import Event
+from meshcore.events import Event, Subscription
 from meshcore.meshcore import MeshCore
 
 from src.loss.util.Handshaker import Handshaker
@@ -22,6 +22,7 @@ class DUT:
 
     # Incoming messages are gotten using the public key prefix, outgoing using the contact dict
     dut: MeshCore
+    subscripttion: Subscription
     handshaker: Handshaker
     device_map: dict[str, dict[str, Any]]
     done_with_test: asyncio.Event
@@ -82,7 +83,7 @@ class DUT:
 
         # The actual loss test
         self.done_with_test.clear()
-        self.dut.subscribe(
+        self.subscripttion = self.dut.subscribe(
             event_type=EventType.CONTACT_MSG_RECV,
             callback=self.__handle_message,
         )
@@ -91,4 +92,5 @@ class DUT:
     async def finish(self) -> None:
         """Wair for the loss test to finish"""
         await self.done_with_test.wait()
+        self.dut.unsubscribe(self.subscripttion)
         await self.dut.stop_auto_message_fetching()

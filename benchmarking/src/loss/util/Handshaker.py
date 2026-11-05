@@ -15,7 +15,7 @@ from typing import Any
 
 from dotenv import load_dotenv
 from meshcore import EventType, MeshCore
-from meshcore.events import Event
+from meshcore.events import Event, Subscription
 
 from src.loss.util.MsgType import MsgType
 from src.util.constants import N_CHAR_PUB_KEY_PREFIX
@@ -27,6 +27,7 @@ class Handshaker:
 
     handshake_done: asyncio.Event
     rdt: RDT
+    subscriptions: list[tuple[MeshCore, Subscription]]
 
     # DUT stuffs
     senders: list[str]
@@ -38,7 +39,13 @@ class Handshaker:
         """Initiliaze this handshaker either as the DUT or the time keeper"""
         self.handshake_done = asyncio.Event()
         self.rdt = RDT()
+        self.subscriptions = []
         # NOTE: not assigning DUT class variables here (assigned in dut_handshek())
+
+    def __usnubscribe(self):
+        for device, subscription in self.subscriptions:
+            device.unsubscribe(subscription)
+        self.subscriptions = []
 
     async def __dut_handshake_msg(
         self,
@@ -126,10 +133,11 @@ class Handshaker:
             n_pairs=n_pairs,
             key_to_contact=key_to_contact,
         )
-        dut.subscribe(
+        subscription = dut.subscribe(
             event_type=EventType.CONTACT_MSG_RECV,
             callback=callback_func,
         )
+        self.subscriptions.append((dut, subscription))
         self.handshake_done.clear()
         await dut.start_auto_message_fetching()
 
@@ -146,6 +154,7 @@ class Handshaker:
         sys.stdout.flush()
 
         await self.handshake_done.wait()
+        self.__usnubscribe()
         await dut.stop_auto_message_fetching()
 
         # Ensure all processing is good to go
@@ -233,10 +242,11 @@ class Handshaker:
         )
         for recv_dev in recv_devs:
             await recv_dev.start_auto_message_fetching()
-            recv_dev.subscribe(
+            subscription = recv_dev.subscribe(
                 event_type=EventType.CONTACT_MSG_RECV,
                 callback=callback_func,
             )
+            self.subscriptions.append((recv_dev, subscription))
 
         print("TimeKeeper: Starting handshake")
         sys.stdout.flush()
@@ -262,6 +272,7 @@ class Handshaker:
         sys.stdout.flush()
         # Wait for the DUT to setup
         await self.handshake_done.wait()
+        self.__usnubscribe()
 
         for recv_dev in recv_devs:
             await recv_dev.stop_auto_message_fetching()
