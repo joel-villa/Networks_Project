@@ -3,6 +3,8 @@ needs a thread and is capable of sending and recieving through that mesh node.
 Also, the DUT needs a map of contacts to contacts (contacts to recv and send to
 accordingly)"""
 
+#TODO: match subscribes with unsubscribes
+
 import asyncio
 from threading import Condition, Thread  # Replace with asyncio.Event
 from typing import Any
