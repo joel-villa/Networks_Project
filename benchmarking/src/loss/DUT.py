@@ -60,18 +60,22 @@ class DUT:
             case _:
                 pass
 
-    async def run_test(self, n_pairs: int) -> None:
-        """Run the loss test on the DUT side of things
+    async def run_handshake(self, n_pairs: int) -> None:
+        """Run da dang hand thang
 
         Args:
             n_pairs (int): number of recv+send pairs expected
+        """
+        await self.handshaker.start_dut(dut=self.dut, n_pairs=n_pairs) #TODO: n_pairs not needed if in handshaker we could have a DONE msg
+
+    async def run_test(self) -> None:
+        """Run the loss test on the DUT side of things
 
         Resources:
             - Loop through dictionary key value pairs:
                 https://www.w3schools.com/python/python_dictionaries_loop.asp
         """
-        await self.handshaker.prep(dut=self.dut, n_pairs=self.n_pairs)
-        self.device_map = await self.handshaker.start_dut()
+        self.device_map = await self.handshaker.finish_dut(self.dut)
 
         # The actual loss test
         self.done_with_test.clear()
@@ -82,7 +86,7 @@ class DUT:
         await self.dut.start_auto_message_fetching()
 
 
-    def finish(self) -> None:
+    async def finish(self) -> None:
         """Wair for the loss test to finish"""
         await self.done_with_test.wait()
         await self.dut.stop_auto_message_fetching()
