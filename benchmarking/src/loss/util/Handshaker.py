@@ -6,7 +6,6 @@ Resources:
 """
 
 import asyncio
-from asyncio import Task
 import os
 import sys
 import warnings
@@ -36,11 +35,10 @@ class Handshaker:
     recv_semaphore: BoundedSemaphore
 
     def __init__(self) -> None:
-        """Initiliaze this handshaker either as the DUT or the time keeper
-        """
+        """Initiliaze this handshaker either as the DUT or the time keeper"""
         self.handshake_done = asyncio.Event()
         self.rdt = RDT()
-        #NOTE: not assigning DUT class variables here (assigned in dut_handshek())
+        # NOTE: not assigning DUT class variables here (assigned in dut_handshek())
 
     async def __dut_handshake_msg(
         self,
@@ -134,7 +132,6 @@ class Handshaker:
         )
         self.handshake_done.clear()
         await dut.start_auto_message_fetching()
-
 
     async def finish_dut(self, dut: MeshCore) -> dict[str, dict[str, Any]]:
         """Wait for the handshake to finish
@@ -270,7 +267,6 @@ class Handshaker:
             await recv_dev.stop_auto_message_fetching()
 
 
-
 async def main() -> None:
     """Run a loss test"""
 
@@ -312,7 +308,6 @@ async def main() -> None:
                 if contact["adv_name"] == dut_name:
                     dut_contacts.append(contact)
                     break
-
 
     await handshake_dut.start_dut(
         dut=dut_mesh,

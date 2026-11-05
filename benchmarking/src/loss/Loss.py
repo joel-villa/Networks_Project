@@ -5,7 +5,6 @@ Resources:
 """
 
 import asyncio
-from threading import Condition
 from typing import Any  # TODO: replace with async Event
 
 import numpy as np
@@ -152,7 +151,7 @@ class Loss(Test):
              test_id (int): The id of the test
         """
         assert self.test_state == 1, "call run handshake before run_test"
-        send_devs, recv_devs, send_contacts,recv_contacts = handshake_result
+        send_devs, recv_devs, send_contacts, recv_contacts = handshake_result
         await self.handshaker.finish_timekeeper(recv_devs=recv_devs)
 
         frame_sizes = self.get_frame_sizes(num_frame_sizes=num_frame_sizes)

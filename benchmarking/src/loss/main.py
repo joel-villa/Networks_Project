@@ -66,7 +66,9 @@ async def main() -> None:
     )
 
     await dut.run_handshake(n_pairs=len(source) // 2)
-    handshake_result = await loss_test.run_handshake(source=source, dut_name=contact_under_test)
+    handshake_result = await loss_test.run_handshake(
+        source=source, dut_name=contact_under_test
+    )
     await dut.run_test()
     file_id = await loss_test.run_test(
         handshake_result=handshake_result,

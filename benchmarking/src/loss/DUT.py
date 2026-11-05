@@ -3,10 +3,9 @@ needs a thread and is capable of sending and recieving through that mesh node.
 Also, the DUT needs a map of contacts to contacts (contacts to recv and send to
 accordingly)"""
 
-#TODO: match subscribes with unsubscribes
+# TODO: match subscribes with unsubscribes
 
 import asyncio
-from threading import Condition, Thread  # Replace with asyncio.Event
 from typing import Any
 from warnings import warn
 
@@ -68,7 +67,9 @@ class DUT:
         Args:
             n_pairs (int): number of recv+send pairs expected
         """
-        await self.handshaker.start_dut(dut=self.dut, n_pairs=n_pairs) #TODO: n_pairs not needed if in handshaker we could have a DONE msg
+        await self.handshaker.start_dut(
+            dut=self.dut, n_pairs=n_pairs
+        )  # TODO: n_pairs not needed if in handshaker we could have a DONE msg
 
     async def run_test(self) -> None:
         """Run the loss test on the DUT side of things
@@ -86,7 +87,6 @@ class DUT:
             callback=self.__handle_message,
         )
         await self.dut.start_auto_message_fetching()
-
 
     async def finish(self) -> None:
         """Wair for the loss test to finish"""

@@ -1,12 +1,10 @@
 """The Test Super Class"""
 
-from abc import ABC, abstractmethod
+from abc import ABC
 from time import perf_counter
 
 import numpy as np
 from meshcore import EventType, MeshCore
-
-from .util.Device import Device
 
 
 class Test(ABC):
@@ -159,6 +157,7 @@ class Test(ABC):
         if was_list:
             return dut_contacts
         return dut_contacts[0]
+
 
 #    @abstractmethod
 #    async def run_test(
