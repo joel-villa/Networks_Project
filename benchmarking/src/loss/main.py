@@ -65,16 +65,20 @@ async def main() -> None:
         max_timeout=max_time,
     )
 
-    dut.run_test()
+    await dut.run_handshake(n_pairs=len(source) // 2)
+    handshake_result = await loss_test.run_handshake(
+        source=source, dut_name=contact_under_test
+    )
+    await dut.run_test()
     file_id = await loss_test.run_test(
-        source=source,
-        dut_name=contact_under_test,
+        handshake_result=handshake_result,
         src_type=source_type,
         dst_type=dst_type,
         num_frame_sizes=num_frame_sizes,
         distance=None,
         notes="testing thangs",
     )
+    await dut.finish()
 
     await dut_mesh.disconnect()
     await send_mesh.disconnect()

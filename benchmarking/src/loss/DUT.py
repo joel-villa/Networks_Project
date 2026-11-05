@@ -3,13 +3,14 @@ needs a thread and is capable of sending and recieving through that mesh node.
 Also, the DUT needs a map of contacts to contacts (contacts to recv and send to
 accordingly)"""
 
+# TODO: match subscribes with unsubscribes
+
 import asyncio
-from threading import Condition, Thread  # Replace with asyncio.Event
 from typing import Any
 from warnings import warn
 
 from meshcore import EventType
-from meshcore.events import Event
+from meshcore.events import Event, Subscription
 from meshcore.meshcore import MeshCore
 
 from src.loss.util.Handshaker import Handshaker
@@ -21,6 +22,7 @@ class DUT:
 
     # Incoming messages are gotten using the public key prefix, outgoing using the contact dict
     dut: MeshCore
+    subscripttion: Subscription
     handshaker: Handshaker
     device_map: dict[str, dict[str, Any]]
     done_with_test: asyncio.Event
@@ -60,29 +62,35 @@ class DUT:
             case _:
                 pass
 
-    async def run_test(self, n_pairs: int) -> None:
-        """Run the loss test on the DUT side of things
+    async def run_handshake(self, n_pairs: int) -> None:
+        """Run da dang hand thang
 
         Args:
             n_pairs (int): number of recv+send pairs expected
+        """
+        await self.handshaker.start_dut(
+            dut=self.dut, n_pairs=n_pairs
+        )  # TODO: n_pairs not needed if in handshaker we could have a DONE msg
+
+    async def run_test(self) -> None:
+        """Run the loss test on the DUT side of things
 
         Resources:
             - Loop through dictionary key value pairs:
                 https://www.w3schools.com/python/python_dictionaries_loop.asp
         """
-        await self.handshaker.prep(dut=self.dut, n_pairs=self.n_pairs)
-        self.device_map = await self.handshaker.start_dut()
+        self.device_map = await self.handshaker.finish_dut(self.dut)
 
         # The actual loss test
         self.done_with_test.clear()
-        self.dut.subscribe(
+        self.subscripttion = self.dut.subscribe(
             event_type=EventType.CONTACT_MSG_RECV,
             callback=self.__handle_message,
         )
         await self.dut.start_auto_message_fetching()
 
-
-    def finish(self) -> None:
+    async def finish(self) -> None:
         """Wair for the loss test to finish"""
         await self.done_with_test.wait()
+        self.dut.unsubscribe(self.subscripttion)
         await self.dut.stop_auto_message_fetching()
