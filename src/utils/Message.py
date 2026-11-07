@@ -26,19 +26,20 @@ class Message:
         self.message = message
         self.id =id
         self.sequence_number = 0
-        self.final_sequence_number = message/MAX_MSG_LEN
+        self.final_sequence_number = len(message)/MAX_MSG_LEN
 
     def to_string(self) -> str:
         return f"{id}:{sequence_number}:message"
     
     def get_next_message(self) -> Any:
-        if(self.sequence_number is not self.final_sequence_number):
+        if(self.sequence_number is self.final_sequence_number):
             return None
         current_starter = self.sequence_number * MAX_MSG_LEN
-        nextChunk = self.current_responce[
+        print(f"Sequence number: {self.sequence_number}")
+        nextChunk = self.message[
                 current_starter : current_starter + MAX_MSG_LEN
             ]
-        message = f"{id}:{sequence_number}:{nextChunk}"
+        message = f"{self.id}:{self.sequence_number}:{nextChunk}"
         self.sequence_number+=1
         return message
 

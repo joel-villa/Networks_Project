@@ -8,7 +8,6 @@ Repository of APIS
 import json
 import uuid
 import requests
-import requests
 from collections.abc import Callable
 from typing import Any
 import inspect

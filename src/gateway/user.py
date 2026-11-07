@@ -27,7 +27,7 @@ from ..utils.Message import Message
 
 MAX_MSG_LEN = 130  # TODO: Check with Joel, see what the best message length is with respect to the latency and loss tests
 DELAY = 1.0
-PACKAGE_ID =0 #TODO: Do this in a smarter thread safe way
+
 
 
 # class syntax
@@ -44,6 +44,7 @@ class User:
     handlers: dict
     current_responce: Any
     responce_index: int
+    package_id =0 #TODO: Do this in a smarter thread safe way
 
     def __init__(self, device, contact, user_type, first_message):
         """Construct her I hardly know her
@@ -151,7 +152,7 @@ class User:
         if self.user_type is UserType.BASIC_MESH:
             self.start_serving_mesh()
             return
-        PACKAGE_ID+=1
+        self.package_id+=1
         self.start_serving_computer()
 
     def start_serving_mesh(self):
@@ -164,11 +165,13 @@ class User:
 
     # this needs to be changed ASAP to reflect the message class so that there is RDT
     def start_serving_computer(self):
-        message = Message((current_responce), package_id)
+        message = Message((self.current_responce), self.package_id)
         responce = message.get_next_message()
+        print(responce)
         while(responce is not None):
             self.reply(responce)
             time.sleep(DELAY)
+            respect= message.get_next_message()
 
 
     def continue_serving(self, text: str):
