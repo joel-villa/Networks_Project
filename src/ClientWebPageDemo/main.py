@@ -21,8 +21,8 @@ todo: make a page to add in server credentials for direct communication
 
 app = FastAPI()
 # HTML pages
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="clientPages")
+app.mount("/static", StaticFiles(directory="src/ClientWebPageDemo/static"), name="static")
+templates = Jinja2Templates(directory="src/ClientWebPageDemo/clientPages")
 
 @app.get("/")
 async def menu(request: Request):
