@@ -8,7 +8,7 @@ Resources:
 import asyncio
 
 from meshcore import EventType, MeshCore
-from meshcore.events import Event
+from meshcore.events import Event, Subscription
 
 from ..util.constants import N_CHAR_PUB_KEY_PREFIX
 
@@ -17,6 +17,7 @@ class Receiver:
     """For recieving messages for the Loss test"""
 
     reciever: MeshCore
+    subscripttion: Subscription
     dut: str
     n_recieved: int
 
@@ -60,7 +61,7 @@ class Receiver:
         # Start auto-fetching messages
         await self.reciever.start_auto_message_fetching()
 
-        self.reciever.subscribe(
+        self.subscripttion = self.reciever.subscribe(
             event_type=EventType.CONTACT_MSG_RECV,
             callback=self.inc_counter,
         )
@@ -72,6 +73,7 @@ class Receiver:
              count (int): Number of messages recieved since start() call
         """
         await self.reciever.stop_auto_message_fetching()
+        self.reciever.unsubscribe(self.subscripttion)
         return self.n_recieved
 
 

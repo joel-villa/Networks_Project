@@ -5,7 +5,7 @@ Resources:
 """
 
 import asyncio
-from threading import Condition
+from typing import Any  # TODO: replace with async Event
 
 import numpy as np
 from meshcore import MeshCore
@@ -28,9 +28,8 @@ class Loss(Test):
 
     frames_sent: int
     granularity: float
-    awaiting_success: bool
-    cv: Condition
     handshaker: Handshaker
+    test_state: int
 
     def __init__(
         self,
@@ -54,9 +53,8 @@ class Loss(Test):
         """
         self.frames_sent = frames_sent
         self.granularity = granularity
-        self.awaiting_success = True
-        self.cv = Condition()
-        self.handshaker = Handshaker(device_type=1)
+        self.handshaker = Handshaker()
+        self.test_state = 0
         if prop_min_time:
             assert prop_min_time < 1, f"{prop_min_time} >= 1"
             self.prop_min_time = prop_min_time
@@ -99,14 +97,40 @@ class Loss(Test):
 
         return 1 / fpss
 
+    async def run_handshake(
+        self,
+        source: list[MeshCore],
+        dut_name: str,
+    ) -> tuple[
+        list[MeshCore],
+        list[MeshCore],
+        list[dict[str, Any]],
+        list[dict[str, Any]],
+    ]:
+
+        dut_contacts = await self.get_contacts(
+            local_devices=source,
+            dut_name=dut_name,
+        )
+        assert type(dut_contacts) is list, "How do we have singular contact?"
+
+        # Handshake time
+        handshake_result = await self.handshaker.start_timekeeper(
+            devices=source,
+            contacts=dut_contacts,
+            timeout_time=self.max_timeout,
+        )
+
+        self.test_state += 1
+        return handshake_result
+
     async def run_test(
         self,
-        source: MeshCore | list[MeshCore],
-        dut_name: str,
-        src_type: Device | list[Device],
+        handshake_result: tuple[list[MeshCore], list[MeshCore], list[dict], list[dict]],
+        src_type: list[Device],
         dst_type: Device,
         num_frame_sizes: int,
-        distance: float | list[float] | None,
+        distance: list[float] | None,
         notes: str | None,
     ) -> int:
         """Run the test
@@ -126,42 +150,18 @@ class Loss(Test):
         Returns:
              test_id (int): The id of the test
         """
-        # Ensure correct input shape
-        assert type(source) is list, f"need more than one source device: {type(source)}"
-        assert type(src_type) is list, (
-            f"need more than one source device: {type(src_type)}"
-        )
-        assert distance is None or type(distance) is list, (
-            f"need more than one source device: {type(distance)}"
-        )
-        assert len(source) == len(src_type), f"{len(source)} != {len(src_type)}"
-        assert distance is None or len(source) == len(distance), (
-            f"{len(source)} != {len(src_type)}"
-        )
-
-        dut_contacts = await self.get_contacts(
-            local_devices=source,
-            dut_name=dut_name,
-        )
-        assert type(dut_contacts) is list, "How do we have singular contact?"
+        assert self.test_state == 1, "call run handshake before run_test"
+        send_devs, recv_devs, send_contacts, recv_contacts = handshake_result
+        await self.handshaker.finish_timekeeper(recv_devs=recv_devs)
 
         frame_sizes = self.get_frame_sizes(num_frame_sizes=num_frame_sizes)
 
         print("Measuring some rtts based on ACKs")
         min_times, max_times = await self.rtt_time(
-            source=source,
-            dut=dut_contacts,
+            source=send_devs,
+            dut=send_contacts,
             frame_sizes=frame_sizes,
         )
-
-        # Handshake time
-        handshake_result = await self.handshaker.timekeeper_handshake(
-            devices=source,
-            contacts=dut_contacts,
-            timeout_time=max_times[-1],
-        )
-
-        send_devs, recv_devs, send_contacts, recv_contacts = handshake_result
 
         needs_thread = False
         if len(send_devs) > 1:
@@ -191,6 +191,8 @@ class Loss(Test):
         timeouts = self.__calculate_timeouts(min_times)
         frames_received = np.full(timeouts.shape, np.nan)
 
+        await asyncio.sleep(max_times[-1] * 2)
+
         print("Starting Test!")
         # TODO: do test for various frame sizes, setting timeouts along the way
         for i, frame_size in enumerate(frame_sizes):
@@ -213,7 +215,7 @@ class Loss(Test):
                     sender.stop()
 
                 # Sleep a bit to ensure everything has time to finish
-                await asyncio.sleep(max_times[i] * self.prop_max_time)
+                await asyncio.sleep(max_times[i] * 2)
 
                 # Stop the count!
                 for reciever in receivers:

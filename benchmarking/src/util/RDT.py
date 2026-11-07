@@ -26,7 +26,7 @@ class RDT:
         Return:
             n_attempts (int): The number of attempts before ACK read
         """
-        msg_acked = True
+        msg_acked = False
         n_attempts = 0
         while not msg_acked:
             if max_attempts and n_attempts >= max_attempts:
@@ -52,4 +52,4 @@ class RDT:
             if result:
                 msg_acked = True
 
-        n_attempts += 1
+        return n_attempts

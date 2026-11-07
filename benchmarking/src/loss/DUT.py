@@ -3,18 +3,18 @@ needs a thread and is capable of sending and recieving through that mesh node.
 Also, the DUT needs a map of contacts to contacts (contacts to recv and send to
 accordingly)"""
 
+# TODO: match subscribes with unsubscribes
+
 import asyncio
-from threading import Condition
 from typing import Any
 from warnings import warn
 
 from meshcore import EventType
-from meshcore.events import Event
+from meshcore.events import Event, Subscription
 from meshcore.meshcore import MeshCore
 
 from src.loss.util.Handshaker import Handshaker
 from src.loss.util.MsgType import MsgType
-from src.util.constants import N_CHAR_PUB_KEY_PREFIX
 
 
 class DUT:
@@ -22,42 +22,19 @@ class DUT:
 
     # Incoming messages are gotten using the public key prefix, outgoing using the contact dict
     dut: MeshCore
+    subscripttion: Subscription
     handshaker: Handshaker
     device_map: dict[str, dict[str, Any]]
-    awaiting_done_msg: bool
-    cv: Condition
+    done_with_test: asyncio.Event
 
     def __init__(
         self,
         dut: MeshCore,
     ) -> None:
         self.dut = dut
-        self.handshaker = Handshaker(device_type=2)
+        self.handshaker = Handshaker()
         self.device_map = {}
-        self.awaiting_done_msg = False
-        self.cv = Condition()
-        asyncio.run(self.__init_dut())
-
-    async def __init_dut(self) -> None:
-        """You know the vibes, put the asynchronous stuff here (including
-        handshake)
-        Resources:
-            - Loop through dictionary key value pairs:
-                https://www.w3schools.com/python/python_dictionaries_loop.asp
-        """
-        key_to_contact = {}
-
-        result = await self.dut.commands.get_contacts()
-        contacts = result.payload
-        if contacts:
-            for pub_key, contact in contacts.items():
-                pub_key_pref = pub_key[:N_CHAR_PUB_KEY_PREFIX]
-                key_to_contact[pub_key_pref] = contact
-        else:
-            raise ValueError("device under test contacts inaccessible")
-        self.device_map = await self.handshaker.dut_handshake(
-            dut=self.dut, key_to_contact=key_to_contact
-        )
+        self.done_with_test = asyncio.Event()
 
     async def __handle_message(
         self,
@@ -81,21 +58,39 @@ class DUT:
         msg_type = MsgType(received_msg.payload["text"])
         match msg_type:
             case MsgType.DONE_WITH_TEST:
-                with self.cv:
-                    self.awaiting_done_msg = False
-                    self.cv.notify()
+                self.done_with_test.set()
             case _:
                 pass
 
+    async def run_handshake(self, n_pairs: int) -> None:
+        """Run da dang hand thang
+
+        Args:
+            n_pairs (int): number of recv+send pairs expected
+        """
+        await self.handshaker.start_dut(
+            dut=self.dut, n_pairs=n_pairs
+        )  # TODO: n_pairs not needed if in handshaker we could have a DONE msg
+
     async def run_test(self) -> None:
-        self.awaiting_done_msg = True
-        await self.dut.start_auto_message_fetching()
-        self.dut.subscribe(
+        """Run the loss test on the DUT side of things
+
+        Resources:
+            - Loop through dictionary key value pairs:
+                https://www.w3schools.com/python/python_dictionaries_loop.asp
+        """
+        self.device_map = await self.handshaker.finish_dut(self.dut)
+
+        # The actual loss test
+        self.done_with_test.clear()
+        self.subscripttion = self.dut.subscribe(
             event_type=EventType.CONTACT_MSG_RECV,
             callback=self.__handle_message,
         )
+        await self.dut.start_auto_message_fetching()
 
-        while self.awaiting_done_msg:
-            with self.cv:
-                self.cv.wait()
+    async def finish(self) -> None:
+        """Wair for the loss test to finish"""
+        await self.done_with_test.wait()
+        self.dut.unsubscribe(self.subscripttion)
         await self.dut.stop_auto_message_fetching()
