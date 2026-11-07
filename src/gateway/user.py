@@ -27,6 +27,7 @@ from ..utils.Message import Message
 
 MAX_MSG_LEN = 130  # TODO: Check with Joel, see what the best message length is with respect to the latency and loss tests
 DELAY = 1.0
+PACKAGE_ID =0 #TODO: Do this in a smarter thread safe way
 
 
 # class syntax
@@ -136,7 +137,7 @@ class User:
         self.reply("Please send me: " + " ".join(self.service.get_params(name)))
         self.user_state = State.INITIALIZING
 
-    # TODO: This method need to be rewriten with respect to the differences between the user types
+    
     def handle_query(self, text: str) -> None:
         """Querys the API
 
@@ -150,6 +151,7 @@ class User:
         if self.user_type is UserType.BASIC_MESH:
             self.start_serving_mesh()
             return
+        PACKAGE_ID+=1
         self.start_serving_computer()
 
     def start_serving_mesh(self):
@@ -158,36 +160,16 @@ class User:
         self.responce_index = 1
         self.reply(first_chunk)
 
-    # def start_serving_computer(self):
-    #     """Creates the message to be sent to the computer user
-
-    #     Args:
-    #         self: This User instance
-    #     """
-    #     message = Message(current_responce,uuid.uuid4().int, 0, (len(current_responce)/MAX_MSG_LEN))
-    #     i=0
-    #     final_sequence_number = (len(current_responce)/MAX_MSG_LEN)-1
-    #     package_id =uuid.uuid4().int
-
-    #     while(i is not final_sequence_number):
-    #         current_starter = i *MAX_MSG_LEN
-    #         nextChunk = self.current_responce[current_starter:current_starter+MAX_MSG_LEN]
-
-    #         message = Message((current_responce), package_id, i, (len(current_responce)/MAX_MSG_LEN))
+    
 
     # this needs to be changed ASAP to reflect the message class so that there is RDT
     def start_serving_computer(self):
-        i = 0
-        final_sequence_number = (len(self.current_responce) / MAX_MSG_LEN) - 1
-
-        while i is not final_sequence_number:
-            current_starter = i * MAX_MSG_LEN
-            nextChunk = self.current_responce[
-                current_starter : current_starter + MAX_MSG_LEN
-            ]
-            self.reply(nextChunk)
-            i += 1
+        message = Message((current_responce), package_id)
+        responce = message.get_next_message()
+        while(responce is not None):
+            self.reply(responce)
             time.sleep(DELAY)
+
 
     def continue_serving(self, text: str):
         """Prints the message one chunk at a time, this is intended for mesh users
