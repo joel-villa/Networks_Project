@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>errorScreen</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <h1>Settings</h1>
+    <nav>
+        <a href="/">Menu</a> |
+        <a href="/addAPI">Add API</a> |
+        <a href="/settings">Settings</a> |
+        <a href="/errorScreen">Server Disconnected</a> |
+        <a href="/wikiSearch">Search Wikipedia</a>
+    </nav>
+
+    <p>Add instructions on how to add a server.</p>
+
+    <div class="setting-box">
+      <label for="gateway_name">Gateway Name</label>
+      <input type="text" id="gateway_name" name="gateway_name" value="">
+    </div>
+
+    <div class="setting-box">
+      <label for="gateway_pub_key">Gateway Public Key</label>
+      <input type="text" id="gateway_pub_key" name="gateway_pub_key" value="">
+    </div>
+
+    <button type="submit" class="confirm-btn">Save Settings</button>
+
+
+
+<!--    todo: -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const inputs = document.querySelectorAll('.setting-box input');
+        const submitBtn = document.querySelector('.confirm-btn');
+
+        // 1. LOAD SAVED DATA: Check localStorage when the page loads
+        inputs.forEach(input => {
+          const savedValue = localStorage.getItem(input.id);
+          if (savedValue !== null) {
+            input.value = savedValue; // Overwrite default with saved value
+          }
+        });
+
+        // 2. ENTER KEY LOGIC: Move to next box or submit
+        inputs.forEach((input, index) => {
+          input.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              if (index < inputs.length - 1) {
+                inputs[index + 1].focus();
+              } else {
+                submitBtn.click();
+              }
+            }
+          });
+        });
+
+        // 3. SAVE DATA: Store values in localStorage when confirmed
+        submitBtn.addEventListener('click', (event) => {
+          event.preventDefault();
+
+          inputs.forEach(input => {
+            localStorage.setItem(input.id, input.value);
+          });
+
+          alert('Gateway Added!');
+        });
+      });
+    </script>
+</body>
+</html>
