@@ -6,12 +6,13 @@ import requests
 from googlesearch import search
 from meshcore import EventType, MeshCore
 
-PORT = "/dev/ttyUSB0"
+# PORT = "/dev/ttyUSB0"ch
+PORT = "/dev/cu.usbmodem101"
 CHANNEL_IDX = 0
 CHANNEL_NAME = "MeshedUp"
 USER_AGENT = "pleaseWiki"
 CHANNEL_SECRET = bytes.fromhex("aa27c63feeacd8e835d02d243a17c409")
-MAX_MSG_LEN = 130  # TODO or is it 150
+MAX_MSG_LEN = 130  # TODO or is it 150e
 
 options = ["Knock Knock", "google", "ip", "wiki"]
 setup = ["Lettuce", "Boo", "Tank", "Interrupting cow"]
