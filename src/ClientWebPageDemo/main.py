@@ -4,18 +4,22 @@ from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 import uvicorn
 from src.client.services.wikitohtml import generatePage
 from src.client.services.getWikitext import getWikitext
+from meshcore import EventType, MeshCore
 
 
 
 
 """
 required packages:
-pip install fastapi uvicorn jinja2
+pip install fastapi uvicorn jinja2 requests
 
-todo: this may be too wikipedia based. Make it more generic for other apis?
+run from project root:
+python3 -m src.ClientWebPageDemo.main
+
 todo: make a page to add in server credentials for direct communication
 """
 
@@ -24,12 +28,60 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="src/ClientWebPageDemo/static"), name="static")
 templates = Jinja2Templates(directory="src/ClientWebPageDemo/clientPages")
 
+# current mesh device state
+app.state.mesh_connection = None
+
+# Used for connecting device via gui
+class MeshSettings(BaseModel):
+    port: str
+
+
+
+@app.post("/connect_mesh_device")
+async def connect_mesh(settings: MeshSettings):
+    """
+    Collects input from html settings for device port
+    :param settings:
+    :return:
+    """
+    if app.state.mesh_connection:
+        try:
+            await app.state.mesh_connection.disconnect()
+        except Exception:
+            pass
+
+    try:
+        # Connect to the new port
+        app.state.mesh_connection = await MeshCore.create_serial(settings.port)
+
+        # NOTE: You can add your mc.subscribe() event listeners here
+
+        return {"status": "success", "message": f"Successfully connected to {settings.port}"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
 @app.get("/")
 async def menu(request: Request):
     # todo: will need code to try to initiate the connection with client
     # if wikipedia Api is pressed -> initiate_wikipedia_connection()
     # return templates.TemplateResponse("index.html", {"request": request})
     return templates.TemplateResponse(request=request, name="index.html")
+
+@app.get("/settings")
+async def menu(request: Request):
+    # todo: will need code to try to initiate the connection with client
+    # if wikipedia Api is pressed -> initiate_wikipedia_connection()
+    # return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="settings.html")
+
+@app.get("/addAPI")
+async def menu(request: Request):
+    # todo: will need code to try to initiate the connection with client
+    # if wikipedia Api is pressed -> initiate_wikipedia_connection()
+    # return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="add_api.html")
+
 
 @app.get("/errorScreen")
 async def error(request: Request):
@@ -47,6 +99,10 @@ async def searchWiki(request: Request):
 
 @app.get("/embeddedText")
 async def embeddedText(request: Request, q: str = None):
+
+
+
+
     if q and q.lower() == "pet door":
         q = q.title()
 
@@ -71,4 +127,5 @@ async def embeddedText(request: Request, q: str = None):
 
 if __name__ == "__main__":
     # Runs the server locally on port 8000
+    # mc = await MeshCore.create_serial(PORT)
     uvicorn.run(app, host="127.0.0.1", port=8000)
