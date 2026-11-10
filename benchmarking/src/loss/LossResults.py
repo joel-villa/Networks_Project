@@ -254,7 +254,7 @@ class LossResults(Results):
 
 def main() -> None:
     """display results from a loss test"""
-    results = LossResults(file_name=6)
+    results = LossResults(file_name=1)
 
     results.disp_results()
 
