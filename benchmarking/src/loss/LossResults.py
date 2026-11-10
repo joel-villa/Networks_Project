@@ -200,6 +200,29 @@ class LossResults(Results):
         return save_file
 
     def disp_results(self) -> None:
+        xs = 1 / self.timeout_times
+
+        for i in range(xs.shape[0]):
+            max_frame_rate = np.max(xs[i])
+            xs[i] = (xs[i] / max_frame_rate) * 100
+
+            if not np.isclose(np.max(xs[i]), 100):
+                warn(f"Expected max frame rate to be 100%")
+
+        ys = ((self.frames_sent - self.frames_recvd) / self.frames_sent) * 100
+
+        for i, frame_size in enumerate(self.frame_sizes):
+            print(f"xs[i][:5]: {xs[i][:5]}")
+            print(f"ys[i][:5]: {ys[i][:5]}")
+
+            plt.plot(xs[i], ys[i], label=f"{frame_size}")
+
+        plt.ylabel("Frame Loss (%)")
+        plt.xlabel("Frame Rate (%)")
+        plt.legend()
+        plt.show()
+        plt.close()
+    def old_disp_results(self) -> None:
         """Display the latencies
 
         Resrouces:
@@ -210,6 +233,7 @@ class LossResults(Results):
             # Following RFC recommendations
             max_frame_rate = xs[i, xs.shape[1] - 1]
             xs[i] = 100 - (max_frame_rate - xs[i] * 100)
+
             if xs[i, xs.shape[1] - 1] - 1 <= 99.99999:
                 warn(
                     "Expecting max to be 100% for frame size"
@@ -218,11 +242,22 @@ class LossResults(Results):
         ys = ((self.frames_sent - self.frames_recvd) * 100) / self.frames_sent
 
         for i, frame_size in enumerate(self.frame_sizes):
-            print(f"xs[:5]:{xs[:5]}\nys[:5]:{ys[:5]}\n\n")
-            plt.plot(xs, ys, label=f"{frame_size}")
+            print(f"xs[i][:5]:{xs[i][:5]}\nys[i][:5]:{ys[i][:5]}\n\n")
+            plt.plot(xs[i], ys[i], label=f"{frame_size}")
 
         plt.ylabel("Frame Loss (%)")
         plt.xlabel("Frame Rate (%)")
         plt.legend()
         plt.show()
         plt.close()
+
+
+def main() -> None:
+    """display results from a loss test"""
+    results = LossResults(file_name=3)
+
+    results.disp_results()
+
+if __name__ == "__main__":
+    """Python main"""
+    main()

@@ -17,6 +17,7 @@ class Sender:
     sender: MeshCore
     dut: dict
     frames_to_send: int
+    frames_sent: int
     msg_size: int
     timeout: float
 
@@ -41,6 +42,7 @@ class Sender:
         self.sender = sender
         self.dut = dut
         self.frames_to_send = frames_to_send
+        self.frames_sent = 0
         self.msg_size = -1
         self.timeout = -1
         if needs_thread:
@@ -52,13 +54,13 @@ class Sender:
         """Send dem messages"""
         message = "a"
         message = message * self.msg_size
-        while self.frames_to_send:
+        while self.frames_to_send != self.frames_sent:
             start = perf_counter()
             await self.sender.commands.send_msg(self.dut, message)
             stop = perf_counter()
             await asyncio.sleep(self.timeout - (stop - start))
 
-            self.frames_to_send -= 1
+            self.frames_sent +=1
 
     def thread_entry(self) -> None:
         """Python threads cannot be called on async methods, thus this guy
@@ -80,7 +82,7 @@ class Sender:
         Resources:
             https://numpy.org/doc/stable/reference/generated/numpy.arange.html
         """
-        # TODO: timeout -> incremental fps -> timeouts
+        self.frames_sent = 0
         self.msg_size = msg_size
         self.timeout = timeout
 
@@ -95,6 +97,7 @@ class Sender:
         if self.thread:
             self.thread.join()
 
+        self.frames_sent = 0
         self.msg_size = -1
         self.timeout = -1
 

@@ -6,6 +6,9 @@ Resources:
 """
 
 import asyncio
+from difflib import ndiff
+import sys
+from threading import BoundedSemaphore
 
 from meshcore import EventType, MeshCore
 from meshcore.events import Event, Subscription
@@ -19,7 +22,9 @@ class Receiver:
     reciever: MeshCore
     subscripttion: Subscription
     dut: str
+    frame_size: int
     n_recieved: int
+    recvd_semaphore: BoundedSemaphore
 
     def __init__(
         self,
@@ -32,11 +37,15 @@ class Receiver:
             reciever (MeshCore): The device which is recieving messages
             dut (ditc): Public key prefix of DUT
         """
+
+        #print(f"In Receiver, dut_pub_key: {dut_pub_key}\treciever_pub_key:{reciever.self_info['public_key']}")
         self.reciever = reciever
         self.dut = dut_pub_key[:N_CHAR_PUB_KEY_PREFIX]
+        self.frame_size = -1
         self.n_recieved = 0
+        self.recvd_semaphore = BoundedSemaphore(value=1)
 
-    def inc_counter(
+    async def __inc_counter(
         self,
         received_msg: Event,
     ) -> None:
@@ -49,22 +58,36 @@ class Receiver:
             https://www.geeksforgeeks.org/python/python-sys-stdout-flush/
             https://www.geeksforgeeks.org/python/string-comparison-in-python/
         """
-        if received_msg.payload["pubkey_prefix"] == self.dut:
-            self.n_recieved += 1
-            # print(self.n_recieved)
-            # sys.stdout.flush()
+        if received_msg.payload["pubkey_prefix"] == self.dut and self.frame_size == len(received_msg.payload['text']):
+            with self.recvd_semaphore:
+                self.n_recieved += 1
+#                print(f"received_msg: {received_msg}")
+                print(f"in Reciever received_msg length: {len(received_msg.payload['text'])}")
+                print(f"n_recieved: {self.n_recieved}")
+                sys.stdout.flush()
 
-    async def start(self) -> None:
-        """Star the test!"""
-        self.n_recieved = 0
+        #print(f"After: {self.n_recieved}")
+        #sys.stdout.flush()
 
+    async def start(self, frame_size: int) -> None: #TODO discard stale messsages by including msg length in API
+        """Star the test!
+
+        Args:
+            wait_time (float): Allows for a delayed start, to give time to
+            throw-away erroneous messages
+        """
+        self.frame_size = frame_size
+        #print("Start called")
+        self.subscripttion = self.reciever.subscribe(
+            event_type=EventType.CONTACT_MSG_RECV,
+            callback=self.__inc_counter,
+        )
         # Start auto-fetching messages
         await self.reciever.start_auto_message_fetching()
 
-        self.subscripttion = self.reciever.subscribe(
-            event_type=EventType.CONTACT_MSG_RECV,
-            callback=self.inc_counter,
-        )
+        with self.recvd_semaphore:
+            self.n_recieved = 0
+
 
     async def stop(self) -> int:  # TODO: causing error
         """Stop the count
@@ -72,9 +95,13 @@ class Receiver:
         Returns:
              count (int): Number of messages recieved since start() call
         """
-        await self.reciever.stop_auto_message_fetching()
         self.reciever.unsubscribe(self.subscripttion)
-        return self.n_recieved
+        await self.reciever.stop_auto_message_fetching()
+        with self.recvd_semaphore:
+            n_recieved = self.n_recieved
+            self.n_recieved = 0
+        #print(f"In Receiver.stop(), n_received = {n_recieved}")
+        return n_recieved
 
 
 async def main():

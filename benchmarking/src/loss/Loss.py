@@ -5,10 +5,12 @@ Resources:
 """
 
 import asyncio
+import sys
 from typing import Any  # TODO: replace with async Event
 
+from meshcore.events import Event
 import numpy as np
-from meshcore import MeshCore
+from meshcore import EventType, MeshCore
 
 from src.loss.util.Handshaker import Handshaker
 from src.util.RDT import RDT
@@ -124,6 +126,19 @@ class Loss(Test):
         self.test_state += 1
         return handshake_result
 
+
+    async def __throw_away_msg(
+        self,
+        received_msg: Event,
+    ) -> None:
+        """ Throw away handshaking messages
+
+        Args:
+            recieved_msg (EventType): Message recieved o7
+        """
+        print("throwing away a message")
+        sys.stdout.flush()
+
     async def run_test(
         self,
         handshake_result: tuple[list[MeshCore], list[MeshCore], list[dict], list[dict]],
@@ -157,11 +172,16 @@ class Loss(Test):
         frame_sizes = self.get_frame_sizes(num_frame_sizes=num_frame_sizes)
 
         print("Measuring some rtts based on ACKs")
-        min_times, max_times = await self.rtt_time(
+        min_times, max_times = await self.rtt_time( #TODO: so close, still getting NaN's, divide by zero?
             source=send_devs,
             dut=send_contacts,
             frame_sizes=frame_sizes,
         )
+        assert np.all(np.isfinite(min_times)), min_times
+        assert np.all(min_times > 0), min_times
+
+        print(f"min_times: {min_times}")
+        print(f"max_times: {max_times}")
 
         needs_thread = False
         if len(send_devs) > 1:
@@ -181,6 +201,8 @@ class Loss(Test):
                 needs_thread=needs_thread,
             )
             senders.append(new_sender)
+
+        print(f"in Loss, recv_devs: {recv_devs}")
         for i, recv_mesh in enumerate(recv_devs):
             new_receiver = Receiver(
                 reciever=recv_mesh,
@@ -189,10 +211,28 @@ class Loss(Test):
             receivers.append(new_receiver)
 
         timeouts = self.__calculate_timeouts(min_times)
-        frames_received = np.full(timeouts.shape, np.nan)
+        frames_received = np.zeros(timeouts.shape)
 
-        await asyncio.sleep(max_times[-1] * 2)
+#        subscriptions = []
+#        for recv_dev in recv_devs:
+#            subscription = recv_dev.subscribe(
+#                event_type=EventType.CONTACT_MSG_RECV,
+#                callback=self.__throw_away_msg,
+#            )
+#            subscriptions.append(subscription)
+#            await recv_dev.start_auto_message_fetching()
+#
+#        print(f"START sleeping in Loss")
+#        await asyncio.sleep(max_times[-1] * 16)
+#        print(f"DONE sleeping in Loss")
+#
+#        for i, recv_dev in enumerate(recv_devs):
+#            recv_dev.unsubscribe(
+#                subscription=subscriptions[i]
+#            )
+#            await recv_dev.stop_auto_message_fetching()
 
+        await asyncio.sleep(max_times[-1] * 4)
         print("Starting Test!")
         # TODO: do test for various frame sizes, setting timeouts along the way
         for i, frame_size in enumerate(frame_sizes):
@@ -201,7 +241,13 @@ class Loss(Test):
             for j, timeout_time in enumerate(timeouts[i]):
                 # Start recievers first to track all messages
                 for receiver in receivers:
-                    await receiver.start()
+                    #TODO: more than one receiver => don't wait for all of em seperately?
+                    print("Before reciever initialization")
+                    await receiver.start(frame_size=frame_size)
+                    print("After reciever initialization")
+
+                for receiver in receivers:
+                    print(f"reciever.n_received: {receiver.n_recieved}")
 
                 # Start sending messages
                 for sender in senders:
@@ -215,12 +261,13 @@ class Loss(Test):
                     sender.stop()
 
                 # Sleep a bit to ensure everything has time to finish
-                await asyncio.sleep(max_times[i] * 2)
+                await asyncio.sleep(max_times[i] * 4)
 
                 # Stop the count!
                 for reciever in receivers:
                     frames_received[i, j] += await reciever.stop()
 
+                assert frames_received[i, j] <= actual_frames_sent, f"frames_recieved = {frames_received[i,j]} > {actual_frames_sent} frames sent"
                 no_loss_curr = frames_received[i, j] == actual_frames_sent
                 if no_loss_prev and no_loss_curr:
                     break
@@ -255,76 +302,76 @@ class Loss(Test):
         return file_id
 
 
-async def main():
-    """For testing purposes"""
-    import os
-
-    from dotenv import load_dotenv
-
-    load_dotenv()
-    path_0 = os.getenv("MESH_PATH")
-    path_1 = os.getenv("MESH_PATH_2")
-    assert path_0 is not None
-    assert path_1 is not None
-
-    contact_under_test = "T114_0"
-    frame_count = 5
-    granularity = 0.1  # 10% is maximum granularity
-    num_frame_sizes = 2  # 5 is minimum
-    prop_min_time = 0.9
-    prop_max_time = 2
-    n_rtts = 3
-    max_time = 2
-    source_type = [
-        Device.HELTEC_V3,
-        Device.HELTEC_V3,
-    ]
-    dst_type = Device.HELTEC_T114
-
-    file_id = 1
-
-    # Connect to your device
-    send_mesh = await MeshCore.create_serial(path_0)
-    recv_mesh = await MeshCore.create_serial(path_1)
-
-    source = [
-        send_mesh,
-        recv_mesh,
-    ]
-
-    # Get your contacts
-    result = await recv_mesh.commands.get_contacts()
-    contacts = result.payload
-
-    # Send a message to T114-j
-    if contacts:  # TODO: Is this necessary anymore?
-        for contact in contacts.values():
-            if contact["adv_name"] == contact_under_test:
-                loss_test = Loss(
-                    frames_sent=frame_count,
-                    granularity=granularity,
-                    prop_min_time=prop_min_time,
-                    prop_max_time=prop_max_time,
-                    num_rtts=n_rtts,
-                    max_timeout=max_time,
-                )
-                file_id = await loss_test.run_test(
-                    source=source,
-                    dut_name=contact_under_test,
-                    src_type=source_type,
-                    dst_type=dst_type,
-                    num_frame_sizes=num_frame_sizes,
-                    distance=None,
-                    notes="testing thangs",
-                )
-    await send_mesh.disconnect()
-    await recv_mesh.disconnect()
-
-    results = LossResults(file_name=file_id)
-    results.disp_results()
-
-
-if __name__ == "__main__":
-    """Main for testing purposes
-    """
-    asyncio.run(main())
+# async def main():
+#     """For testing purposes"""
+#     import os
+#
+#     from dotenv import load_dotenv
+#
+#     load_dotenv()
+#     path_0 = os.getenv("MESH_PATH")
+#     path_1 = os.getenv("MESH_PATH_2")
+#     assert path_0 is not None
+#     assert path_1 is not None
+#
+#     contact_under_test = "T114_0"
+#     frame_count = 5
+#     granularity = 0.1  # 10% is maximum granularity
+#     num_frame_sizes = 2  # 5 is minimum
+#     prop_min_time = 0.9
+#     prop_max_time = 2
+#     n_rtts = 3
+#     max_time = 2
+#     source_type = [
+#         Device.HELTEC_V3,
+#         Device.HELTEC_V3,
+#     ]
+#     dst_type = Device.HELTEC_T114
+#
+#     file_id = 1
+#
+#     # Connect to your device
+#     send_mesh = await MeshCore.create_serial(path_0)
+#     recv_mesh = await MeshCore.create_serial(path_1)
+#
+#     source = [
+#         send_mesh,
+#         recv_mesh,
+#     ]
+#
+#     # Get your contacts
+#     result = await recv_mesh.commands.get_contacts()
+#     contacts = result.payload
+#
+#     # Send a message to T114-j
+#     if contacts:  # TODO: Is this necessary anymore?
+#         for contact in contacts.values():
+#             if contact["adv_name"] == contact_under_test:
+#                 loss_test = Loss(
+#                     frames_sent=frame_count,
+#                     granularity=granularity,
+#                     prop_min_time=prop_min_time,
+#                     prop_max_time=prop_max_time,
+#                     num_rtts=n_rtts,
+#                     max_timeout=max_time,
+#                 )
+#                 file_id = await loss_test.run_test(
+#                     source=source,
+#                     dut_name=contact_under_test,
+#                     src_type=source_type,
+#                     dst_type=dst_type,
+#                     num_frame_sizes=num_frame_sizes,
+#                     distance=None,
+#                     notes="testing thangs",
+#                 )
+#     await send_mesh.disconnect()
+#     await recv_mesh.disconnect()
+#
+#     results = LossResults(file_name=file_id)
+#     results.disp_results()
+#
+#
+# if __name__ == "__main__":
+#     """Main for testing purposes
+#     """
+#     asyncio.run(main())

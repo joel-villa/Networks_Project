@@ -6,6 +6,7 @@ accordingly)"""
 # TODO: match subscribes with unsubscribes
 
 import asyncio
+import sys
 from typing import Any
 from warnings import warn
 
@@ -22,7 +23,7 @@ class DUT:
 
     # Incoming messages are gotten using the public key prefix, outgoing using the contact dict
     dut: MeshCore
-    subscripttion: Subscription
+    subscription: Subscription
     handshaker: Handshaker
     device_map: dict[str, dict[str, Any]]
     done_with_test: asyncio.Event
@@ -49,6 +50,8 @@ class DUT:
         reciever_contact = self.device_map.get(sender_prefix)
 
         if reciever_contact:
+            print(f"in DUT sending_msg length: {len(received_msg.payload['text'])}")
+            sys.stdout.flush()
             await self.dut.commands.send_msg(
                 reciever_contact, received_msg.payload["text"]
             )
@@ -83,14 +86,17 @@ class DUT:
 
         # The actual loss test
         self.done_with_test.clear()
-        self.subscripttion = self.dut.subscribe(
+        self.subscription = self.dut.subscribe(
             event_type=EventType.CONTACT_MSG_RECV,
             callback=self.__handle_message,
         )
+        print("BEFORE start message fetching in DUT")
         await self.dut.start_auto_message_fetching()
+        print("AFTER start message fetching in DUT")
+        sys.stdout.flush()
 
     async def finish(self) -> None:
         """Wair for the loss test to finish"""
         await self.done_with_test.wait()
-        self.dut.unsubscribe(self.subscripttion)
+        self.dut.unsubscribe(self.subscription)
         await self.dut.stop_auto_message_fetching()
