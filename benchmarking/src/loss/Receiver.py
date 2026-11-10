@@ -62,9 +62,9 @@ class Receiver:
             with self.recvd_semaphore:
                 self.n_recieved += 1
 #                print(f"received_msg: {received_msg}")
-                print(f"in Reciever received_msg length: {len(received_msg.payload['text'])}")
-                print(f"n_recieved: {self.n_recieved}")
-                sys.stdout.flush()
+#                print(f"in Reciever received_msg length: {len(received_msg.payload['text'])}")
+#                print(f"n_recieved: {self.n_recieved}")
+#                sys.stdout.flush()
 
         #print(f"After: {self.n_recieved}")
         #sys.stdout.flush()

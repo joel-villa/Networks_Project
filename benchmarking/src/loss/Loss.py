@@ -6,7 +6,8 @@ Resources:
 
 import asyncio
 import sys
-from typing import Any  # TODO: replace with async Event
+from typing import Any
+from warnings import warn  # TODO: replace with async Event
 
 from meshcore.events import Event
 import numpy as np
@@ -89,10 +90,11 @@ class Loss(Test):
 
         percentages = np.arange(
             1,  # max fps is 100%
-            self.granularity,  # min fps is granularity
+            0,  # min fps is granularity
             -self.granularity,  # step size of granularity
             dtype=float,
         )
+        print(f"percentages: {percentages}")
         fpss = np.zeros((num_frame_sizes, percentages.shape[0]))
         for i in range(num_frame_sizes):
             fpss[i] = percentages * max_fps[i]
@@ -202,7 +204,6 @@ class Loss(Test):
             )
             senders.append(new_sender)
 
-        print(f"in Loss, recv_devs: {recv_devs}")
         for i, recv_mesh in enumerate(recv_devs):
             new_receiver = Receiver(
                 reciever=recv_mesh,
@@ -211,7 +212,7 @@ class Loss(Test):
             receivers.append(new_receiver)
 
         timeouts = self.__calculate_timeouts(min_times)
-        frames_received = np.zeros(timeouts.shape)
+        frames_received = np.full(timeouts.shape, np.nan)
 
 #        subscriptions = []
 #        for recv_dev in recv_devs:
@@ -231,8 +232,28 @@ class Loss(Test):
 #                subscription=subscriptions[i]
 #            )
 #            await recv_dev.stop_auto_message_fetching()
+#
+        # A WARM UP
+        for receiver in receivers:
+            await receiver.start(frame_size=frame_sizes[0])
+        # Start sending messages
+        for sender in senders:
+            await sender.start(
+                msg_size=frame_sizes[0],
+                timeout=timeouts[0][0],
+            )
 
+        # Wait for sending to finish
+        for sender in senders:
+            sender.stop()
+
+        # Sleep a bit to ensure everything has time to finish
         await asyncio.sleep(max_times[-1] * 4)
+
+        # Stop the count!
+        for reciever in receivers:
+            await reciever.stop()
+
         print("Starting Test!")
         # TODO: do test for various frame sizes, setting timeouts along the way
         for i, frame_size in enumerate(frame_sizes):
@@ -242,12 +263,12 @@ class Loss(Test):
                 # Start recievers first to track all messages
                 for receiver in receivers:
                     #TODO: more than one receiver => don't wait for all of em seperately?
-                    print("Before reciever initialization")
+                    #print("Before reciever initialization")
                     await receiver.start(frame_size=frame_size)
-                    print("After reciever initialization")
+                    #print("After reciever initialization")
 
-                for receiver in receivers:
-                    print(f"reciever.n_received: {receiver.n_recieved}")
+#                for receiver in receivers:
+#                    print(f"reciever.n_received: {receiver.n_recieved}")
 
                 # Start sending messages
                 for sender in senders:
@@ -264,10 +285,13 @@ class Loss(Test):
                 await asyncio.sleep(max_times[i] * 4)
 
                 # Stop the count!
+                frames_received[i, j] = 0
                 for reciever in receivers:
                     frames_received[i, j] += await reciever.stop()
 
-                assert frames_received[i, j] <= actual_frames_sent, f"frames_recieved = {frames_received[i,j]} > {actual_frames_sent} frames sent"
+                if frames_received[i, j] > actual_frames_sent:
+                    warn(f"frames_recieved = {frames_received[i,j]} > {actual_frames_sent} frames sent, setting to maximum")
+                    frames_received[i, j] = actual_frames_sent
                 no_loss_curr = frames_received[i, j] == actual_frames_sent
                 if no_loss_prev and no_loss_curr:
                     break

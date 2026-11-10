@@ -50,8 +50,8 @@ class DUT:
         reciever_contact = self.device_map.get(sender_prefix)
 
         if reciever_contact:
-            print(f"in DUT sending_msg length: {len(received_msg.payload['text'])}")
-            sys.stdout.flush()
+            # print(f"in DUT sending_msg length: {len(received_msg.payload['text'])}")
+            # sys.stdout.flush()
             await self.dut.commands.send_msg(
                 reciever_contact, received_msg.payload["text"]
             )
@@ -90,9 +90,9 @@ class DUT:
             event_type=EventType.CONTACT_MSG_RECV,
             callback=self.__handle_message,
         )
-        print("BEFORE start message fetching in DUT")
+        #print("BEFORE start message fetching in DUT")
         await self.dut.start_auto_message_fetching()
-        print("AFTER start message fetching in DUT")
+        #print("AFTER start message fetching in DUT")
         sys.stdout.flush()
 
     async def finish(self) -> None:

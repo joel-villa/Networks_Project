@@ -212,8 +212,8 @@ class LossResults(Results):
         ys = ((self.frames_sent - self.frames_recvd) / self.frames_sent) * 100
 
         for i, frame_size in enumerate(self.frame_sizes):
-            print(f"xs[i][:5]: {xs[i][:5]}")
-            print(f"ys[i][:5]: {ys[i][:5]}")
+            print(f"xs[i]: {xs[i]}")
+            print(f"ys[i]: {ys[i]}")
 
             plt.plot(xs[i], ys[i], label=f"{frame_size}")
 
@@ -254,7 +254,7 @@ class LossResults(Results):
 
 def main() -> None:
     """display results from a loss test"""
-    results = LossResults(file_name=3)
+    results = LossResults(file_name=6)
 
     results.disp_results()
 
