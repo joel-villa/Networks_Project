@@ -45,7 +45,7 @@ def translate(wikitext: str) -> str:
                 else:
                     label_html = title_str
                     
-                html_parts.append(f'<a href="/wiki/{title_str}">{label_html}</a>')
+                html_parts.append(f'<a href="{title_str}">{label_html}</a>')
                 
             # 4. External Web Links
             elif isinstance(node, ExternalLink):
