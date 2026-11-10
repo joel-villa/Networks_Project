@@ -1,6 +1,5 @@
 import requests
 
-
 def getWikitext(page_title: str) -> str | None:
     url = f"https://en.wikipedia.org/w/api.php"
 
@@ -37,7 +36,6 @@ def getWikitext(page_title: str) -> str | None:
     except KeyError as e:
         print(f"Unexpected response structure: {e}")
         return None
-
 
 if __name__ == "__main__":
     title = "Help:Wikitext"
