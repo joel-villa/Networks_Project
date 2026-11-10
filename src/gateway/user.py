@@ -164,28 +164,28 @@ class User:
     
 
     # this needs to be changed ASAP to reflect the message class so that there is RDT
-    # def start_serving_computer(self):
-    #     message = Message((self.current_responce), self.package_id)
-    #     responce = message.get_next_message()
-    #     print(responce)
-    #     while(responce is not None):
-    #         self.reply(responce)
-    #         time.sleep(DELAY)
-    #         respect= message.get_next_message()
-
-
     def start_serving_computer(self):
-        i = 0
-        final_sequence_number = (len(self.current_responce) / MAX_MSG_LEN) - 1
-
-        while i is not final_sequence_number:
-            current_starter = i * MAX_MSG_LEN
-            nextChunk = self.current_responce[
-                current_starter : current_starter + MAX_MSG_LEN
-            ]
-            self.reply(nextChunk)
-            i += 1
+        message = Message((self.current_responce), self.package_id)
+        responce = message.get_next_message()
+        print(responce)
+        while(responce is not None):
+            self.reply(responce)
             time.sleep(DELAY)
+            responce= message.get_next_message()
+
+
+    # def start_serving_computer(self):
+    #     i = 0
+    #     final_sequence_number = (len(self.current_responce) / MAX_MSG_LEN) - 1
+
+    #     while i is not final_sequence_number:
+    #         current_starter = i * MAX_MSG_LEN
+    #         nextChunk = self.current_responce[
+    #             current_starter : current_starter + MAX_MSG_LEN
+    #         ]
+    #         self.reply(nextChunk)
+    #         i += 1
+    #         time.sleep(DELAY)
        
 
 

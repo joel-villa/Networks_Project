@@ -35,7 +35,7 @@ class Message:
         if(self.sequence_number is self.final_sequence_number):
             return None
         current_starter = self.sequence_number * MAX_MSG_LEN
-        print(f"Sequence number: {self.sequence_number}")
+        print(f"Sequence number: {self.sequence_number}, Current starter: {current_starter}")
         nextChunk = self.message[
                 current_starter : current_starter + MAX_MSG_LEN
             ]
