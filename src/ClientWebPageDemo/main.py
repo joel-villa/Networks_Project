@@ -1,6 +1,6 @@
 from os.path import samefile
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -9,10 +9,10 @@ import uvicorn
 from src.client.services.wikitohtml import generatePage
 from src.client.services.getWikitext import getWikitext
 from meshcore import EventType, MeshCore
+import asyncio
 
 # Add APIs here!
 from src.ClientWebPageDemo.routers import wiki
-
 
 
 """
@@ -43,6 +43,27 @@ class MeshSettings(BaseModel):
     port: str
 
 
+async def handle_incoming_message(event):
+    if event.type == EventType.CONTACT_MSG_RECV:
+        text = event.payload.get("text", "")
+
+        # Todo: Fix this
+        sender_name = event.payload.get("sender_name", "UnknownGateway")
+
+        if text.startswith("Available services:"):
+            # Strip String
+            services_str = text.replace("Available services:", "").strip()
+
+            # Split by comma into a list: ['wikipedia', 'duckduckgo', 'weather']
+            api_list = [api.strip() for api in services_str.split(",")]
+
+            # Save to app state so the Menu route can see it
+            if not hasattr(app.state, "gateways"):
+                app.state.gateways = {}
+
+            app.state.gateways[sender_name] = api_list
+            print(f"Updated services for {sender_name}: {api_list}")
+
 """
 Uses input from html settings page for device port
 :param settings:
@@ -60,7 +81,10 @@ async def connect_mesh(settings: MeshSettings):
         # Connect to the new port
         app.state.mesh_connection = await MeshCore.create_serial(settings.port)
 
-        # todo: add mc.subscribe() event listeners here?
+        # Listener
+        await app.state.mesh_connection.connect()
+        app.state.mesh_connection.subscribe(EventType.CONTACT_MSG_RECV, handle_incoming_message)
+        await app.state.mesh_connection.start_auto_message_fetching()
 
         return {"status": "success", "message": f"Successfully connected to {settings.port}"}
     except Exception as e:
@@ -78,11 +102,23 @@ Wikipedia [Gateway2]
 """
 @app.get("/")
 async def menu(request: Request):
-    # todo: will need code to try to initiate the connection with gateway
-    # if there are no gateways: No Gateways added
-    # if gateway is added -> lists all of the APIs with that gateway
-    return templates.TemplateResponse(request=request, name="index.html")
+    # Check if the user's mesh device is connected
+    mesh = getattr(request.app.state, "mesh_connection", None)
+    mesh_status = "Connected" if mesh else "Disconnected"
 
+    # Retrieve the known gateways and their APIs
+    # Expected structure: {"Gateway1": ["wikipedia", "weather"], "Gateway2": ["nasa"]}
+    gateways = getattr(request.app.state, "gateways", {})
+
+    # Pass these variables to the index.html template using 'context'
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={
+            "mesh_status": mesh_status,
+            "gateways": gateways
+        }
+    )
 
 """
 Connects the mesh device to this application.
@@ -90,9 +126,7 @@ Requires the device port.
 """
 @app.get("/settings")
 async def settings(request: Request):
-    # todo: will need code to try to initiate the connection with client
-    # if wikipedia Api is pressed -> initiate_wikipedia_connection()
-    # return templates.TemplateResponse("index.html", {"request": request})
+    # Todo this this should be done in python!
     return templates.TemplateResponse(request=request, name="settings.html")
 
 '''
@@ -107,6 +141,64 @@ async def addGateway(request: Request):
     # Gateway should send back a list of supported APIs
     # todo: this is create the list of APIs seen on the MENU page
     return templates.TemplateResponse(request=request, name="add_gateway.html")
+
+
+"""
+# todo: will try to initiate the connection with gateway
+# todo: sends OWO to gateway to indentify as computer
+Gateway should send back a list of supported APIs
+# todo: this is create the list of APIs seen on the MENU page
+"""
+@app.post("/addGateway")
+async def connect_to_gateway(
+        request: Request,
+        gateway_name: str = Form(...),
+        public_key: str = Form(...)
+):
+    # get te existing connection from the app state
+    mesh = getattr(request.app.state, "mesh_connection", None)
+
+    if not mesh:
+        return {"error": "No mesh device connected. Please connect your device first."}
+
+    try:
+        # Ensure contacts are synchronized before searching
+        await asyncio.wait_for(mesh.ensure_contacts(), timeout=30.0)
+
+        # Look up the gateway by name
+        contact = mesh.get_contact_by_name(gateway_name)
+
+        # Fallback: Look up by public key
+        if not contact and mesh.contacts:
+            for node_id, contact_obj in mesh.contacts.items():
+                if isinstance(contact_obj, dict) and contact_obj.get('public_key') == public_key:
+                    contact = contact_obj
+                    break
+
+        if not contact:
+            return {"error": f"Could not find {gateway_name} on the mesh network."}
+
+        # Extract the public key
+        dest_pub_key = contact.get('public_key')
+
+        if not dest_pub_key:
+            return {"error": "Gateway found, but missing a public key."}
+
+        # Send OwO
+        result = await mesh.commands.send_msg(dest_pub_key, "OwO")
+
+        # Check if the mesh radio reported an error sending the message
+        if result.type == EventType.ERROR:
+            return {"error": f"Radio error sending message: {result.payload}"}
+
+        return {"status": "success", "message": f"OWO sent to {gateway_name}"}
+
+    except asyncio.TimeoutError:
+        return {"error": "Timed out waiting for mesh contacts to synchronize."}
+    except Exception as e:
+        return {"error": f"An unexpected error occurred: {str(e)}"}
+
+
 
 
 @app.get("/errorScreen")
@@ -146,6 +238,9 @@ async def error(request: Request):
 #
 #     return templates.TemplateResponse(request=request,name="embeddedText.html",context={"search_query": q}
 #     )
+
+
+
 
 
 if __name__ == "__main__":
