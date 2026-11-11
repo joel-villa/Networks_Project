@@ -16,3 +16,15 @@ Ruff is an industry standard linter (error checking) and formater for Python wri
 - Lint with: `ruff check`
 - Style checking: `ruff format`
 - *All in one command*: `ruff check --fix`
+
+## Run User
+```
+python3 -m src.ClientWebPageDemo.main
+```
+
+## Run Gateway
+```
+python -m src.gateway.main
+```
+
+
