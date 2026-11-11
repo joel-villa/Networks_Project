@@ -60,7 +60,7 @@ class Sender:
             stop = perf_counter()
             await asyncio.sleep(self.timeout - (stop - start))
 
-            self.frames_sent +=1
+            self.frames_sent += 1
 
     def thread_entry(self) -> None:
         """Python threads cannot be called on async methods, thus this guy

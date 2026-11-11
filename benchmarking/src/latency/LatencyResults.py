@@ -187,6 +187,7 @@ def main() -> None:
 
     results.disp_results()
 
+
 if __name__ == "__main__":
     """Python main"""
     main()

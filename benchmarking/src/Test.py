@@ -35,45 +35,45 @@ class Test(ABC):
             dtype=int,
         )
 
-#    async def round_trip_time(
-#        self,
-#        meshcore: MeshCore,
-#        dst_key: dict,
-#        message: str,
-#        timeout: float = 5,
-#    ) -> float:
-#
-#        start = perf_counter()
-#
-#        sent_result = await meshcore.commands.send_msg(dst_key, message)
-#
-#        if sent_result.type == EventType.ERROR:
-#            return np.nan
-#
-#        expected_ack = sent_result.payload["expected_ack"].hex()
-#
-#        print(f"Waiting for ACK: {expected_ack}")
-#
-#        ack_start = perf_counter()
-#
-#        result = await meshcore.wait_for_event(
-#            EventType.ACK,
-#            attribute_filters={"code": expected_ack},
-#            timeout=timeout,
-#        )
-#
-#        ack_stop = perf_counter()
-#
-#        if result is None:
-#            return np.nan
-#
-#        rtt = ack_stop - start
-#
-#        print(f"Send operation: {(ack_start - start) * 1000:.6f} ms")
-#        print(f"ACK wait: {(ack_stop - ack_start) * 1000:.6f} ms")
-#        print(f"Total RTT: {rtt * 1000:.6f} ms")
-#
-#        return rtt
+    #    async def round_trip_time(
+    #        self,
+    #        meshcore: MeshCore,
+    #        dst_key: dict,
+    #        message: str,
+    #        timeout: float = 5,
+    #    ) -> float:
+    #
+    #        start = perf_counter()
+    #
+    #        sent_result = await meshcore.commands.send_msg(dst_key, message)
+    #
+    #        if sent_result.type == EventType.ERROR:
+    #            return np.nan
+    #
+    #        expected_ack = sent_result.payload["expected_ack"].hex()
+    #
+    #        print(f"Waiting for ACK: {expected_ack}")
+    #
+    #        ack_start = perf_counter()
+    #
+    #        result = await meshcore.wait_for_event(
+    #            EventType.ACK,
+    #            attribute_filters={"code": expected_ack},
+    #            timeout=timeout,
+    #        )
+    #
+    #        ack_stop = perf_counter()
+    #
+    #        if result is None:
+    #            return np.nan
+    #
+    #        rtt = ack_stop - start
+    #
+    #        print(f"Send operation: {(ack_start - start) * 1000:.6f} ms")
+    #        print(f"ACK wait: {(ack_stop - ack_start) * 1000:.6f} ms")
+    #        print(f"Total RTT: {rtt * 1000:.6f} ms")
+    #
+    #        return rtt
 
     async def round_trip_time(
         self,

@@ -9,9 +9,9 @@ import sys
 from typing import Any
 from warnings import warn  # TODO: replace with async Event
 
-from meshcore.events import Event
 import numpy as np
-from meshcore import EventType, MeshCore
+from meshcore import MeshCore
+from meshcore.events import Event
 
 from src.loss.util.Handshaker import Handshaker
 from src.util.RDT import RDT
@@ -128,12 +128,11 @@ class Loss(Test):
         self.test_state += 1
         return handshake_result
 
-
     async def __throw_away_msg(
         self,
         received_msg: Event,
     ) -> None:
-        """ Throw away handshaking messages
+        """Throw away handshaking messages
 
         Args:
             recieved_msg (EventType): Message recieved o7
@@ -174,7 +173,10 @@ class Loss(Test):
         frame_sizes = self.get_frame_sizes(num_frame_sizes=num_frame_sizes)
 
         print("Measuring some rtts based on ACKs")
-        min_times, max_times = await self.rtt_time( #TODO: so close, still getting NaN's, divide by zero?
+        (
+            min_times,
+            max_times,
+        ) = await self.rtt_time(  # TODO: so close, still getting NaN's, divide by zero?
             source=send_devs,
             dut=send_contacts,
             frame_sizes=frame_sizes,
@@ -214,25 +216,25 @@ class Loss(Test):
         timeouts = self.__calculate_timeouts(min_times)
         frames_received = np.full(timeouts.shape, np.nan)
 
-#        subscriptions = []
-#        for recv_dev in recv_devs:
-#            subscription = recv_dev.subscribe(
-#                event_type=EventType.CONTACT_MSG_RECV,
-#                callback=self.__throw_away_msg,
-#            )
-#            subscriptions.append(subscription)
-#            await recv_dev.start_auto_message_fetching()
-#
-#        print(f"START sleeping in Loss")
-#        await asyncio.sleep(max_times[-1] * 16)
-#        print(f"DONE sleeping in Loss")
-#
-#        for i, recv_dev in enumerate(recv_devs):
-#            recv_dev.unsubscribe(
-#                subscription=subscriptions[i]
-#            )
-#            await recv_dev.stop_auto_message_fetching()
-#
+        #        subscriptions = []
+        #        for recv_dev in recv_devs:
+        #            subscription = recv_dev.subscribe(
+        #                event_type=EventType.CONTACT_MSG_RECV,
+        #                callback=self.__throw_away_msg,
+        #            )
+        #            subscriptions.append(subscription)
+        #            await recv_dev.start_auto_message_fetching()
+        #
+        #        print(f"START sleeping in Loss")
+        #        await asyncio.sleep(max_times[-1] * 16)
+        #        print(f"DONE sleeping in Loss")
+        #
+        #        for i, recv_dev in enumerate(recv_devs):
+        #            recv_dev.unsubscribe(
+        #                subscription=subscriptions[i]
+        #            )
+        #            await recv_dev.stop_auto_message_fetching()
+        #
         # A WARM UP
         for receiver in receivers:
             await receiver.start(frame_size=frame_sizes[0])
@@ -262,13 +264,13 @@ class Loss(Test):
             for j, timeout_time in enumerate(timeouts[i]):
                 # Start recievers first to track all messages
                 for receiver in receivers:
-                    #TODO: more than one receiver => don't wait for all of em seperately?
-                    #print("Before reciever initialization")
+                    # TODO: more than one receiver => don't wait for all of em seperately?
+                    # print("Before reciever initialization")
                     await receiver.start(frame_size=frame_size)
-                    #print("After reciever initialization")
+                    # print("After reciever initialization")
 
-#                for receiver in receivers:
-#                    print(f"reciever.n_received: {receiver.n_recieved}")
+                #                for receiver in receivers:
+                #                    print(f"reciever.n_received: {receiver.n_recieved}")
 
                 # Start sending messages
                 for sender in senders:
@@ -290,7 +292,9 @@ class Loss(Test):
                     frames_received[i, j] += await reciever.stop()
 
                 if frames_received[i, j] > actual_frames_sent:
-                    warn(f"frames_recieved = {frames_received[i,j]} > {actual_frames_sent} frames sent, setting to maximum")
+                    warn(
+                        f"frames_recieved = {frames_received[i, j]} > {actual_frames_sent} frames sent, setting to maximum"
+                    )
                     frames_received[i, j] = actual_frames_sent
                 no_loss_curr = frames_received[i, j] == actual_frames_sent
                 if no_loss_prev and no_loss_curr:
