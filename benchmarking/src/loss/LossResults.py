@@ -207,7 +207,7 @@ class LossResults(Results):
             xs[i] = (xs[i] / max_frame_rate) * 100
 
             if not np.isclose(np.max(xs[i]), 100):
-                warn(f"Expected max frame rate to be 100%")
+                warn("Expected max frame rate to be 100%")
 
         ys = ((self.frames_sent - self.frames_recvd) / self.frames_sent) * 100
 
@@ -222,6 +222,7 @@ class LossResults(Results):
         plt.legend()
         plt.show()
         plt.close()
+
     def old_disp_results(self) -> None:
         """Display the latencies
 
@@ -257,6 +258,7 @@ def main() -> None:
     results = LossResults(file_name=1)
 
     results.disp_results()
+
 
 if __name__ == "__main__":
     """Python main"""

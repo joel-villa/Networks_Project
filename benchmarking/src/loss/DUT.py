@@ -90,9 +90,9 @@ class DUT:
             event_type=EventType.CONTACT_MSG_RECV,
             callback=self.__handle_message,
         )
-        #print("BEFORE start message fetching in DUT")
+        # print("BEFORE start message fetching in DUT")
         await self.dut.start_auto_message_fetching()
-        #print("AFTER start message fetching in DUT")
+        # print("AFTER start message fetching in DUT")
         sys.stdout.flush()
 
     async def finish(self) -> None:

@@ -6,8 +6,6 @@ Resources:
 """
 
 import asyncio
-from difflib import ndiff
-import sys
 from threading import BoundedSemaphore
 
 from meshcore import EventType, MeshCore
@@ -38,7 +36,7 @@ class Receiver:
             dut (ditc): Public key prefix of DUT
         """
 
-        #print(f"In Receiver, dut_pub_key: {dut_pub_key}\treciever_pub_key:{reciever.self_info['public_key']}")
+        # print(f"In Receiver, dut_pub_key: {dut_pub_key}\treciever_pub_key:{reciever.self_info['public_key']}")
         self.reciever = reciever
         self.dut = dut_pub_key[:N_CHAR_PUB_KEY_PREFIX]
         self.frame_size = -1
@@ -58,18 +56,23 @@ class Receiver:
             https://www.geeksforgeeks.org/python/python-sys-stdout-flush/
             https://www.geeksforgeeks.org/python/string-comparison-in-python/
         """
-        if received_msg.payload["pubkey_prefix"] == self.dut and self.frame_size == len(received_msg.payload['text']):
+        if received_msg.payload["pubkey_prefix"] == self.dut and self.frame_size == len(
+            received_msg.payload["text"]
+        ):
             with self.recvd_semaphore:
                 self.n_recieved += 1
-#                print(f"received_msg: {received_msg}")
-#                print(f"in Reciever received_msg length: {len(received_msg.payload['text'])}")
-#                print(f"n_recieved: {self.n_recieved}")
-#                sys.stdout.flush()
 
-        #print(f"After: {self.n_recieved}")
-        #sys.stdout.flush()
+    #                print(f"received_msg: {received_msg}")
+    #                print(f"in Reciever received_msg length: {len(received_msg.payload['text'])}")
+    #                print(f"n_recieved: {self.n_recieved}")
+    #                sys.stdout.flush()
 
-    async def start(self, frame_size: int) -> None: #TODO discard stale messsages by including msg length in API
+    # print(f"After: {self.n_recieved}")
+    # sys.stdout.flush()
+
+    async def start(
+        self, frame_size: int
+    ) -> None:  # TODO discard stale messsages by including msg length in API
         """Star the test!
 
         Args:
@@ -77,7 +80,7 @@ class Receiver:
             throw-away erroneous messages
         """
         self.frame_size = frame_size
-        #print("Start called")
+        # print("Start called")
         self.subscripttion = self.reciever.subscribe(
             event_type=EventType.CONTACT_MSG_RECV,
             callback=self.__inc_counter,
@@ -87,7 +90,6 @@ class Receiver:
 
         with self.recvd_semaphore:
             self.n_recieved = 0
-
 
     async def stop(self) -> int:  # TODO: causing error
         """Stop the count
@@ -100,7 +102,7 @@ class Receiver:
         with self.recvd_semaphore:
             n_recieved = self.n_recieved
             self.n_recieved = 0
-        #print(f"In Receiver.stop(), n_received = {n_recieved}")
+        # print(f"In Receiver.stop(), n_received = {n_recieved}")
         return n_recieved
 
 
