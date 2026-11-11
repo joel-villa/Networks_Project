@@ -5,17 +5,12 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from src.client.services.wikitohtml import generatePage
 
-# 1. Create a router instance
 router = APIRouter()
-
-# 2. Point to your templates
 templates = Jinja2Templates(directory="src/ClientWebPageDemo/clientPages")
-
 
 @router.get("/wikiSearch")
 async def searchWiki(request: Request):
     return templates.TemplateResponse(request=request, name="wikiSearch.html")
-
 
 @router.get("/embeddedText")
 async def embeddedText(request: Request, q: str = None):
@@ -23,8 +18,6 @@ async def embeddedText(request: Request, q: str = None):
         return templates.TemplateResponse(request=request, name="embeddedText.html", context={"search_query": q})
 
     q = q.title()
-
-    # Access the global state variables from the request object
     mesh_connection = request.app.state.mesh_connection
     pending_requests = request.app.state.pending_requests
 
@@ -38,17 +31,29 @@ async def embeddedText(request: Request, q: str = None):
     pending_requests[req_id] = future
 
     try:
-        # Send the mesh command (ensure CHANNEL_IDX is accessible or passed in)
-        await mesh_connection.commands.send_chan_msg(0, f"{q}")
+        # Force the mesh connection to sync contacts if it's currently empty
+        if not mesh_connection.contacts:
+            print("Contacts empty, waiting for mesh to sync...")
+            # Wait up to 15 seconds for the contacts to populate
+            await asyncio.wait_for(mesh_connection.ensure_contacts(), timeout=15.0)
+
+        contact = mesh_connection.get_contact_by_name("Gateway")
+
+        if contact:
+            await mesh_connection.commands.send_msg(contact, f"OwO")
+            await mesh_connection.commands.send_msg(contact, f"wikipedia")
+            await mesh_connection.commands.send_msg(contact, f"{q}")
+        else:
+            del pending_requests[req_id]
+            print("Contact not found after sync!")
+            return HTMLResponse(content="Error: Gateway contact not found on mesh.", status_code=404)
 
         # Wait for the reply from the background subscriber
-        # mesh_reply_text = await asyncio.wait_for(future, timeout=45.0)
-        mesh_reply_text = "lalalalal"
+        mesh_reply_text = await asyncio.wait_for(future, timeout=45.0)
+
     except asyncio.TimeoutError:
         del pending_requests[req_id]
-        return HTMLResponse(content="Error: Mesh timeout.", status_code=504)
-    except Exception as e:
-        return HTMLResponse(content=f"Error: {e}", status_code=500)
+        return HTMLResponse(content="Error: Mesh timeout while syncing contacts or waiting for reply.", status_code=504)
 
     # Generate the HTML from the mesh response
     css_string = '<link rel="stylesheet" href="/static/wikipedia.css">'

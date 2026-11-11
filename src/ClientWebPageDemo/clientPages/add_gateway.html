@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>errorScreen</title>
+    <title>Add Gateway</title>
     <link rel="stylesheet" href="../static/style.css">
 </head>
 <body>
@@ -10,42 +10,45 @@
         <a href="/">Menu</a> |
         <a href="/addGateway">Add Gateway</a> |
         <a href="/settings">Settings</a>
-<!--        |-->
-<!--        <a href="/errorScreen">Server Disconnected</a> |-->
-<!--        <a href="/wikiSearch">Search Wikipedia</a>-->
     </nav>
 
-    <p>Add instructions on how to add a server.</p>
+    <p>Enter the gateway credentials to initiate a connection.</p>
 
-    <div class="setting-box">
-      <label for="gateway_name">Gateway Name</label>
-      <input type="text" id="gateway_name" name="gateway_name" value="">
-    </div>
+    <!-- Added a dedicated div for status messages -->
+    <div id="status-message" style="margin-bottom: 15px; font-weight: bold;"></div>
 
-    <div class="setting-box">
-      <label for="gateway_pub_key">Gateway Public Key</label>
-      <input type="text" id="gateway_pub_key" name="gateway_pub_key" value="">
-    </div>
+    <!-- Wrapped inputs in a form -->
+    <form id="gateway-form">
+        <div class="setting-box">
+            <label for="gateway_name">Gateway Name</label>
+            <input type="text" id="gateway_name" name="gateway_name" required>
+        </div>
 
-    <button type="submit" class="confirm-btn">Save Settings</button>
+        <div class="setting-box">
+            <!-- Ensure name matches the FastAPI parameter 'public_key' -->
+            <label for="public_key">Gateway Public Key</label>
+            <input type="text" id="public_key" name="public_key" required>
+        </div>
 
+        <button type="submit" class="confirm-btn">Connect to Gateway</button>
+    </form>
 
-
-<!--    todo: -->
     <script>
       document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById('gateway-form');
         const inputs = document.querySelectorAll('.setting-box input');
         const submitBtn = document.querySelector('.confirm-btn');
+        const statusDiv = document.getElementById('status-message');
 
-        // 1. LOAD SAVED DATA: Check localStorage when the page loads
+        // Load saved data
         inputs.forEach(input => {
           const savedValue = localStorage.getItem(input.id);
           if (savedValue !== null) {
-            input.value = savedValue; // Overwrite default with saved value
+            input.value = savedValue;
           }
         });
 
-        // 2. ENTER KEY LOGIC: Move to next box or submit
+        // Move to next box or submit
         inputs.forEach((input, index) => {
           input.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
@@ -59,15 +62,45 @@
           });
         });
 
-        // 3. SAVE DATA: Store values in localStorage when confirmed
-        submitBtn.addEventListener('click', (event) => {
-          event.preventDefault();
+        // Save locally and send to backend
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault(); // Prevent standard page reload
 
+          // Save to local storage
           inputs.forEach(input => {
             localStorage.setItem(input.id, input.value);
           });
 
-          alert('Gateway Added!');
+          statusDiv.style.color = "blue";
+          statusDiv.innerText = "Connecting to mesh and searching for gateway...";
+          submitBtn.disabled = true; // Prevent double-clicking
+
+          try {
+            // Collect form data
+            const formData = new FormData(form);
+
+            // Send POST request to FastAPI backend
+            const response = await fetch('/addGateway', {
+              method: 'POST',
+              body: formData
+            });
+
+            const result = await response.json();
+
+            // Handle the backend response
+            if (result.error) {
+              statusDiv.style.color = "red";
+              statusDiv.innerText = result.error;
+            } else {
+              statusDiv.style.color = "green";
+              statusDiv.innerText = result.message;
+            }
+          } catch (error) {
+            statusDiv.style.color = "red";
+            statusDiv.innerText = "Network error: Could not reach the server.";
+          } finally {
+            submitBtn.disabled = false;
+          }
         });
       });
     </script>
