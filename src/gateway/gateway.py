@@ -7,9 +7,11 @@ Main Class that will handle most of the server side functionality.
 """
 
 from meshcore import EventType, MeshCore
+from meshcore.events import Event
+
 from .user import User
 from ..utils.UserType import UserType
-
+from typing import Any
 
 REGEX_THAT_MEANS_COMPUTER = "OwO"
 
