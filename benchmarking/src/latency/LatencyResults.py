@@ -179,3 +179,14 @@ class LatencyResults(Results):
         """Display test results"""
         self.plot_latency_v_iter()
         self.plot_latency_v_fsize()
+
+
+def main() -> None:
+    """display results from a loss test"""
+    results = LatencyResults(file_name=3)
+
+    results.disp_results()
+
+if __name__ == "__main__":
+    """Python main"""
+    main()

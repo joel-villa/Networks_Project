@@ -28,20 +28,18 @@ async def main() -> None:
     assert path_2 is not None
 
     contact_under_test = "pro_0"
-    frame_count = 5
-    granularity = 0.1  # 10% is maximum granularity
+    frame_count = 32
+    granularity = 0.025  # 0.1 is maximum granularity
     num_frame_sizes = 5  # 5 is minimum
-    prop_min_time = 0.9
+    prop_min_time = 0.75
     prop_max_time = 2
-    n_rtts = 3
+    n_rtts = 4
     max_time = 2
     source_type = [
         Device.HELTEC_V3,
         Device.HELTEC_T114,
     ]
     dst_type = Device.SEEED_WIO_TRACKER_L1_PRO
-
-    file_id = 1
 
     print("Connecting devices")
     # Connect to your device
