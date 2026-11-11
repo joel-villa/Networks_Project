@@ -64,6 +64,20 @@ async def handle_incoming_message(event):
             app.state.gateways[sender_name] = api_list
             print(f"Updated services for {sender_name}: {api_list}")
 
+        # TODO: Have it append to multiple packets for a cohesive wikipedia
+        else:
+            # Check if there are any routes waiting for a reply
+            pending_requests = getattr(app.state, "pending_requests", {})
+
+            if pending_requests:
+                # Pop the first waiting request (FIFO)
+                req_id, future = pending_requests.popitem()
+
+                # Pass the incoming text to the waiting route
+                if not future.done():
+                    future.set_result(text)
+                    print(f"Resolved pending request {req_id} with incoming text.")
+
 """
 Uses input from html settings page for device port
 :param settings:
