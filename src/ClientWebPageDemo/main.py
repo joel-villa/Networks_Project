@@ -44,39 +44,39 @@ class MeshSettings(BaseModel):
 
 
 async def handle_incoming_message(event):
-    if event.type == EventType.CONTACT_MSG_RECV:
+    if event.type in (EventType.CONTACT_MSG_RECV, EventType.CHANNEL_MSG_RECV):
         text = event.payload.get("text", "")
 
-        # Todo: Fix this
-        sender_name = event.payload.get("sender_name", "UnknownGateway")
+        # This is likely the short prefix (e.g., "!ab12cd34")
+        raw_sender_id = event.payload.get("pubkey_prefix", "UnknownGateway")
 
+        # Let's find the FULL public key to use as our mailbox name
+        sender_id = raw_sender_id  # Default to raw
+
+        # Look up the contact in the mesh device to get the full key
+        if app.state.mesh_connection and app.state.mesh_connection.contacts:
+            contact = app.state.mesh_connection.get_contact_by_key_prefix(raw_sender_id)
+            if contact:
+                sender_id = contact.get("public_key", raw_sender_id)
+
+        # Menu updates
         if text.startswith("Available services:"):
-            # Strip String
             services_str = text.replace("Available services:", "").strip()
-
-            # Split by comma into a list: ['wikipedia', 'duckduckgo', 'weather']
             api_list = [api.strip() for api in services_str.split(",")]
-
-            # Save to app state so the Menu route can see it
             if not hasattr(app.state, "gateways"):
                 app.state.gateways = {}
+            app.state.gateways[sender_id] = api_list
 
-            app.state.gateways[sender_name] = api_list
-            print(f"Updated services for {sender_name}: {api_list}")
-
-        # TODO: Have it append to multiple packets for a cohesive wikipedia
+        # Drop all other text into the Gateway's Inbox
         else:
-            # Check if there are any routes waiting for a reply
-            pending_requests = getattr(app.state, "pending_requests", {})
+            if not hasattr(app.state, "inboxes"):
+                app.state.inboxes = {}
+            if sender_id not in app.state.inboxes:
+                app.state.inboxes[sender_id] = asyncio.Queue()
 
-            if pending_requests:
-                # Pop the first waiting request (FIFO)
-                req_id, future = pending_requests.popitem()
-
-                # Pass the incoming text to the waiting route
-                if not future.done():
-                    future.set_result(text)
-                    print(f"Resolved pending request {req_id} with incoming text.")
+            # DEBUG PRINT: Prove the mailman is dropping it in the right box!
+            print(f"[MAILMAN] Dropping packet into inbox for: {sender_id}")
+            app.state.inboxes[sender_id].put_nowait(text)
 
 """
 Uses input from html settings page for device port
