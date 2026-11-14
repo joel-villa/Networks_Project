@@ -19,7 +19,7 @@ hyperparameters in main to desired values and uncomment the call to
 ## Loss Test
 
 To visualize
-To visualize results of test 3 run the following from root.
+To visualize results of test 5 run the following from root.
 
 ```linux
 cd benchmarking
@@ -30,7 +30,7 @@ Before running any tests of your own, ensure devices are in eachother's
 contacts and able to send messages. Then...
 
 To generate new results open `src/loss/main.py` and set 
-hyperparameters in main to desired values and uncomment the call to 
+hyperparameters in main to desired values
 
 ## TODOs
 
