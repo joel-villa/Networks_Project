@@ -28,12 +28,12 @@ async def main() -> None:
     assert path_2 is not None
 
     contact_under_test = "pro_0"
-    frame_count = 32
+    frame_count = 64
     granularity = 0.025  # 0.1 is maximum granularity
     num_frame_sizes = 5  # 5 is minimum
     prop_min_time = 0.75
     prop_max_time = 2
-    n_rtts = 4
+    n_rtts = 5
     max_time = 2
     source_type = [
         Device.HELTEC_V3,
