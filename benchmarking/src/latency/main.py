@@ -1,6 +1,8 @@
 
 import asyncio
+import os
 
+from dotenv import load_dotenv
 from meshcore import MeshCore
 
 from src.latency.Latency import Latency
@@ -10,6 +12,10 @@ from src.util.Device import Device
 
 async def main():
     """Run the test purposes"""
+    load_dotenv()
+    path_to_dev = os.getenv("MESH_PATH")
+    assert path_to_dev is not None
+
     file_id = 2
 
     contact_under_test = "SenseCap_Solar_0"
@@ -23,7 +29,7 @@ async def main():
     distance = None
     notes = None
 
-    meshcore = await MeshCore.create_serial("/dev/ttyUSB0")
+    meshcore = await MeshCore.create_serial(path_to_dev)
 
     file_id = -1
 
