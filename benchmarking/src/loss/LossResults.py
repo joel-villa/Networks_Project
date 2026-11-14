@@ -199,7 +199,13 @@ class LossResults(Results):
 
         return save_file
 
-    def disp_results(self) -> None:
+    def disp_results_verbose(self, is_rfc_based: bool = True):
+        """Display the test results
+
+        Args:
+            is_rfc_based (bool): True -> x axis is percentage, false -> x axis
+            is time
+	    """
         xs = 1 / self.timeout_times
 
         for i in range(xs.shape[0]):
@@ -212,52 +218,29 @@ class LossResults(Results):
         ys = ((self.frames_sent - self.frames_recvd) / self.frames_sent) * 100
 
         for i, frame_size in enumerate(self.frame_sizes):
-            print(f"xs[i]: {xs[i]}")
-            print(f"ys[i]: {ys[i]}")
-
-            plt.plot(xs[i], ys[i], label=f"{frame_size}")
+            if is_rfc_based:
+                plt.plot(xs[i], ys[i], label=f"{frame_size}")
+            else:
+                plt.plot(self.timeout_times[i], ys[i], label=f"{frame_size}")
 
         plt.ylabel("Frame Loss (%)")
-        plt.xlabel("Frame Rate (%)")
+        if is_rfc_based:
+            plt.xlabel("Frame Rate (%)")
+        else:
+            plt.xlabel("Timeout Time (seconds)")
+
         plt.legend()
         plt.show()
         plt.close()
 
-    def old_disp_results(self) -> None:
-        """Display the latencies
-
-        Resrouces:
-            https://www.rfc-editor.org/info/rfc2544/#section-26.3
-        """
-        xs = 1 / self.timeout_times
-        for i in range(xs.shape[0]):
-            # Following RFC recommendations
-            max_frame_rate = xs[i, xs.shape[1] - 1]
-            xs[i] = 100 - (max_frame_rate - xs[i] * 100)
-
-            if xs[i, xs.shape[1] - 1] - 1 <= 99.99999:
-                warn(
-                    "Expecting max to be 100% for frame size"
-                    f"{self.frame_sizes[i]}, got {xs[i, xs.shape[1] - 1]}"
-                )
-        ys = ((self.frames_sent - self.frames_recvd) * 100) / self.frames_sent
-
-        for i, frame_size in enumerate(self.frame_sizes):
-            print(f"xs[i][:5]:{xs[i][:5]}\nys[i][:5]:{ys[i][:5]}\n\n")
-            plt.plot(xs[i], ys[i], label=f"{frame_size}")
-
-        plt.ylabel("Frame Loss (%)")
-        plt.xlabel("Frame Rate (%)")
-        plt.legend()
-        plt.show()
-        plt.close()
-
+    def disp_results(self) -> None:
+        self.disp_results_verbose()
 
 def main() -> None:
     """display results from a loss test"""
-    results = LossResults(file_name=1)
+    results = LossResults(file_name=5)
 
-    results.disp_results()
+    results.disp_results_verbose(is_rfc_based=False)
 
 
 if __name__ == "__main__":
