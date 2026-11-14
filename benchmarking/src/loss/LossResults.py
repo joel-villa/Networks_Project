@@ -205,7 +205,7 @@ class LossResults(Results):
         Args:
             is_rfc_based (bool): True -> x axis is percentage, false -> x axis
             is time
-	    """
+        """
         xs = 1 / self.timeout_times
 
         for i in range(xs.shape[0]):
@@ -235,6 +235,7 @@ class LossResults(Results):
 
     def disp_results(self) -> None:
         self.disp_results_verbose()
+
 
 def main() -> None:
     """display results from a loss test"""
