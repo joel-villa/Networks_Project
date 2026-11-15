@@ -183,9 +183,11 @@ class LatencyResults(Results):
 
 def main() -> None:
     """display results from a loss test"""
-    results = LatencyResults(file_name=3)
+    file_ids = range(1, 4)
 
-    results.disp_results()
+    for file_id in file_ids:
+        results = LatencyResults(file_name=file_id)
+        results.disp_results()
 
 
 if __name__ == "__main__":
