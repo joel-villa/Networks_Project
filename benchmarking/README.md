@@ -2,19 +2,22 @@
 
 ## Latency Test
 
-To visualize results of test 2 run the following from root.
+To visualize the latency test results:
 
 ```linux
 cd benchmarking
-python -m src.latency.Latency
+python -m src.latency.LatencyResults
 ```
 
 Before running any tests of your own, ensure devices are in eachother's 
 contacts and able to send messages. Then...
 
-To generate new results open `src/latency/Latency.py` and set 
-hyperparameters in main to desired values and uncomment the call to 
-`wrap_run_test()`
+- Setup .env to have: `MESH_PATH = "<path>/<to>/<USB>/<Serial>/<Device>"`
+- Set the `contact_under_test` to the contact name of the device that will be 
+ tested
+- Set `src_type`, and `dst_type` to appropraite devices
+- Set other hyperparameters as desired
+- Run `python -m src.latency.main`
 
 ## Loss Test
 
@@ -30,7 +33,7 @@ Before running any tests of your own, ensure devices are in eachother's
 contacts and able to send messages. Then...
 
 To generate new results open `src/loss/main.py` and set 
-hyperparameters in main to desired values
+hyperparameters in main to desired values, and run `python -m src.loss.main`
 
 ## TODOs
 
