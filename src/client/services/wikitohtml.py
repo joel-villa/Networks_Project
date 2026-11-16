@@ -1,12 +1,21 @@
 import urllib.parse
 import mwparserfromhell
 from mwparserfromhell.nodes import Text, Wikilink, ExternalLink, Heading, Tag, HTMLEntity, Template
-# Below are imports for testing
+# Below are imports for testing, used in main
+import sys
+from pathlib import Path
+
+# Add project root to sys.path so direct script execution can resolve other packages
+_project_root = str(Path(__file__).resolve().parents[3])
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
 try:
     from .getWikitext import getWikitext
 except ImportError:
-    from getWikitext import getWikitext
+    from src.client.services.getWikitext import getWikitext
 
+from src.gateway.services.wikiTrim import trim
 
 def translate(wikitext: str) -> str:
     """
@@ -102,11 +111,24 @@ def generatePage(title: str, wikitext: str):
 </body>
 </html>"""
 
-
+#main only used for testing
 def main():
     pageName = "Iran"
-    page = getWikitext(pageName)
-    print(generatePage(pageName, page))
+    raw_wikitext = getWikitext(pageName)
+    trimmed_wikitext = trim(raw_wikitext)
+    # print(f"Raw wikitext size:     {len(raw_wikitext)} chars")
+    # print(f"Trimmed wikitext size: {len(trimmed_wikitext)} chars")
+
+    raw_html = generatePage(pageName, raw_wikitext)
+    trimmed_html = generatePage(pageName, trimmed_wikitext)
+
+    # html_matches = (raw_html == trimmed_html)
+    # print(f"Generated HTML matches exactly: {html_matches}")
+    # if not html_matches:
+    #     print(f"Raw HTML size:     {len(raw_html)} chars")
+    #     print(f"Trimmed HTML size: {len(trimmed_html)} chars")
+
+    print(raw_html)
 
 if __name__ == "__main__":
     main()

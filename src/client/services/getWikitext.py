@@ -37,6 +37,7 @@ def getWikitext(page_title: str) -> str | None:
         print(f"Unexpected response structure: {e}")
         return None
 
+#main only used for testing
 if __name__ == "__main__":
     title = "Help:Wikitext"
     wikitext = getWikitext(title)
