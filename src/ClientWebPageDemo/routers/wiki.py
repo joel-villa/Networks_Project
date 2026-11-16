@@ -56,3 +56,9 @@ async def embeddedText(request: Request, q: str = None):
     generated_html_string = generated_html_string.replace("</head>", f"{css_string}\n</head>")
 
     return HTMLResponse(content=generated_html_string)
+
+# Try uncommenting this to enable links
+# @router.get("/wikiLinkEvent")
+# async def wiki_link_event(request: Request, q: str = None):
+#     print(f"testing link trigger {q}")
+#     return await embeddedText(request=request, q=q)

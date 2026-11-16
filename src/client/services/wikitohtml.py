@@ -1,3 +1,4 @@
+import urllib.parse
 import mwparserfromhell
 from mwparserfromhell.nodes import Text, Wikilink, ExternalLink, Heading, Tag, HTMLEntity, Template
 # Below are imports for testing
@@ -45,7 +46,9 @@ def translate(wikitext: str) -> str:
                 else:
                     label_html = title_str
                     
-                html_parts.append(f'<a href="{title_str}">{label_html}</a>')
+                # Link to /embeddedText so clicking within the iframe requests and loads the new topic
+                encoded_title = urllib.parse.quote(title_str)
+                html_parts.append(f'<a href="/embeddedText?q={encoded_title}">{label_html}</a>')
                 
             # 4. External Web Links
             elif isinstance(node, ExternalLink):
