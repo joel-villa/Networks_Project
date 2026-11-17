@@ -1,0 +1,153 @@
+"""Ohhh, that good benchmarking"""
+import asyncio
+import os
+from dotenv import load_dotenv
+
+from src.DistanceTracker import DistanceTracker
+from src.latency.Latency import Latency
+from src.latency.LatencyResults import LatencyResults
+from src.loss.DUT import DUT
+from src.loss.Loss import Loss
+from src.loss.LossResults import LossResults
+from src.loss.Receiver import MeshCore
+from src.util.Device import Device
+
+
+async def main_loss(
+    source: list[MeshCore],
+    name_under_test: str,
+    distance: list[float],
+    source_type: list[Device],
+    dst_type: Device,
+) -> None:
+    frame_count = 64
+    granularity = 0.025  # 0.1 is maximum granularity
+    num_frame_sizes = 5  # 5 is minimum
+    prop_min_time = 0.75
+    prop_max_time = 2
+    n_rtts = 5
+    max_time = 2 # Max timeout time (seconds)
+    # Connect to your device
+
+    dut = DUT(dut_mesh)
+    loss_test = Loss(
+        frames_sent=frame_count,
+        granularity=granularity,
+        prop_min_time=prop_min_time,
+        prop_max_time=prop_max_time,
+        num_rtts=n_rtts,
+        max_timeout=max_time,
+    )
+
+    await dut.run_handshake(n_pairs=len(source) // 2)
+    handshake_result = await loss_test.run_handshake(
+        source=source,
+        dut_name=name_under_test,
+    )
+    await dut.run_test()
+    file_id = await loss_test.run_test(
+        handshake_result=handshake_result,
+        src_type=source_type,
+        dst_type=dst_type,
+        num_frame_sizes=num_frame_sizes,
+        distance=distance,
+        notes="testing thangs",
+    )
+    await dut.finish()
+
+    results = LossResults(file_name=file_id)
+    results.disp_results()
+
+async def main_latency(
+    meshcore: MeshCore,
+    name_under_test: str,
+    distance: float,
+    src_type: Device,
+    dst_type: Device,
+) -> None:
+    # TODO: get this test to under 5 minutes for scaling to larger tests
+    num_frame_sizes = 8  # 5 at minimum
+    max_msgs = 1024
+    max_time = 1800 # 30 mins = 1800 seconds
+    notes = None
+
+    lat_test = Latency(
+        max_msgs=max_msgs,
+        max_time=max_time,
+    )
+
+    file_id = await lat_test.run_test(
+        source=meshcore,
+        dut_name=name_under_test,
+        src_type=src_type,
+        dst_type=dst_type,
+        num_frame_sizes=num_frame_sizes,
+        distance=distance,
+        notes=notes,
+    )
+
+    results = LatencyResults(file_name=file_id)
+    results.disp_results()
+
+
+
+async def main() -> None:
+    """Run the test purposes"""
+    load_dotenv()
+    path_0 = os.getenv("MESH_PATH")
+    path_1 = os.getenv("MESH_PATH_1")
+    assert path_0 is not None
+    assert path_1 is not None
+
+    name_under_test = "SenseCap_Solar_0"
+
+    print("Connecting devices")
+    meshcore_0 = await MeshCore.create_serial(path_0)
+    meshcore_1 = await MeshCore.create_serial(path_1)
+    meshcores = [
+        meshcore_0,
+        meshcore_1,
+    ]
+    src_types = [
+        Device.HELTEC_T114,
+        Device.HELTEC_V3,
+    ]
+    dst_type = Device.SEEED_WIO_TRACKER_L1_PRO
+
+    distances = []
+
+    for mesh in meshcores:
+        dist_tracker = DistanceTracker(
+            src_dev=mesh,
+        )
+        dist = await dist_tracker.measure_dist(
+            dest_device=name_under_test,
+        )
+        distances.append(dist)
+        print(f"Distance between mesh and DUT: {dist}")
+
+    print("Running Latency Test!")
+    await main_latency(
+        meshcore=meshcores[0],
+        name_under_test=name_under_test,
+        distance=distances[0],
+        src_type=src_types[0],
+        dst_type=dst_type,
+    )
+
+    print("Running Loss Test!")
+    await main_loss(
+        source=meshcores,
+        name_under_test=name_under_test,
+        distance=distances,
+        source_type=src_types,
+        dst_type=dst_type,
+    )
+
+    await meshcore_0.disconnect()
+    await meshcore_1.disconnect()
+
+if __name__ == "__main__":
+    """Main for testing purposes
+    """
+    asyncio.run(main())

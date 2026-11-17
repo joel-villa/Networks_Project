@@ -1,9 +1,9 @@
 {
-    "src_type": "HELTEC_V3",
-    "dst_type": "HELTEC_T114",
+    "src_type": "SEEED_WIO_TRACKER_L1_PRO",
+    "dst_type": "SEEED_SENSECAP_SOLAR",
     "distance": null,
     "num_frame_sizes": 8,
     "max_msgs": 1024,
-    "max_time": 260,
+    "max_time": 1800,
     "notes": null
 }
