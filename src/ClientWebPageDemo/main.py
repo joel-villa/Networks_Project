@@ -33,6 +33,7 @@ templates = Jinja2Templates(directory="src/ClientWebPageDemo/clientPages")
 # current mesh device state
 app.state.mesh_connection = None
 app.state.pending_requests = {}
+app.state.gateway_name = None
 
 # Where APIs will go
 app.include_router(wiki.router)
@@ -42,41 +43,42 @@ app.include_router(wiki.router)
 class MeshSettings(BaseModel):
     port: str
 
-
+"""
+"""
 async def handle_incoming_message(event):
-    if event.type == EventType.CONTACT_MSG_RECV:
+    if event.type in (EventType.CONTACT_MSG_RECV, EventType.CHANNEL_MSG_RECV):
         text = event.payload.get("text", "")
 
-        # Todo: Fix this
-        sender_name = event.payload.get("sender_name", "UnknownGateway")
+        # This is likely the short prefix (e.g., "!ab12cd34")
+        raw_sender_id = event.payload.get("pubkey_prefix", "UnknownGateway")
 
+        # Let's find the FULL public key to use as our mailbox name
+        sender_id = raw_sender_id  # Default to raw
+
+        # Look up the contact in the mesh device to get the full key
+        if app.state.mesh_connection and app.state.mesh_connection.contacts:
+            contact = app.state.mesh_connection.get_contact_by_key_prefix(raw_sender_id)
+            if contact:
+                sender_id = contact.get("public_key", raw_sender_id)
+
+        # Menu updates
         if text.startswith("Available services:"):
-            # Strip String
             services_str = text.replace("Available services:", "").strip()
-
-            # Split by comma into a list: ['wikipedia', 'duckduckgo', 'weather']
             api_list = [api.strip() for api in services_str.split(",")]
-
-            # Save to app state so the Menu route can see it
             if not hasattr(app.state, "gateways"):
                 app.state.gateways = {}
+            app.state.gateways[sender_id] = api_list
 
-            app.state.gateways[sender_name] = api_list
-            print(f"Updated services for {sender_name}: {api_list}")
-
-        # TODO: Have it append to multiple packets for a cohesive wikipedia
+        # Drop all other text into the Gateway's Inbox
         else:
-            # Check if there are any routes waiting for a reply
-            pending_requests = getattr(app.state, "pending_requests", {})
+            if not hasattr(app.state, "inboxes"):
+                app.state.inboxes = {}
+            if sender_id not in app.state.inboxes:
+                app.state.inboxes[sender_id] = asyncio.Queue()
 
-            if pending_requests:
-                # Pop the first waiting request (FIFO)
-                req_id, future = pending_requests.popitem()
-
-                # Pass the incoming text to the waiting route
-                if not future.done():
-                    future.set_result(text)
-                    print(f"Resolved pending request {req_id} with incoming text.")
+            # DEBUG PRINT: Prove the mailman is dropping it in the right box!
+            print(f"[MAILMAN] Dropping packet into inbox for: {sender_id}")
+            app.state.inboxes[sender_id].put_nowait(text)
 
 """
 Uses input from html settings page for device port
@@ -140,7 +142,6 @@ Requires the device port.
 """
 @app.get("/settings")
 async def settings(request: Request):
-    # Todo this this should be done in python!
     return templates.TemplateResponse(request=request, name="settings.html")
 
 '''
@@ -150,10 +151,6 @@ This initiates the connection between the user and gateway
 '''
 @app.get("/addGateway")
 async def addGateway(request: Request):
-    # todo: will try to initiate the connection with gateway
-    # todo: sends OWO to gateway to indentify as computer
-    # Gateway should send back a list of supported APIs
-    # todo: this is create the list of APIs seen on the MENU page
     return templates.TemplateResponse(request=request, name="add_gateway.html")
 
 
@@ -169,7 +166,9 @@ async def connect_to_gateway(
         gateway_name: str = Form(...),
         public_key: str = Form(...)
 ):
-    # get te existing connection from the app state
+    gateway_name = gateway_name.strip()
+    request.app.state.gateway_name = gateway_name
+    public_key = public_key.strip()
     mesh = getattr(request.app.state, "mesh_connection", None)
 
     if not mesh:
@@ -214,51 +213,6 @@ async def connect_to_gateway(
 
 
 
-
-@app.get("/errorScreen")
-async def error(request: Request):
-    # todo: is this needed?
-    return templates.TemplateResponse(request=request, name="errorScreen.html")
-
-
-# @app.get("/wikiSearch")
-# async def searchWiki(request: Request):
-#     # return templates.TemplateResponse("wikiSearch.html", {"request": request})
-#     return templates.TemplateResponse(request=request, name="wikiSearch.html")
-#
-#
-# @app.get("/embeddedText")
-# async def embeddedText(request: Request, q: str = None):
-#
-#
-#
-#
-#     if q and q.lower() == "pet door":
-#         q = q.title()
-#
-#         # todo: this should be sent from the server
-#         #  This is an example of what the client will reccieve from server.
-#         sample_wikitext = """{{Short description|Flap door for pets}}
-#         [[File:Doggy door exit.JPG|thumb|A dog exiting through a pet door]]
-#         A ''pet door'' or '''pet flap''' (also referred to in more specific terms, such as '''''cat flap''''', '''cat door''', '''kitty door''', '''dog flap''', '''dog door''', or '''doggy/doggie door''') is a small opening to allow [[pet]]s to enter and exit a building on their own without needing a human to open the door. Originally simple holes, the modern form is a hinged and often spring-loaded panel or flexible flap, and some are electronically controlled. They offer a degree of protection against wind, rain, and larger-bodied intruders entering the dwelling. Similar hatches can let dogs through fences at stiles. A related concept is the '''pet gate''', which is easy for humans to open but acts as a secure pet barrier.
-#         ==Purpose==
-#         A pet door is found to be convenient by many owners of companion animals, especially dogs and cats, because it lets the pets come and go as they please, reducing the need for pet-owners to let or take the pet outside manually, and curtailing unwanted behaviour such as loud vocalisation to be let outside, scratching on doors or walls, and (especially in the case of dogs) [[Excretion|excreting]] in the house. They also help to ensure that a pet left outdoors can safely get back into the house unattended, in the case of inclement weather."""
-#
-#         # turn the wiki format into html
-#         css_string = '<link rel="stylesheet" href="/static/wikipedia.css">'
-#         generated_html_string = (generatePage(q, sample_wikitext))
-#         generated_html_string = generated_html_string.replace("</head>", f"{css_string}\n</head>")
-#         return HTMLResponse(content=generated_html_string)
-#
-#     return templates.TemplateResponse(request=request,name="embeddedText.html",context={"search_query": q}
-#     )
-
-
-
-
-
 if __name__ == "__main__":
-    # Runs the server locally on port 8000
-    # mc = await MeshCore.create_serial(PORT)
     # todo: maybe make host & port a command line argument
     uvicorn.run(app, host="127.0.0.1", port=8000)

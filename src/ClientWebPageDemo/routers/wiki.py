@@ -1,5 +1,9 @@
 import asyncio
 import uuid
+
+import requests
+from fastapi import Form
+from fastapi.responses import JSONResponse
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -8,62 +12,89 @@ from src.client.services.wikitohtml import generatePage
 router = APIRouter()
 templates = Jinja2Templates(directory="src/ClientWebPageDemo/clientPages")
 
-@router.get("/wikiSearch")
-async def searchWiki(request: Request):
-    return templates.TemplateResponse(request=request, name="wikiSearch.html")
+
+"""
+Gets the gateway's name and public key
+"""
+async def _get_mesh_target(app_state, gateway_name: str):
+    mesh = getattr(app_state, "mesh_connection", None)
+    if not mesh:
+        raise ValueError("Not connected to Mesh Device.")
+
+    if not mesh.contacts:
+        await asyncio.wait_for(mesh.ensure_contacts(), timeout=5.0)
+
+    contact = mesh.get_contact_by_name(gateway_name)
+    if not contact:
+        raise ValueError(f"Gateway '{gateway_name}' not found on mesh.")
+
+    return mesh, contact.get('public_key')
+
+"""
+Creates or clears the async queue for a specific gateway.
+"""
+def _prepare_inbox(app_state, pub_key: str):
+    if not hasattr(app_state, "inboxes"):
+        app_state.inboxes = {}
+    if pub_key not in app_state.inboxes:
+        app_state.inboxes[pub_key] = asyncio.Queue()
+
+    inbox = app_state.inboxes[pub_key]
+    while not inbox.empty():
+        inbox.get_nowait()
+    return inbox
 
 
+"""
+ Waits for the first chunk, then collects subsequent chunks until timeout.
+"""
+async def _collect_mesh_response(inbox) -> str:
+    mesh_reply_text = ""
+
+    # Wait up to 5s for the very first response packet
+    first_chunk = await asyncio.wait_for(inbox.get(), timeout=5.0)
+    mesh_reply_text += first_chunk
+
+    # Wait up to 5s for subsequent packets; break when they stop coming
+    while True:
+        try:
+            chunk = await asyncio.wait_for(inbox.get(), timeout=5.0)
+            mesh_reply_text += chunk
+        except asyncio.TimeoutError:
+            break
+
+    return mesh_reply_text
+
+
+"""
+Embedded text handles the iframe that posts the wikipedia results (or the default waiting screen) 
+"""
 @router.get("/embeddedText")
 async def embeddedText(request: Request, q: str = None):
-    if not q:
-        return templates.TemplateResponse(request=request, name="embeddedText.html", context={"search_query": q})
+    gateway = getattr(request.app.state, "gateway_name", None)
 
-    q = q.title()
-    mesh_connection = getattr(request.app.state, "mesh_connection", None)
-
-    # Ensure pending_requests dictionary exists
-    if not hasattr(request.app.state, "pending_requests"):
-        request.app.state.pending_requests = {}
-    pending_requests = request.app.state.pending_requests
-
-    if not mesh_connection:
-        return HTMLResponse(content="Error: Not connected to Mesh Device.", status_code=500)
-
-    # Setup the async wait for the mesh reply
-    loop = asyncio.get_running_loop()
-    future = loop.create_future()
-    req_id = str(uuid.uuid4())
-    pending_requests[req_id] = future
+    if not gateway:
+        return HTMLResponse(content="Error: No gateway connected.", status_code=400)
 
     try:
-        if not mesh_connection.contacts:
-            print("Contacts empty, waiting for mesh to sync...")
-            await asyncio.wait_for(mesh_connection.ensure_contacts(), timeout=15.0)
+        mesh, pub_key = await _get_mesh_target(request.app.state, gateway)
 
-        contact = mesh_connection.get_contact_by_name("Gateway")
+        if not q:
+            await mesh.commands.send_msg(pub_key, "wikipedia")
+            return HTMLResponse(content='<div style="font-family: sans-serif; padding: 20px;">Ready for Wikipedia search.</div>')
+        q = q.title()
+        inbox = _prepare_inbox(request.app.state, pub_key)
 
-        if contact:
-            dest_pub_key = contact.get('public_key')
-
-            # Send commands with a slight delay so the radio doesn't drop packets
-            await mesh_connection.commands.send_msg(dest_pub_key, "OwO")
-            await asyncio.sleep(1)
-            await mesh_connection.commands.send_msg(dest_pub_key, "wikipedia")
-            await asyncio.sleep(1)
-            await mesh_connection.commands.send_msg(dest_pub_key, q)
-        else:
-            pending_requests.pop(req_id, None)
-            return HTMLResponse(content="Error: Gateway contact not found on mesh.", status_code=404)
-
-        # Wait for the listener in main.py to resolve the future
-        print(f"Waiting for Gateway to reply for query: {q}...")
-        mesh_reply_text = await asyncio.wait_for(future, timeout=45.0)
+        await mesh.commands.send_msg(pub_key, q)
+        mesh_reply_text = await _collect_mesh_response(inbox)
 
     except asyncio.TimeoutError:
-        pending_requests.pop(req_id, None)
-        return HTMLResponse(content="Error: Gateway took too long to reply.", status_code=504)
+        return HTMLResponse(content="Error: Gateway timed out.", status_code=504)
+
+    except ValueError as e:
+        return HTMLResponse(content=f"Error: {str(e)}", status_code=400)
+
     except Exception as e:
-        pending_requests.pop(req_id, None)
         return HTMLResponse(content=f"Error: {str(e)}", status_code=500)
 
     # Generate the HTML from the mesh response
@@ -73,3 +104,7 @@ async def embeddedText(request: Request, q: str = None):
 
     return HTMLResponse(content=generated_html_string)
 
+
+@router.get("/wikiSearch")
+async def searchWiki(request: Request):
+    return templates.TemplateResponse(request=request, name="wikiSearch.html")

@@ -87,7 +87,12 @@
 
             const result = await response.json();
 
-            // Handle the backend response
+            if (!response.ok) {
+              statusDiv.style.color = "red";
+              statusDiv.innerText = result.detail ? JSON.stringify(result.detail) : "Server returned an HTTP error.";
+              return;
+            }
+
             if (result.error) {
               statusDiv.style.color = "red";
               statusDiv.innerText = result.error;
@@ -95,6 +100,15 @@
               statusDiv.style.color = "green";
               statusDiv.innerText = result.message;
             }
+
+            // Handle the backend response
+            // if (result.error) {
+            //   statusDiv.style.color = "red";
+            //   statusDiv.innerText = result.error;
+            // } else {
+            //   statusDiv.style.color = "green";
+            //   statusDiv.innerText = result.message;
+            // }
           } catch (error) {
             statusDiv.style.color = "red";
             statusDiv.innerText = "Network error: Could not reach the server.";

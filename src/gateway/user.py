@@ -24,6 +24,7 @@ from ..utils.UserType import UserType
 from ..utils.State import State
 from .Service import Service
 from ..utils.Message import Message
+from typing import Any
 
 MAX_MSG_LEN = 130  # TODO: Check with Joel, see what the best message length is with respect to the latency and loss tests
 DELAY = 1.0

@@ -1,5 +1,5 @@
 """Message me up Scotty!"""
-
+from typing import Any
 from .UserType import UserType
 
 MAX_MSG_LEN = 130

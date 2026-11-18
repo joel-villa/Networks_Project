@@ -1,0 +1,2274 @@
+Index: src/utils/State.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\"\"\"An Enum for the known device types\"\"\"\n\nfrom enum import Enum\n\n\nclass State(Enum):\n    \"\"\"state of clients\"\"\"\n\n    INITIALIZING = 1\n    USER_DECIDING = 2\n    RECEIVING_PAGE = 3\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/utils/State.py b/src/utils/State.py
+--- a/src/utils/State.py	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ b/src/utils/State.py	(date 1793825167488)
+@@ -6,6 +6,8 @@
+ class State(Enum):
+     """state of clients"""
+ 
+-    INITIALIZING = 1
+-    USER_DECIDING = 2
+-    RECEIVING_PAGE = 3
++    MENU = 0
++    CHOOSING_API = 1
++    INITIALIZING = 2
++    USER_DECIDING = 3
++    RECEIVING_PAGE = 4
+Index: src/ClientWebPageDemo/main.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from os.path import samefile\n\nfrom fastapi import FastAPI, Request\nfrom fastapi.templating import Jinja2Templates\nfrom fastapi.responses import HTMLResponse\nfrom fastapi.staticfiles import StaticFiles\nimport uvicorn\nfrom src.client.services.wikitohtml import generatePage\nfrom src.client.services.getWikitext import getWikitext\n\n\"\"\"\nrequired packages:\npip install fastapi uvicorn jinja2\n\nRun command (in the root dir)\npython3 -m src.ClientWebPageDemo.main\n\ntodo: this may be too wikipedia based. Make it more generic for other apis?\ntodo: make a page to add in server credentials for direct communication\n\"\"\"\nfrom pathlib import Path\napp = FastAPI()\n# HTML pages\n# path = Path(\"static\")\napp.mount(\"/static\", StaticFiles(directory=\"src/ClientWebPageDemo/static\"), name=\"static\")\ntemplates = Jinja2Templates(directory=\"src/ClientWebPageDemo/clientPages\")\n\n@app.get(\"/\")\nasync def menu(request: Request):\n    # todo: will need code to try to initiate the connection with client\n    # if wikipedia Api is pressed -> initiate_wikipedia_connection()\n    # return templates.TemplateResponse(\"index.html\", {\"request\": request})\n    return templates.TemplateResponse(request=request, name=\"index.html\")\n\n@app.get(\"/errorScreen\")\nasync def error(request: Request):\n    # todo: will need code to try to initiate the connection with client\n    # if try_again -> initiate_wikipedia_connection()\n    # return templates.TemplateResponse(\"errorScreen.html\", {\"request\": request})\n    return templates.TemplateResponse(request=request, name=\"errorScreen.html\")\n\n\n@app.get(\"/wikiSearch\")\nasync def searchWiki(request: Request):\n    # return templates.TemplateResponse(\"wikiSearch.html\", {\"request\": request})\n    return templates.TemplateResponse(request=request, name=\"wikiSearch.html\")\n\n\n@app.get(\"/embeddedText\")\nasync def embeddedText(request: Request, q: str = None):\n    if q and q.lower() == \"pet door\":\n        q = q.title()\n\n        # todo: this should be sent from the server\n        #  This is an example of what the client will reccieve from server.\n        sample_wikitext = \"\"\"{{Short description|Flap door for pets}}\n        [[File:Doggy door exit.JPG|thumb|A dog exiting through a pet door]]\n        A ''pet door'' or '''pet flap''' (also referred to in more specific terms, such as '''''cat flap''''', '''cat door''', '''kitty door''', '''dog flap''', '''dog door''', or '''doggy/doggie door''') is a small opening to allow [[pet]]s to enter and exit a building on their own without needing a human to open the door. Originally simple holes, the modern form is a hinged and often spring-loaded panel or flexible flap, and some are electronically controlled. They offer a degree of protection against wind, rain, and larger-bodied intruders entering the dwelling. Similar hatches can let dogs through fences at stiles. A related concept is the '''pet gate''', which is easy for humans to open but acts as a secure pet barrier.\n        ==Purpose==\n        A pet door is found to be convenient by many owners of companion animals, especially dogs and cats, because it lets the pets come and go as they please, reducing the need for pet-owners to let or take the pet outside manually, and curtailing unwanted behaviour such as loud vocalisation to be let outside, scratching on doors or walls, and (especially in the case of dogs) [[Excretion|excreting]] in the house. They also help to ensure that a pet left outdoors can safely get back into the house unattended, in the case of inclement weather.\"\"\"\n\n        # turn the wiki format into html\n        css_string = '<link rel=\"stylesheet\" href=\"src/ClientWebPageDemo/static/wikipedia.css\">'\n        generated_html_string = (generatePage(q, sample_wikitext))\n        generated_html_string = generated_html_string.replace(\"</head>\", f\"{css_string}\\n</head>\")\n        return HTMLResponse(content=generated_html_string)\n\n    return templates.TemplateResponse(request=request,name=\"embeddedText.html\",context={\"search_query\": q}\n    )\n\n# todo def initiate_connection()\n\nif __name__ == \"__main__\":\n    # Runs the server locally on port 8000\n    uvicorn.run(app, host=\"127.0.0.1\", port=8000)
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/ClientWebPageDemo/main.py b/src/ClientWebPageDemo/main.py
+--- a/src/ClientWebPageDemo/main.py	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ b/src/ClientWebPageDemo/main.py	(date 1793825452434)
+@@ -18,7 +18,6 @@
+ todo: this may be too wikipedia based. Make it more generic for other apis?
+ todo: make a page to add in server credentials for direct communication
+ """
+-from pathlib import Path
+ app = FastAPI()
+ # HTML pages
+ # path = Path("static")
+@@ -60,12 +59,18 @@
+         A pet door is found to be convenient by many owners of companion animals, especially dogs and cats, because it lets the pets come and go as they please, reducing the need for pet-owners to let or take the pet outside manually, and curtailing unwanted behaviour such as loud vocalisation to be let outside, scratching on doors or walls, and (especially in the case of dogs) [[Excretion|excreting]] in the house. They also help to ensure that a pet left outdoors can safely get back into the house unattended, in the case of inclement weather."""
+ 
+         # turn the wiki format into html
++        css_string = '<link rel="stylesheet" href="/static/wikipedia.css">'
++        generated_html_string = generatePage(q, sample_wikitext)
++        generated_html_string = generated_html_string.replace(
++            "</head>", f"{css_string}\n</head>"
++        )
+         css_string = '<link rel="stylesheet" href="src/ClientWebPageDemo/static/wikipedia.css">'
+         generated_html_string = (generatePage(q, sample_wikitext))
+         generated_html_string = generated_html_string.replace("</head>", f"{css_string}\n</head>")
+         return HTMLResponse(content=generated_html_string)
+ 
+-    return templates.TemplateResponse(request=request,name="embeddedText.html",context={"search_query": q}
++    return templates.TemplateResponse(
++        request=request, name="embeddedText.html", context={"search_query": q}
+     )
+ 
+ # todo def initiate_connection()
+Index: ClientWebPageDemo/static/style.css
+===================================================================
+diff --git a/ClientWebPageDemo/static/style.css b/ClientWebPageDemo/static/style.css
+deleted file mode 100644
+--- a/ClientWebPageDemo/static/style.css	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ /dev/null	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
+@@ -1,87 +0,0 @@
+-/* Base page styling */
+-body {
+-    font-family: sans-serif;
+-    background-color: #fcfcfc;
+-    color: #222;
+-    margin: 0;
+-    padding: 30px;
+-}
+-
+-h1, h2, h3 {
+-    color: #333;
+-    text-align: center;
+-}
+-
+-/* Navigation bar */
+-nav {
+-    margin-bottom: 25px;
+-    padding-bottom: 10px;
+-    border-bottom: 2px solid #a7a8aa;
+-    text-align: center;
+-}
+-
+-nav a {
+-    color: #ba0c2f;
+-    text-decoration: none;
+-    font-weight: bold;
+-    /*margin-right: 15px;*/
+-    text-align: center;
+-    margin: 0 15px;
+-
+-}
+-
+-nav a:hover {
+-    text-decoration: underline;
+-}
+-
+-/* Search form container (Centers the elements) */
+-.search-container {
+-    margin: 15px 0;
+-    display: flex;
+-    align-items: center;
+-    gap: 10px;
+-    justify-content: center; /* Centers the search box and button horizontally */
+-
+-}
+-
+-/* Search input box */
+-input[type="text"] {
+-    padding: 8px 12px;
+-    width: 250px;
+-    border: 2px solid #a7a8aa;
+-    border-radius: 4px;
+-    font-size: 1rem;
+-}
+-
+-/* Search button */
+-button {
+-    padding: 9px 16px;
+-    background-color: #ba0c2f;
+-    color: white;
+-    border: none;
+-    border-radius: 4px;
+-    font-size: 1rem;
+-    cursor: pointer;
+-    font-weight: bold;
+-}
+-
+-button:hover {
+-    background-color: #8e0b25;
+-}
+-
+-/* Iframe styling */
+-iframe {
+-    display: block;        /* Required for margin centering to work */
+-    width: 90%;            /* Scales down on smaller screens */
+-    max-width: 120ch;       /* Caps the width at roughly 65 characters */
+-    margin: 0 auto;
+-
+-    border: 2px solid #a7a8aa;
+-    border-radius: 5px;
+-    /*width: 100%;*/
+-    /*height: 400px;*/
+-    background-color: white;
+-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+-    display: block; /* Required for auto margins to center the element */
+-    height: 60vh;
+-}
+\ No newline at end of file
+Index: ClientWebPageDemo/clientPages/embeddedText.html
+===================================================================
+diff --git a/ClientWebPageDemo/clientPages/embeddedText.html b/ClientWebPageDemo/clientPages/embeddedText.html
+deleted file mode 100644
+--- a/ClientWebPageDemo/clientPages/embeddedText.html	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ /dev/null	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
+@@ -1,17 +0,0 @@
+-<!DOCTYPE html>
+-<html>
+-<head>
+-    <title>Embedded Data</title>
+-    <link rel="stylesheet" href="/static/style.css">
+-</head>
+-<!--<body style="background-color: #f0f8ff; font-family: sans-serif;">-->
+-
+-<!-- The Iframe Content that uses python to change it -->
+-    {% if search_query %}
+-        <p>Python received your search for: <strong>{{ search_query }}</strong></p>
+-        <p><em>This is where your Wikipedia results will eventually go.</em></p>
+-    {% else %}
+-        <i style="color: #272727;">Awaiting search...</i>
+-    {% endif %}
+-<!--</body>-->
+-</html>
+\ No newline at end of file
+Index: ClientWebPageDemo/clientPages/errorScreen.html
+===================================================================
+diff --git a/ClientWebPageDemo/clientPages/errorScreen.html b/ClientWebPageDemo/clientPages/errorScreen.html
+deleted file mode 100644
+--- a/ClientWebPageDemo/clientPages/errorScreen.html	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ /dev/null	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
+@@ -1,17 +0,0 @@
+-<!DOCTYPE html>
+-<html>
+-<head>
+-    <title>errorScreen</title>
+-    <link rel="stylesheet" href="/static/style.css">
+-</head>
+-<body>
+-    <h1>Server Not Connected</h1>
+-    <nav>
+-        <a href="/">Menu</a> |
+-        <a href="/errorScreen">Server Disconnected</a> |
+-        <a href="/wikiSearch">Search Wikipedia</a>
+-    </nav>
+-    <p>This page is where the user lands if the host is not active. User will be given two options: back to "menu" and
+-    "Try Again" to try to reconnect.</p>
+-</body>
+-</html>
+\ No newline at end of file
+Index: benchmarking/src/DUT.py
+===================================================================
+diff --git a/benchmarking/src/DUT.py b/benchmarking/src/DUT.py
+deleted file mode 100644
+--- a/benchmarking/src/DUT.py	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ /dev/null	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
+@@ -1,15 +0,0 @@
+-"""The device under test (DUT) is expected to have one mesh node, i.e. it
+-needs a thread and is capable of sending and recieving through that mesh node.
+-Also, the DUT needs a map of contacts to contacts (contacts to recv and send to
+-accordingly)"""
+-
+-
+-class DUT:
+-    """The DUT test class"""
+-
+-    # Incoming messages are gotten using the public key prefix, outgoing using the contact dict
+-    # TODO
+-    def __init__(
+-        self,
+-    ) -> None:
+-        pass
+Index: ClientWebPageDemo/clientPages/index.html
+===================================================================
+diff --git a/ClientWebPageDemo/clientPages/index.html b/ClientWebPageDemo/clientPages/index.html
+deleted file mode 100644
+--- a/ClientWebPageDemo/clientPages/index.html	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ /dev/null	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
+@@ -1,17 +0,0 @@
+-<!DOCTYPE html>
+-<html>
+-<head>
+-    <title>Menu</title>
+-    <link rel="stylesheet" href="/static/style.css">
+-</head>
+-<body>
+-    <h1>Menu</h1>
+-    <nav>
+-        <a href="/">Menu</a> |
+-        <a href="/errorScreen">Server Disconnect</a> |
+-        <a href="/wikiSearch">Search Wikipedia</a>
+-    </nav>
+-    <p>This is the main landing page. Need to add a method to add your Mesh Server Contact. How will this talk to the
+-    mesh server? </p>
+-</body>
+-</html>
+\ No newline at end of file
+Index: ClientWebPageDemo/clientPages/wikiSearch.html
+===================================================================
+diff --git a/ClientWebPageDemo/clientPages/wikiSearch.html b/ClientWebPageDemo/clientPages/wikiSearch.html
+deleted file mode 100644
+--- a/ClientWebPageDemo/clientPages/wikiSearch.html	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ /dev/null	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
+@@ -1,32 +0,0 @@
+-<!DOCTYPE html>
+-<html>
+-<head>
+-    <title>Search Wikipedia</title>
+-    <link rel="stylesheet" href="/static/style.css">
+-</head>
+-<body>
+-    <h1>Search Wikipedia</h1>
+-    <nav>
+-        <a href="/">Menu</a> |
+-        <a href="/errorScreen">Server Disconnected</a> |
+-        <a href="/wikiSearch">Search Wikipedia</a>
+-    </nav>
+-
+-    <form action="/embeddedText" method="GET" target="contentIframe" class="search-container">
+-        <input type="text" name="q" placeholder="Enter Wikipedia topic...">
+-        <button type="submit">Search</button>
+-    </form>
+-
+-    <!-- Cleaned up iframe -->
+-    <iframe name="contentIframe" src="/embeddedText"></iframe>
+-<!--    <form action="/embeddedText" method="GET" target="contentIframe" style="margin: 15px;">-->
+-<!--        &lt;!&ndash; The name="q" is what Python will look for &ndash;&gt;-->
+-<!--        <input type="text" name="q" placeholder="Enter Wikipedia topic...">-->
+-<!--        <button type="submit">Search</button>-->
+-<!--    </form>-->
+-
+-<!--    &lt;!&ndash; The 'name' attribute must match the form's 'target' attribute &ndash;&gt;-->
+-<!--    <iframe name="contentIframe" src="/embeddedText" width="100%" height="300px" style="border: 2px solid #333; border-radius: 5px;"></iframe>-->
+-</body>
+-</body>
+-</html>
+\ No newline at end of file
+Index: ClientWebPageDemo/static/wikipedia.css
+===================================================================
+diff --git a/ClientWebPageDemo/static/wikipedia.css b/ClientWebPageDemo/static/wikipedia.css
+deleted file mode 100644
+--- a/ClientWebPageDemo/static/wikipedia.css	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ /dev/null	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
+@@ -1,77 +0,0 @@
+-/* Base page styling */
+-body {
+-    font-family: sans-serif;
+-    background-color: #fcfcfc;
+-    color: #222;
+-    margin: 0;
+-    padding: 30px;
+-}
+-
+-h1, h2, h3 {
+-    color: #333;
+-}
+-
+-/* Navigation bar */
+-nav {
+-    margin-bottom: 25px;
+-    padding-bottom: 10px;
+-    border-bottom: 2px solid #a7a8aa;
+-    text-align: center;
+-}
+-
+-nav a {
+-    color: #ba0c2f;
+-    text-decoration: none;
+-    font-weight: bold;
+-    /*margin-right: 15px;*/
+-    text-align: center;
+-    margin: 0 15px;
+-
+-}
+-
+-nav a:hover {
+-    text-decoration: underline;
+-}
+-
+-/* Search form container (Centers the elements) */
+-.search-container {
+-    margin: 15px 0;
+-    display: flex;
+-    align-items: center;
+-    gap: 10px;
+-}
+-
+-/* Search input box */
+-input[type="text"] {
+-    padding: 8px 12px;
+-    width: 250px;
+-    border: 2px solid #a7a8aa;
+-    border-radius: 4px;
+-    font-size: 1rem;
+-}
+-
+-/* Search button */
+-button {
+-    padding: 9px 16px;
+-    background-color: #ba0c2f;
+-    color: white;
+-    border: none;
+-    border-radius: 4px;
+-    font-size: 1rem;
+-    cursor: pointer;
+-    font-weight: bold;
+-}
+-
+-button:hover {
+-    background-color: #8e0b25;
+-}
+-
+-/* Iframe styling */
+-iframe {
+-    border: 2px solid #a7a8aa;
+-    border-radius: 5px;
+-    width: 100%;
+-    height: 400px;
+-    background-color: white;
+-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+-}
+\ No newline at end of file
+Index: ClientWebPageDemo/main.py
+===================================================================
+diff --git a/ClientWebPageDemo/main.py b/ClientWebPageDemo/main.py
+deleted file mode 100644
+--- a/ClientWebPageDemo/main.py	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ /dev/null	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
+@@ -1,63 +0,0 @@
+-from fastapi import FastAPI, Request
+-from fastapi.templating import Jinja2Templates
+-from fastapi.responses import HTMLResponse
+-from fastapi.staticfiles import StaticFiles
+-import uvicorn
+-import src.client.services.wikitohtml as wikitohtml
+-
+-
+-"""
+-required packages:
+-pip install fastapi uvicorn jinja2
+-
+-todo: this may be too wikipedia based. Make it more generic for other apis?
+-todo: make a page to add in server credentials for direct communication
+-"""
+-
+-app = FastAPI()
+-# HTML pages
+-app.mount("/static", StaticFiles(directory="static"), name="static")
+-templates = Jinja2Templates(directory="clientPages")
+-
+-@app.get("/")
+-async def menu(request: Request):
+-    # todo: will need code to try to initiate the connection with client
+-    # if wikipedia Api is pressed -> initiate_wikipedia_connection()
+-    return templates.TemplateResponse("index.html", {"request": request})
+-
+-@app.get("/errorScreen")
+-async def error(request: Request):
+-    # todo: will need code to try to initiate the connection with client
+-    # if try_again -> initiate_wikipedia_connection()
+-    return templates.TemplateResponse("errorScreen.html", {"request": request})
+-
+-@app.get("/wikiSearch")
+-async def searchWiki(request: Request):
+-    return templates.TemplateResponse("wikiSearch.html", {"request": request})
+-
+-@app.get("/embeddedText")
+-async def embeddedText(request: Request, q: str = None):
+-    if q and q.lower() == "pet door":
+-        q = q.title()
+-
+-        # This is an example of what the client will reccieve from server.
+-        sample_wikitext = """{{Short description|Flap door for pets}}
+-        [[File:Doggy door exit.JPG|thumb|A dog exiting through a pet door]]
+-        A ''pet door'' or '''pet flap''' (also referred to in more specific terms, such as '''''cat flap''''', '''cat door''', '''kitty door''', '''dog flap''', '''dog door''', or '''doggy/doggie door''') is a small opening to allow [[pet]]s to enter and exit a building on their own without needing a human to open the door. Originally simple holes, the modern form is a hinged and often spring-loaded panel or flexible flap, and some are electronically controlled. They offer a degree of protection against wind, rain, and larger-bodied intruders entering the dwelling. Similar hatches can let dogs through fences at stiles. A related concept is the '''pet gate''', which is easy for humans to open but acts as a secure pet barrier.
+-
+-        ==Purpose==
+-        A pet door is found to be convenient by many owners of companion animals, especially dogs and cats, because it lets the pets come and go as they please, reducing the need for pet-owners to let or take the pet outside manually, and curtailing unwanted behaviour such as loud vocalisation to be let outside, scratching on doors or walls, and (especially in the case of dogs) [[Excretion|excreting]] in the house. They also help to ensure that a pet left outdoors can safely get back into the house unattended, in the case of inclement weather."""
+-
+-        # Return the raw HTML string directly to the iframe
+-        generated_html_string = wikitohtml.generatePage(q, sample_wikitext)
+-        css_string = '<link rel="stylesheet" href="/static/wikipedia.css">'
+-        generated_html_string = generated_html_string.replace("</head>", f"{css_string}\n</head>")
+-        return HTMLResponse(content=generated_html_string)
+-    return templates.TemplateResponse("embeddedText.html", {"request": request, "search_query": q})
+-
+-
+-# todo def initiate_connection()
+-
+-if __name__ == "__main__":
+-    # Runs the server locally on port 8000
+-    uvicorn.run(app, host="127.0.0.1", port=8000)
+\ No newline at end of file
+Index: src/client/services/getWikitext.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import requests\n\ndef getWikitext(page_title: str) -> str | None:\n    url = f\"https://en.wikipedia.org/w/api.php\"\n    \n    params = {\n        \"action\": \"query\",\n        \"prop\": \"revisions\",\n        \"rvprop\": \"content\",\n        \"rvslots\": \"main\",\n        \"titles\": page_title,\n        \"format\": \"json\"\n    }\n\n    headers={\"User-Agent\": \"pleaseWiki\"}\n\n    try:\n        response = requests.get(url, params=params, headers=headers)\n        response.raise_for_status()\n        data = response.json()\n\n        pages = data.get(\"query\", {}).get(\"pages\", {})\n        \n        for page_id, page_info in pages.items():\n            if page_id == \"-1\":\n                print(f\"Page '{page_title}' does not exist.\")\n                return None\n                \n            revisions = page_info.get(\"revisions\", [])\n            if revisions:\n                return revisions[0][\"slots\"][\"main\"][\"*\"]\n                \n    except requests.RequestException as e:\n        print(f\"Network error occurred: {e}\")\n        return None\n    except KeyError as e:\n        print(f\"Unexpected response structure: {e}\")\n        return None\n\nif __name__ == \"__main__\":\n    title = \"Help:Wikitext\"\n    wikitext = getWikitext(title)\n    print(wikitext)
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/client/services/getWikitext.py b/src/client/services/getWikitext.py
+--- a/src/client/services/getWikitext.py	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ b/src/client/services/getWikitext.py	(date 1793825167487)
+@@ -1,18 +1,19 @@
+ import requests
+ 
++
+ def getWikitext(page_title: str) -> str | None:
+     url = f"https://en.wikipedia.org/w/api.php"
+-    
++
+     params = {
+         "action": "query",
+         "prop": "revisions",
+         "rvprop": "content",
+         "rvslots": "main",
+         "titles": page_title,
+-        "format": "json"
++        "format": "json",
+     }
+ 
+-    headers={"User-Agent": "pleaseWiki"}
++    headers = {"User-Agent": "pleaseWiki"}
+ 
+     try:
+         response = requests.get(url, params=params, headers=headers)
+@@ -20,16 +21,16 @@
+         data = response.json()
+ 
+         pages = data.get("query", {}).get("pages", {})
+-        
++
+         for page_id, page_info in pages.items():
+             if page_id == "-1":
+                 print(f"Page '{page_title}' does not exist.")
+                 return None
+-                
++
+             revisions = page_info.get("revisions", [])
+             if revisions:
+                 return revisions[0]["slots"]["main"]["*"]
+-                
++
+     except requests.RequestException as e:
+         print(f"Network error occurred: {e}")
+         return None
+@@ -37,7 +38,8 @@
+         print(f"Unexpected response structure: {e}")
+         return None
+ 
++
+ if __name__ == "__main__":
+     title = "Help:Wikitext"
+     wikitext = getWikitext(title)
+-    print(wikitext)
+\ No newline at end of file
++    print(wikitext)
+Index: src/utils/Message.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\"\"\"Message me up Scotty!\"\"\"\n\nfrom .UserType import UserType\n\n\nclass Message:\n    user_type: UserType\n    message: str\n    id: int\n    sequence_number: int\n    final_sequence_number: int\n\n    def __init__(\n        self,\n        user_type: UserType,\n        message: str,\n        id: int,\n        sequence_number: int,\n        final_sequence_number: int,\n    ) -> None:\n        \"\"\"Construct her I hardly know her\n\n        Args:\n            device (MeshCore): The device for receiving and sending messages\n        \"\"\"\n        self.user_type = user_type\n        self.message = message\n        self.id = id\n        self.sequence_number = sequence_number\n        self.final_sequence_number = final_sequence_number\n\n    def to_string(self) -> str:\n        raise NotImplementedError\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/utils/Message.py b/src/utils/Message.py
+--- a/src/utils/Message.py	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ b/src/utils/Message.py	(date 1793825167488)
+@@ -3,8 +3,9 @@
+ from .UserType import UserType
+ 
+ 
++# Due to the fact that meshnodes should recives slower and that for users, it would be confusing to add an id an message numbers
++# I think we should just use this for the computer
+ class Message:
+-    user_type: UserType
+     message: str
+     id: int
+     sequence_number: int
+@@ -12,7 +13,6 @@
+ 
+     def __init__(
+         self,
+-        user_type: UserType,
+         message: str,
+         id: int,
+         sequence_number: int,
+@@ -30,4 +30,4 @@
+         self.final_sequence_number = final_sequence_number
+ 
+     def to_string(self) -> str:
+-        raise NotImplementedError
++        return f"{id}:{sequence_number}:message"
+Index: src/gateway/Service.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\"\"\"\nRepository of APIS\n- allows us to access Wikipedia and any other future APIs.\n- Possible states of the API\n- Modular to handle multiple different types (wikipedia, etc)\n\"\"\"\n\nimport json\nfrom collections.abc import Callable\nfrom typing import Any\n\nDICT_VALUE = \"api_keys\"\n\n\nclass Service:\n    \"\"\"PUT ALL IMPLEMENTED WEB INTERFACING HERE\"\"\"\n\n    func_dict: dict[str, Callable[[Any], Any]]\n    api_dict: dict[str, str]\n\n    def __init__(self) -> None:\n        \"\"\"Initialize that service guy\n        Resources:\n            - json to dict:\n                https://www.geeksforgeeks.org/python/convert-json-to-dictionary-in-python/\n        \"\"\"\n        self.func_dict = {\n            \"wikipedia\": self.wikipedia,\n            # TODO: add more here\n        }\n        # Opening JSON file\n        with open(\"secrets.json\") as json_file:\n            data = json.load(json_file)\n            self.api_dict = data[DICT_VALUE]\n\n    def call_api(self, service_name: str, query_args: Any) -> Any:\n        \"\"\"Call the api by name of website/service and query string\n\n        Args:\n            service_name (str): What website\n\n        Returns:\n             returned_obj (TBD): The text file returned\n        \"\"\"\n        function = self.func_dict[service_name]\n        return function(query_args)\n\n    def wikipedia(self, query_term: str) -> Any:\n        \"\"\"Wikipedia query\n\n        Args:\n            query_term (str): Thing to look up on wikepedia (Ex: Ghonnerrea)\n\n        Returns:\n             returned_obj (TBD): The test file returned\n        \"\"\"\n        assert type(query_term) is str, (\n            f\"you bad bad bad bad you, I want strings not, {type(query_term)}s\"\n        )\n        raise NotImplementedError\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/gateway/Service.py b/src/gateway/Service.py
+--- a/src/gateway/Service.py	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ b/src/gateway/Service.py	(date 1793825167487)
+@@ -6,10 +6,19 @@
+ """
+ 
+ import json
++import uuid
++import requests
++import requests
+ from collections.abc import Callable
+ from typing import Any
++import inspect
++import wikipediaapi
++from ..utils.Message import Message
++from ..utils.UserType import UserType
++from ddgs import DDGS
+ 
+ DICT_VALUE = "api_keys"
++MAX_MSG_LEN = 130
+ 
+ 
+ class Service:
+@@ -17,21 +26,31 @@
+ 
+     func_dict: dict[str, Callable[[Any], Any]]
+     api_dict: dict[str, str]
++    user_type: UserType
+ 
+-    def __init__(self) -> None:
++    def __init__(self, user_type) -> None:
+         """Initialize that service guy
+         Resources:
+             - json to dict:
+                 https://www.geeksforgeeks.org/python/convert-json-to-dictionary-in-python/
+         """
++        self.user_type = user_type
+         self.func_dict = {
+             "wikipedia": self.wikipedia,
++            "duckduckgo": self.duckduckgo,
++            "weather": self.weather,
++            "pokemon": self.pokemon,
++            "nasa": self.nasa,
++            # "country": self.country,
++            "book": self.book,
+             # TODO: add more here
+         }
++        print("added services")
+         # Opening JSON file
+         with open("secrets.json") as json_file:
+             data = json.load(json_file)
+             self.api_dict = data[DICT_VALUE]
++        print("added api keys")
+ 
+     def call_api(self, service_name: str, query_args: Any) -> Any:
+         """Call the api by name of website/service and query string
+@@ -45,16 +64,119 @@
+         function = self.func_dict[service_name]
+         return function(query_args)
+ 
+-    def wikipedia(self, query_term: str) -> Any:
++    def get_params(self, service_name: str) -> Any:
++        """Gets the required params of the api
++
++        Args:
++            service_name (str): What website
++
++        Returns:
++             Any: the params required
++        """
++        function = self.func_dict[service_name]
++        sig = inspect.signature(function)
++        param_names = list(sig.parameters.keys())
++        return param_names
++
++    
++    # TODO: I will fix this, I wanted to use the python wiki instead of the url, but I couldn't get the plain
++    # wiki stlying out of it
++    def wikipedia(self, string_to_be_queried: str) -> Any:
+         """Wikipedia query
+ 
+         Args:
+-            query_term (str): Thing to look up on wikepedia (Ex: Ghonnerrea)
++            string_to_be_queried (str): Thing to look up on wikepedia (Ex: Ghonnerrea),
++            it is a verbose name as that is what is printed by the device
+ 
+         Returns:
+              returned_obj (TBD): The test file returned
+         """
+-        assert type(query_term) is str, (
+-            f"you bad bad bad bad you, I want strings not, {type(query_term)}s"
++
++        assert type(string_to_be_queried) is str, (
++            f"you bad bad bad bad you, I want strings not, {type(string_to_be_queried)}s"
++        )
++
++        if self.user_type is UserType.BASIC_MESH:
++            wiki_wiki = wikipediaapi.Wikipedia(
++                user_agent="WikiMesh (nrunyan@unm.edu)",  # wikapedia requires that u ID yourself
++                language="en",
++                extract_format=wikipediaapi.ExtractFormat.WIKI,
++            )
++
++            results = wiki_wiki.page(string_to_be_queried)
++            print(results.text)
++
++            return results.text
++
++        url = "https://en.wikipedia.org/w/api.php"
++
++        params = {
++            "action": "query",
++            "format": "json",
++            "formatversion": 2,
++            "prop": "revisions",
++            "titles": string_to_be_queried,
++            "redirects": 1,
++            "rvprop": "content",
++            "rvslots": "main",
++        }
++        headers = {"User-Agent": "WikiMesh (nrunyan@unm.edu)"}
++        response = requests.get(url, params=params, headers=headers, timeout=20)
++        response.raise_for_status()
++        data = response.json()
++        page = data["query"]["pages"][0]
++
++        if "missing" in page:
++            return None
++
++        wiki_text = page["revisions"][0]["slots"]["main"]["content"]
++
++        print(wiki_text)
++        return wiki_text
++
++    def weather(self, latitude=35.0844, longitude=-106.6504):
++        response = requests.get(
++            "https://api.open-meteo.com/v1/forecast",
++            params={
++                "latitude": latitude,
++                "longitude": longitude,
++                "current": "temperature_2m,relative_humidity_2m,wind_speed_10m",
++            },
++        )
++        response.raise_for_status()
++        return response.json()
++
++    def duckduckgo(self, string_to_be_queried):
++        results = DDGS().text(string_to_be_queried, max_results=5)
++        print(results)   
++        return results
++
++    def pokemon(self, name):
++        response = requests.get(f"https://pokeapi.co/api/v2/pokemon/{name}")
++        response.raise_for_status()
++        return response.json()
++
++    def nasa(self, nothing_required:str):
++        response = requests.get(
++            "https://api.nasa.gov/planetary/insight_weather",
++            params={"api_key": self.api_dict["nasa"]},
+         )
+-        raise NotImplementedError
++        response.raise_for_status()
++        return response.json()
++
++    def book(self, name):
++        response = requests.get(
++            "https://openlibrary.org/search.json", params={"q": name, "limit": 5}
++        )
++        response.raise_for_status()
++        return response.json()
++
++    # def country(self, name):
++    #     response = requests.get(
++    #         f"https://restcountries.com/v3.1/name/{name}"
++    #     )
++    #     response.raise_for_status()
++    #     return response.json()
++
++    def available_services(self) -> str:
++        return "Available services: " + ", ".join(self.func_dict)
+Index: src/gateway/main.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\"\"\"Runnable main\"\"\"\n\nimport os\n\nfrom dotenv import load_dotenv\n\nload_dotenv()\npath = os.getenv(\"MESH_PATH\")\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/gateway/main.py b/src/gateway/main.py
+--- a/src/gateway/main.py	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ b/src/gateway/main.py	(date 1793825167487)
+@@ -1,8 +1,23 @@
+ """Runnable main"""
+ 
+ import os
++import asyncio
+ 
+ from dotenv import load_dotenv
++from .gateway import Gateway
++
++from meshcore import EventType, MeshCore
++from meshcore.events import Event
+ 
+-load_dotenv()
+-path = os.getenv("MESH_PATH")
++
++async def main() -> None:
++    load_dotenv()
++    path = os.getenv("MESH_PATH")
++    device = await MeshCore.create_serial(path)
++    gateway = Gateway(device)
++    await gateway.run()
++    await asyncio.Event().wait()
++
++
++if __name__ == "__main__":
++    asyncio.run(main())
+Index: benchmarking/src/loss/main.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/benchmarking/src/loss/main.py b/benchmarking/src/loss/main.py
+new file mode 100644
+--- /dev/null	(date 1793825167485)
++++ b/benchmarking/src/loss/main.py	(date 1793825167485)
+@@ -0,0 +1,90 @@
++"""For running the loss tests all on one machine"""
++
++import asyncio
++import os
++
++from dotenv import load_dotenv
++from meshcore import MeshCore
++
++from src.loss.DUT import DUT
++from src.loss.Loss import Loss
++from src.loss.LossResults import LossResults
++from src.util.Device import Device
++
++
++async def main() -> None:
++    """Run a loss test"""
++
++    load_dotenv()
++    # bluetooth = os.getenv("BLUETOOTH")
++    # bluetooth_pin = os.getenv("BLE_PIN")
++    path_0 = os.getenv("MESH_PATH")
++    path_1 = os.getenv("MESH_PATH_1")
++    path_2 = os.getenv("MESH_PATH_2")
++    # assert bluetooth is not None
++    # assert bluetooth_pin is not None
++    assert path_0 is not None
++    assert path_1 is not None
++    assert path_2 is not None
++
++    contact_under_test = "pro_0"
++    frame_count = 5
++    granularity = 0.1  # 10% is maximum granularity
++    num_frame_sizes = 5  # 5 is minimum
++    prop_min_time = 0.9
++    prop_max_time = 2
++    n_rtts = 3
++    max_time = 2
++    source_type = [
++        Device.HELTEC_V3,
++        Device.HELTEC_T114,
++    ]
++    dst_type = Device.SEEED_WIO_TRACKER_L1_PRO
++
++    file_id = 1
++
++    print("Connecting devices")
++    # Connect to your device
++    #    dut_mesh = await MeshCore.create_ble(bluetooth, pin=bluetooth_pin)
++    send_mesh = await MeshCore.create_serial(path_0)
++    recv_mesh = await MeshCore.create_serial(path_1)
++    dut_mesh = await MeshCore.create_serial(path_2)
++
++    source = [
++        send_mesh,
++        recv_mesh,
++    ]
++
++    dut = DUT(dut_mesh)
++    loss_test = Loss(
++        frames_sent=frame_count,
++        granularity=granularity,
++        prop_min_time=prop_min_time,
++        prop_max_time=prop_max_time,
++        num_rtts=n_rtts,
++        max_timeout=max_time,
++    )
++
++    dut.run_test()
++    file_id = await loss_test.run_test(
++        source=source,
++        dut_name=contact_under_test,
++        src_type=source_type,
++        dst_type=dst_type,
++        num_frame_sizes=num_frame_sizes,
++        distance=None,
++        notes="testing thangs",
++    )
++
++    await dut_mesh.disconnect()
++    await send_mesh.disconnect()
++    await recv_mesh.disconnect()
++
++    results = LossResults(file_name=file_id)
++
++    results.disp_results()
++
++
++if __name__ == "__main__":
++    """Python main"""
++    asyncio.run(main())
+Index: benchmarking/src/loss/DUT.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/benchmarking/src/loss/DUT.py b/benchmarking/src/loss/DUT.py
+new file mode 100644
+--- /dev/null	(date 1793825167485)
++++ b/benchmarking/src/loss/DUT.py	(date 1793825167485)
+@@ -0,0 +1,101 @@
++"""The device under test (DUT) is expected to have one mesh node, i.e. it
++needs a thread and is capable of sending and recieving through that mesh node.
++Also, the DUT needs a map of contacts to contacts (contacts to recv and send to
++accordingly)"""
++
++import asyncio
++from threading import Condition, Thread  # Replace with asyncio.Event
++from typing import Any
++from warnings import warn
++
++from meshcore import EventType
++from meshcore.events import Event
++from meshcore.meshcore import MeshCore
++
++from src.loss.util.Handshaker import Handshaker
++from src.loss.util.MsgType import MsgType
++
++
++class DUT:
++    """The DUT test class"""
++
++    # Incoming messages are gotten using the public key prefix, outgoing using the contact dict
++    dut: MeshCore
++    handshaker: Handshaker
++    device_map: dict[str, dict[str, Any]]
++    awaiting_done_msg: bool
++    cv: Condition
++    thread: Thread
++
++    def __init__(
++        self,
++        dut: MeshCore,
++    ) -> None:
++        self.dut = dut
++        self.handshaker = Handshaker(device_type=2)
++        self.device_map = {}
++        self.awaiting_done_msg = False
++        self.cv = Condition()
++        self.thread = Thread(target=self.__wrap_run)
++
++    async def __handle_message(
++        self,
++        received_msg: Event,
++    ) -> None:
++        """Handle a message from a sender, update the receiver
++
++        Args:
++            received_msg (Event): The message recieved by this device
++        """
++        sender_prefix = received_msg.payload["pubkey_prefix"]
++        reciever_contact = self.device_map.get(sender_prefix)
++
++        if reciever_contact:
++            await self.dut.commands.send_msg(
++                reciever_contact, received_msg.payload["text"]
++            )
++        else:
++            warn(f"No contact associated with pubkey: {sender_prefix}")
++
++        msg_type = MsgType(received_msg.payload["text"])
++        match msg_type:
++            case MsgType.DONE_WITH_TEST:
++                with self.cv:
++                    self.awaiting_done_msg = False
++                    self.cv.notify()
++            case _:
++                pass
++
++    def __wrap_run(self) -> None:
++        """A non async function that calls the asyn __run_test() function"""
++        asyncio.run(self.__run_test())
++
++    async def __run_test(self) -> None:
++        """The test!!
++
++        Resources:
++            - Loop through dictionary key value pairs:
++                https://www.w3schools.com/python/python_dictionaries_loop.asp
++        """
++        self.device_map = await self.handshaker.dut_handshake(dut=self.dut)
++
++        # The actual loss test
++        self.awaiting_done_msg = True
++        await self.dut.start_auto_message_fetching()
++        self.dut.subscribe(
++            event_type=EventType.CONTACT_MSG_RECV,
++            callback=self.__handle_message,
++        )
++
++        while self.awaiting_done_msg:
++            with self.cv:
++                self.cv.wait()
++        await self.dut.stop_auto_message_fetching()
++
++    def run_test(self) -> None:
++        """Run the loss test on the DUT side of things"""
++        self.thread.start()
++
++    def finish(self) -> None:
++        """Wair for the loss test to finish"""
++        self.thread.join()
+Index: docs/meeting_notes/Wed_29_Oct.md
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/meeting_notes/Wed_29_Oct.md b/docs/meeting_notes/Wed_29_Oct.md
+new file mode 100644
+--- /dev/null	(date 1793825167486)
++++ b/docs/meeting_notes/Wed_29_Oct.md	(date 1793825167486)
+@@ -0,0 +1,22 @@
++Progress update
++Joel
++	Wrote API's for gateway, made some more progress with the loss results, trying to get loss done
++	
++Carly
++	Flashed nodes, has wiki demo
++	
++Quinn
++	Wiki to HTML translator,
++
++Nat
++    Wrote API's for gateway
++	
++Issue with code
++ Issue with python packages imports, changes from where you run it from
++write quick readme of what directory ur in and where to run
++run with -m flag, example of it in benchmarking test
++
++TODO by next week, everyone finishes their part and we connect it on wednesday
++
++Notes for next meeting:
++Issue with wiki api, providing wiki files, other api's, weather, etc does not provide wiki versions, should that be formated by the client? the client is hard to read as it splits sentences and words, is it fair to sacrifice some space so that words or sentences are not broken up in a naive way?
+\ No newline at end of file
+Index: src/client/services/wikitohtml.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+># from getWikitext import getWikitext\n# todo: maybe making the folders python packages\ntry:\n    from .getWikitext import getWikitext\nexcept ImportError:\n    from getWikitext import getWikitext\n## TODO, check out all wikitext formatting, do them all?\n\ndef formatParagraph(paragraphText: str) -> str:\n    result = doFaces(paragraphText)\n    result = doLinks(result)\n    \n    return tagify(result, \"p\")\n\ndef doLinks(text: str) -> str:\n    links = text.split(\"[[\")\n    result = \"\"\n    for i in range(len(links)):\n        if(not \"]]\" in links[i]):\n            result += links[i]\n        else:\n            parts = links[i].split(\"]]\")\n            result += formatLink(parts[0])\n            result += parts[1] \n    return result\n\ndef doFaces(text: str) -> str:\n    result = \"\"\n    phrases = text.split(\"'''''\")\n    for i in range(len(phrases)):\n        if i % 2 == 1:\n            result += tagify(tagify(phrases[i], \"em\"), \"b\")\n        else:\n            result += phrases[i];\n    phrases = result.split(\"'''\")\n    result = \"\"\n    for i in range(len(phrases)):\n        if i % 2 == 1:\n            result += tagify(phrases[i], \"b\")\n        else:\n            result += phrases[i];\n    phrases = result.split(\"''\")\n    result = \"\"\n    for i in range(len(phrases)):\n        if i % 2 == 1:\n            result += tagify(phrases[i], \"em\")\n        else:\n            result += phrases[i];\n    return result\n\ndef formatLink(wikitextLink: str) -> str:\n    parts = wikitextLink.split(\"|\")\n    if len(parts) == 1:\n        return tagifyArgs(wikitextLink, \"a\", \"href\", parts[0])\n    elif len(parts) == 2:\n        return tagifyArgs(parts[1], \"a\", \"href\", parts[0])\n    elif len(parts) == 3:\n        return f\"Image '{parts[0]}' of '{parts[2]}'\"\n    return \"\"\n\ndef tagify(content: str, type: str) -> str:\n    return f\"<{type}>{content}</{type}>\"\n\ndef tagifyArgs(content: str, type: str, argName: str, argVal: str) -> str:\n    return f\"<{type} {argName}='{argVal}'>{content}</{type}>\"\n\ndef processChunk(wikitextChunk: str) -> str:\n    result = \"\"\n    paragraphs = wikitextChunk.split(\"\\n\")\n    for p in paragraphs:\n        para = p.strip();\n        if para[0] == para[len(para) - 1] == \"=\":\n            result += makeHeader(para)\n        else:\n            result += formatParagraph(para)\n    return result\n\ndef makeHeader(headerStr: str) -> str:\n    hLevel = headerStr.count(\"=\") / 2\n    return tagify(headerStr.replace(\"=\",\"\"), f\"h{int(hLevel)}\")\n\ndef translate(wikitext: str) -> str: \n    result = \"\"\n    chunks = wikitext.split(\"\\n\\n\")\n    for chunk in chunks:\n        result += processChunk(chunk)\n    return result;\n\ndef generatePage(title: str, wikitext: str):\n    return f\"\"\"<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Minimal HTML Document</title>\n</head>\n<body>\n{tagify(title, \"h1\")}\n{translate(wikitext)}\n</body>\n</html>\"\"\"\n\ndef main():\n    pageName = \"Help:Wikitext\"\n    page = getWikitext(pageName)\n    print(generatePage(pageName, page))\n\nif __name__ == \"__main__\":\n    main()
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/client/services/wikitohtml.py b/src/client/services/wikitohtml.py
+--- a/src/client/services/wikitohtml.py	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ b/src/client/services/wikitohtml.py	(date 1793825167487)
+@@ -6,24 +6,27 @@
+     from getWikitext import getWikitext
+ ## TODO, check out all wikitext formatting, do them all?
+ 
++
+ def formatParagraph(paragraphText: str) -> str:
+     result = doFaces(paragraphText)
+     result = doLinks(result)
+-    
++
+     return tagify(result, "p")
+ 
++
+ def doLinks(text: str) -> str:
+     links = text.split("[[")
+     result = ""
+     for i in range(len(links)):
+-        if(not "]]" in links[i]):
++        if not "]]" in links[i]:
+             result += links[i]
+         else:
+             parts = links[i].split("]]")
+             result += formatLink(parts[0])
+-            result += parts[1] 
++            result += parts[1]
+     return result
+ 
++
+ def doFaces(text: str) -> str:
+     result = ""
+     phrases = text.split("'''''")
+@@ -31,23 +34,24 @@
+         if i % 2 == 1:
+             result += tagify(tagify(phrases[i], "em"), "b")
+         else:
+-            result += phrases[i];
++            result += phrases[i]
+     phrases = result.split("'''")
+     result = ""
+     for i in range(len(phrases)):
+         if i % 2 == 1:
+             result += tagify(phrases[i], "b")
+         else:
+-            result += phrases[i];
++            result += phrases[i]
+     phrases = result.split("''")
+     result = ""
+     for i in range(len(phrases)):
+         if i % 2 == 1:
+             result += tagify(phrases[i], "em")
+         else:
+-            result += phrases[i];
++            result += phrases[i]
+     return result
+ 
++
+ def formatLink(wikitextLink: str) -> str:
+     parts = wikitextLink.split("|")
+     if len(parts) == 1:
+@@ -58,33 +62,39 @@
+         return f"Image '{parts[0]}' of '{parts[2]}'"
+     return ""
+ 
++
+ def tagify(content: str, type: str) -> str:
+     return f"<{type}>{content}</{type}>"
+ 
++
+ def tagifyArgs(content: str, type: str, argName: str, argVal: str) -> str:
+     return f"<{type} {argName}='{argVal}'>{content}</{type}>"
+ 
++
+ def processChunk(wikitextChunk: str) -> str:
+     result = ""
+     paragraphs = wikitextChunk.split("\n")
+     for p in paragraphs:
+-        para = p.strip();
++        para = p.strip()
+         if para[0] == para[len(para) - 1] == "=":
+             result += makeHeader(para)
+         else:
+             result += formatParagraph(para)
+     return result
+ 
++
+ def makeHeader(headerStr: str) -> str:
+     hLevel = headerStr.count("=") / 2
+-    return tagify(headerStr.replace("=",""), f"h{int(hLevel)}")
++    return tagify(headerStr.replace("=", ""), f"h{int(hLevel)}")
+ 
+-def translate(wikitext: str) -> str: 
++
++def translate(wikitext: str) -> str:
+     result = ""
+     chunks = wikitext.split("\n\n")
+     for chunk in chunks:
+         result += processChunk(chunk)
+-    return result;
++    return result
++
+ 
+ def generatePage(title: str, wikitext: str):
+     return f"""<!DOCTYPE html>
+@@ -100,10 +110,12 @@
+ </body>
+ </html>"""
+ 
++
+ def main():
+     pageName = "Help:Wikitext"
+     page = getWikitext(pageName)
+     print(generatePage(pageName, page))
+ 
++
+ if __name__ == "__main__":
+-    main()
+\ No newline at end of file
++    main()
+Index: benchmarking/src/util/RDT.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/benchmarking/src/util/RDT.py b/benchmarking/src/util/RDT.py
+new file mode 100644
+--- /dev/null	(date 1793825167486)
++++ b/benchmarking/src/util/RDT.py	(date 1793825167486)
+@@ -0,0 +1,55 @@
++"""Ooooh oooooooo, we all love RDT"""
++
++from meshcore import EventType, MeshCore
++
++
++class RDT:
++    async def send_msg(
++        self,
++        device: MeshCore,
++        contact: dict,
++        message: str,
++        timeout_time: float,
++        max_attempts: int | None = None,
++    ) -> int:
++        """Await an ACK that the DUT knows this devices typ
++
++        Args:
++            device (MeshCore): sending device
++            contact (dict): contact info of DUT
++            msg_type (MsgType): the type of device this device is (sending to
++            device under test)
++            timeout_time (float): How long to wait for an acknowledgement before
++            retrying (seconds)
++            max_attempts (int | None): maximum attempts to try doing rdt (this
++            not being none => not actually reliable data transfer)
++        Return:
++            n_attempts (int): The number of attempts before ACK read
++        """
++        msg_acked = False
++        n_attempts = 0
++        while not msg_acked:
++            if max_attempts and n_attempts >= max_attempts:
++                break
++            # Send the message and get information about the sent message
++            sent_result = await device.commands.send_msg(
++                contact,
++                message,
++            )
++            n_attempts += 1
++            # Extract the expected acknowledgment code from the message sent event
++            if sent_result.type == EventType.ERROR:
++                continue
++
++            expected_ack = sent_result.payload["expected_ack"].hex()
++
++            # Wait specifically for this acknowledgment
++            result = await device.wait_for_event(
++                EventType.ACK,
++                attribute_filters={"code": expected_ack},
++                timeout=timeout_time,
++            )
++            if result:
++                msg_acked = True
++
++        return n_attempts
+Index: benchmarking/src/util/MsgType.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/benchmarking/src/util/MsgType.py b/benchmarking/src/loss/util/MsgType.py
+rename from benchmarking/src/util/MsgType.py
+rename to benchmarking/src/loss/util/MsgType.py
+--- a/benchmarking/src/util/MsgType.py	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ b/benchmarking/src/loss/util/MsgType.py	(date 1793825167486)
+@@ -12,7 +12,8 @@
+ 
+     SENDER = auto()
+     RECEIVER = auto()
+-    SETUP_SUCCESS = auto()
++    HANDSHAKE_DONE = auto()
++    DONE_WITH_TEST = auto()
+ 
+     @classmethod
+     def _missing_(cls, value):
+Index: benchmarking/src/loss/util/Handshaker.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/benchmarking/src/loss/util/Handshaker.py b/benchmarking/src/loss/util/Handshaker.py
+new file mode 100644
+--- /dev/null	(date 1793825167485)
++++ b/benchmarking/src/loss/util/Handshaker.py	(date 1793825167485)
+@@ -0,0 +1,364 @@
++"""The device which handles the initial handshake
++
++Resources:
++    - Events (an asynchronous condition variable):
++        https://docs.python.org/3/library/asyncio-sync.html#asyncio.Event
++"""
++
++import asyncio
++import os
++import sys
++import warnings
++from functools import partial
++from threading import BoundedSemaphore  # TODO: replace with event
++from typing import Any
++
++from dotenv import load_dotenv
++from meshcore import EventType, MeshCore
++from meshcore.events import Event
++
++from src.loss.util.MsgType import MsgType
++from src.util.constants import N_CHAR_PUB_KEY_PREFIX
++from src.util.RDT import RDT
++
++
++class Handshaker:
++    """Yktv"""
++
++    device_type: int
++    handshake_done: asyncio.Event
++    ready: asyncio.Event
++    rdt: RDT
++
++    def __init__(self, device_type: int) -> None:
++        """Initiliaze this handshaker either as the DUT or the time keeper
++
++        Args:
++            device_type (int):
++                1 -> Time Keeper
++                2 -> Device Under Test (DUT)
++        """
++        self.device_type = device_type
++        self.handshake_done = asyncio.Event()
++        self.ready = asyncio.Event()
++        self.rdt = RDT()
++
++    async def __dut_handshake_msg(
++        self,
++        received_msg: Event,
++        key_to_contact: dict[str, dict],
++        senders: list[str],
++        receivers: list[dict],
++        n_pairs: int,
++        recv_semaphore: BoundedSemaphore,
++        send_semaphore: BoundedSemaphore,
++    ) -> None:
++        """Handle a message received while doing the handshake
++
++        Args:
++            received_msg (Event): The connection message (contains wether
++            this device is a SENDER or RECEIVER)
++
++        Resources:
++            - Reading messages from the payload with 'text':
++                https://pypi.org/project/meshcore/
++        """
++        msg_type = MsgType(received_msg.payload["text"])
++        print(f"in __dut_handshake_msg: {msg_type}")
++        sys.stdout.flush()
++        pubkey_prefix = received_msg.payload["pubkey_prefix"]
++        print(f"pubkey_prefix: {pubkey_prefix}")
++        sys.stdout.flush()
++
++        match msg_type:
++            case MsgType.SENDER:
++                with send_semaphore:
++                    senders.append(pubkey_prefix)
++            case MsgType.RECEIVER:
++                contact = key_to_contact.get(pubkey_prefix)
++                if contact:
++                    with recv_semaphore:
++                        receivers.append(contact)
++            case _:
++                warnings.warn(f"Unexpected MsgType in handshake: {msg_type}")
++        if len(receivers) == n_pairs and len(senders) == n_pairs:
++            # DONE WITH HANDSHAKE!
++            self.handshake_done.set()
++
++    async def dut_handshake(
++        self,
++        dut: MeshCore,
++        n_pairs: int = 1,
++    ) -> dict[str, dict[str, Any]]:
++        """The device under test calls this method to do the handshake, it will
++        return when complete
++
++        Args:
++            dut (MeshCore): The MeshCore object
++            n_pairs (int): Expected number of send and recv pairs
++
++        Returns:
++            device_map (dict[str, dict[str, Any]]): A map of sending device
++            public key prefixes to receiving device contacts (from timekeeper
++            perspective)
++
++        Resources:
++            - Empyt list check:
++                https://www.geeksforgeeks.org/python/python-check-if-list-empty-not/
++            - Semaphores:
++                https://docs.python.org/3/library/threading.html
++            - Partial Functions:
++                https://docs.python.org/3/library/functools.html
++        """
++        assert self.device_type == 2, (
++            f"Handshaker initialized with type f{self.device_type} cannot call this method"
++        )
++        # Setting key_to_contact dict via a handshake
++        key_to_contact = {}
++
++        result = await dut.commands.get_contacts()
++        contacts = result.payload
++        if contacts:
++            for pub_key, contact in contacts.items():
++                pub_key_pref = pub_key[:N_CHAR_PUB_KEY_PREFIX]
++                key_to_contact[pub_key_pref] = contact
++        else:
++            raise ValueError("device under test contacts inaccessible")
++
++        receivers = []
++        senders = []
++        recv_semaphore = BoundedSemaphore(value=1)
++        send_semaphore = BoundedSemaphore(value=1)
++
++        self.handshake_done.clear()
++
++        await dut.start_auto_message_fetching()
++        callback_func = partial(
++            self.__dut_handshake_msg,
++            key_to_contact=key_to_contact,
++            receivers=receivers,
++            senders=senders,
++            n_pairs=n_pairs,
++            recv_semaphore=recv_semaphore,
++            send_semaphore=send_semaphore,
++        )
++        dut.subscribe(
++            event_type=EventType.CONTACT_MSG_RECV,
++            callback=callback_func,
++        )
++
++        self.ready.set()
++
++        print("DUT: Waiting for Handshake to finish")
++        sys.stdout.flush()
++
++        await self.handshake_done.wait()
++
++        # Ensure all processing is good to go
++        with recv_semaphore:
++            pass
++        with send_semaphore:
++            pass
++
++        if not receivers or not senders:
++            raise ValueError(
++                f"handshake failed: num recievers is {len(receivers)}, num senders is {len(senders)}"
++            )
++
++        if len(receivers) != len(senders):
++            min_count = min(len(receivers), len(senders))
++            warnings.warn(
++                f"recieved unequal number of recievers ({len(receivers)}) and senders ({len(senders)}), reducing both to {min_count}"
++            )
++            receivers = receivers[:min_count]
++            senders = senders[:min_count]
++
++        device_map = {}
++        for i, sender in enumerate(senders):
++            device_map[sender] = receivers[i]
++
++        print("DUT: alerting receivers that the handshake is done")
++        sys.stdout.flush()
++        for receiver in device_map.values():
++            await dut.commands.send_msg(
++                receiver,
++                MsgType.HANDSHAKE_DONE.name,
++            )
++
++        return device_map
++
++    async def __handle_msg_from_dut(
++        self,
++        received_msg: Event,
++        dut_key_pref: str,
++    ) -> None:
++        """Continue the count!
++
++        Args:
++            recieved_msg (EventType): Message recieved o7
++            dut_key_pref (str): The dut public key prefix
++        """
++        print(f"in __handle_msg_from_dut: {received_msg.payload['text']}")
++        sys.stdout.flush()
++        if received_msg.payload["pubkey_prefix"] == dut_key_pref:
++            self.handshake_done.set()
++
++    async def timekeeper_handshake(
++        self,
++        devices: list[MeshCore],
++        contacts: list[dict[str, Any]],
++        timeout_time: float,
++    ) -> tuple[
++        list[MeshCore], list[MeshCore], list[dict[str, Any]], list[dict[str, Any]]
++    ]:
++        """Do tha dang handshake
++
++        Args:
++            devices (list[MeshCore]): the devices to do the handshake with
++            contacts (list[dict[str, Any]]): The contact of the dut for each
++            device
++            timeout_time (int): How long to wait for an acknowledgement before
++            retrying
++
++        Return:
++            send_devs (list[MeshCore]): The sending MeshCore devices
++            recv_devs (list[MeshCore]): The receiving MeshCore devices
++            send_contacts(list[dict]): The contact of the DUT for all senders
++            recv_contacts(list[dict]): The contact of the DUT for all receivers
++        """
++        assert self.device_type == 1, (
++            f"Handshaker initialized with type f{self.device_type} cannot call this method"
++        )
++        assert len(devices) == len(contacts), (
++            f"Shape mismatch: {len(devices)} != {len(contacts)}"
++        )
++
++        self.handshake_done.clear()
++
++        n_pairs = len(devices) // 2
++        send_devs = devices[:n_pairs]
++        recv_devs = devices[n_pairs:]
++        send_contacts = contacts[:n_pairs]
++        recv_contacts = contacts[n_pairs:]
++
++        odd = len(devices) % 2 != 0
++        if odd:
++            warnings.warn(
++                f"Odd number of source devices ({len(devices)}), ignoring last"
++            )
++            recv_devs = recv_devs[:-1]
++            recv_contacts = recv_contacts[:-1]
++
++        # When receive done message -> done
++        callback_func = partial(
++            self.__handle_msg_from_dut,
++            dut_key_pref=recv_contacts[0]["public_key"][:N_CHAR_PUB_KEY_PREFIX],
++        )
++        for recv_dev in recv_devs:
++            await recv_dev.start_auto_message_fetching()
++            recv_dev.subscribe(
++                event_type=EventType.CONTACT_MSG_RECV,
++                callback=callback_func,
++            )
++
++        print("TimeKeeper: Starting handshake")
++        sys.stdout.flush()
++        for i, device in enumerate(send_devs):
++            await self.rdt.send_msg(
++                device=device,
++                contact=send_contacts[i],
++                message=MsgType.SENDER.name,
++                timeout_time=timeout_time,
++            )
++        for i, device in enumerate(recv_devs):
++            await self.rdt.send_msg(
++                device=device,
++                contact=recv_contacts[i],
++                message=MsgType.RECEIVER.name,
++                timeout_time=timeout_time,
++            )
++
++        print("TimeKeeper: Waiting for handshake to finish")
++        sys.stdout.flush()
++        # Wait for the DUT to setup
++        await self.handshake_done.wait()
++
++        for recv_dev in recv_devs:
++            await recv_dev.stop_auto_message_fetching()
++
++        return send_devs, recv_devs, send_contacts, recv_contacts
++
++
++def __wrap_dut_handshake(handshaker: Handshaker, mesh: MeshCore) -> None:
++    """For testing purposes"""
++    asyncio.run(handshaker.dut_handshake(mesh))
++
++
++async def main() -> None:
++    """Run a loss test"""
++
++    load_dotenv()
++    # bluetooth = os.getenv("BLUETOOTH")
++    # bluetooth_pin = os.getenv("BLE_PIN")
++    path_0 = os.getenv("MESH_PATH")
++    path_1 = os.getenv("MESH_PATH_1")
++    path_2 = os.getenv("MESH_PATH_2")
++    # assert bluetooth is not None
++    # assert bluetooth_pin is not None
++    assert path_0 is not None
++    assert path_1 is not None
++    assert path_2 is not None
++
++    print("Connecting devices")
++    sys.stdout.flush()
++    # Connect to your device
++    #    dut_mesh = await MeshCore.create_ble(bluetooth, pin=bluetooth_pin)
++    send_mesh = await MeshCore.create_serial(path_0)
++    recv_mesh = await MeshCore.create_serial(path_1)
++    dut_mesh = await MeshCore.create_serial(path_2)
++
++    handshake_timekeeper = Handshaker(device_type=1)
++    handshake_dut = Handshaker(device_type=2)
++
++    dut_name = "pro_0"
++    local_devices = [send_mesh, recv_mesh]
++    dut_contacts = []
++    for device in local_devices:
++        if device is None:
++            raise ValueError(f"None source: {local_devices}")
++        # Get your contacts
++        result = await device.commands.get_contacts()
++        contacts = result.payload
++        if contacts:
++            for contact in contacts.values():
++                #                    print(f"contact: {contact}")
++                if contact["adv_name"] == dut_name:
++                    dut_contacts.append(contact)
++                    break
++
++    dut_task = asyncio.create_task(handshake_dut.dut_handshake(dut_mesh, 1))
++
++    # Don't transmit until the DUT has subscribed.
++    await handshake_dut.ready.wait()
++
++    (
++        send_devs,
++        recv_devs,
++        send_contacts,
++        recv_contacts,
++    ) = await handshake_timekeeper.timekeeper_handshake(
++        devices=local_devices,
++        contacts=dut_contacts,
++        timeout_time=5,
++    )
++
++    device_map = await dut_task
++
++    print(
++        f"send_devs:{send_devs}, recv_devs:{recv_devs}, send_contacts: {send_contacts}, recv_contacts: {recv_contacts}\ndevice_map:{device_map}"
++    )
++
++
++if __name__ == "__main__":
++    """Python main"""
++    asyncio.run(main())
+Index: src/gateway/user.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\"\"\"\nUser object will be directly interfacing with the user\n- Handles the requesting the type of API (API Object)\n- And other\n- Send state to the gateway\n- If multiple results, send the top n article names w/ one sentence\n- This is doing all of the querying/section and selection\n\"\"\"\n\nimport threading\n\nfrom meshcore import EventType, MeshCore\nfrom meshcore.events import Event\n\nfrom ..utils.UserType import UserType\n\n\n# class syntax\nclass User:\n    \"\"\"The client handler\"\"\"\n\n    device: MeshCore\n    contact: dict\n    thread: threading.Thread\n\n    def __init__(self, device: MeshCore, contact: dict, user_type: UserType) -> None:\n        \"\"\"Construct her I hardly know her\n\n        Args:\n            device (MeshCore): The device for receiving and sending messages\n        \"\"\"\n        self.device = device\n        self.contact = contact\n        self.thread = threading.Thread(target=self.run)\n        self.thread.start()\n\n    async def run(self) -> None:\n        await self.device.start_auto_message_fetching()\n        self.device.subscribe(\n            event_type=EventType.CONTACT_MSG_RECV,\n            callback=self.handle_message,\n        )\n\n    async def handle_message(self, recieve_message: Event) -> None:\n        raise NotImplementedError\n\n    def destroy(self) -> None:\n        raise NotImplementedError\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/gateway/user.py b/src/gateway/user.py
+--- a/src/gateway/user.py	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ b/src/gateway/user.py	(date 1793825167487)
+@@ -5,14 +5,28 @@
+ - Send state to the gateway
+ - If multiple results, send the top n article names w/ one sentence
+ - This is doing all of the querying/section and selection
++
++Added an inbox, as the gateway will recieve the first message, because the client does not know what they are supposed to be listening to
++most likely this message with be inocous, such as a hello, but we don't want to miss queries, this way we recive them in
++the order in which the mesh recives them
+ """
+ 
+ import threading
++import queue
++import asyncio
++import traceback
++import time
+ 
+ from meshcore import EventType, MeshCore
+ from meshcore.events import Event
+ 
+ from ..utils.UserType import UserType
++from ..utils.State import State
++from .Service import Service
++from ..utils.Message import Message
++
++MAX_MSG_LEN = 130  # TODO: Check with Joel, see what the best message length is with respect to the latency and loss tests
++DELAY = 1.0
+ 
+ 
+ # class syntax
+@@ -22,27 +36,206 @@
+     device: MeshCore
+     contact: dict
+     thread: threading.Thread
++    first_message: str
++    service: Service
++    user_state: State
++    user_type: UserType
++    handlers: dict
++    current_responce: Any
++    responce_index: int
+ 
+-    def __init__(self, device: MeshCore, contact: dict, user_type: UserType) -> None:
++    def __init__(self, device, contact, user_type, first_message):
+         """Construct her I hardly know her
+ 
+         Args:
+             device (MeshCore): The device for receiving and sending messages
++            contact : The contact of the person that this thread listens for
++            user_type : is the user a computer or a mesh end node
++            first_message : the gateway is the original listner, thus captures the first message, so this has to be passed in
+         """
++        print("attempting to construct")
++
+         self.device = device
+         self.contact = contact
+-        self.thread = threading.Thread(target=self.run)
++        self.user_type = user_type
++        self.current_responce = "Please query an API first"
++
++        self.service = Service(
++            user_type
++        )  # this will break silently if you dont have the secrets.jon, ask Joel or Natalie
++
++        self.user_state = State.MENU
++        self.current_api = ""
++
++        self.loop = asyncio.get_running_loop()
++        self.inbox = queue.Queue()
++        # print("Not the loop or que")
++
++        self.handlers = {  # Manages users by the state that they are in
++            State.MENU: self.handle_menu,
++            State.CHOOSING_API: self.handle_choosing_api,
++            State.INITIALIZING: self.handle_query,
++            State.RECEIVING_PAGE: self.continue_serving,
++        }
++
++        self.inbox.put(first_message)
++
++        self.thread = threading.Thread(target=self.run, daemon=True)
++
+         self.thread.start()
+-
+-    async def run(self) -> None:
+-        await self.device.start_auto_message_fetching()
+-        self.device.subscribe(
++        self.subscription = device.subscribe(
+             event_type=EventType.CONTACT_MSG_RECV,
+-            callback=self.handle_message,
++            callback=self.on_message,
++            attribute_filters={"pubkey_prefix": contact["public_key"][:12]},
+         )
+ 
+-    async def handle_message(self, recieve_message: Event) -> None:
+-        raise NotImplementedError
++    def run(self) -> None:
++        """Loops forever, swallows exceptions so that a bad api call doesn't break the thread"""
++        while True:
++            text = self.inbox.get()
++            if text is None:
++                break
++            # print(f"Received: {text}")
++            try:
++                self.handle_message(text)
++            except Exception as e:
++                print(e)
++
++    def handle_message(self, text: str) -> None:
++        """Sends the message off to the appropriate handler, depending on user state
++
++        Args:
++            self: This User instance
++            text: The message sent by the user
++        """
++        handler = self.handlers[self.user_state]
++        handler(text)
++
++    def handle_menu(self, text: str) -> None:
++        """Prints the avalible services form the service instance
++
++        Args:
++            self: This User instance
++            text: The message sent by the user
++        """
++        self.user_state = State.CHOOSING_API
++        self.reply(self.service.available_services())
++
++    def handle_choosing_api(self, text: str) -> None:
++        """Sets the users choosen API
++
++        Args:
++            self: This User instance
++            text: The message sent by the user, hopefully an api name
++        """
++        name = text.strip().lower()
++        if name not in self.service.func_dict:
++            self.reply("Unknown service. " + self.service.available_services())
++            return
++        self.current_api = name
++        self.reply("Please send me: " + " ".join(self.service.get_params(name)))
++        self.user_state = State.INITIALIZING
++
++    # TODO: This method need to be rewriten with respect to the differences between the user types
++    def handle_query(self, text: str) -> None:
++        """Querys the API
++
++        Args:
++            self: This User instance
++            text: The query sent by the user
++        """
++        result = self.service.call_api(self.current_api, text)
++        self.current_responce = str(result)
++        self.user_state = State.RECEIVING_PAGE
++        if self.user_type is UserType.BASIC_MESH:
++            self.start_serving_mesh()
++            return
++        self.start_serving_computer()
++
++    def start_serving_mesh(self):
++        self.reply("To continue: type any letter, to stop type : menu or stop or exit")
++        first_chunk = self.current_responce[:MAX_MSG_LEN]
++        self.responce_index = 1
++        self.reply(first_chunk)
++
++    # def start_serving_computer(self):
++    #     """Creates the message to be sent to the computer user
++
++    #     Args:
++    #         self: This User instance
++    #     """
++    #     message = Message(current_responce,uuid.uuid4().int, 0, (len(current_responce)/MAX_MSG_LEN))
++    #     i=0
++    #     final_sequence_number = (len(current_responce)/MAX_MSG_LEN)-1
++    #     package_id =uuid.uuid4().int
++
++    #     while(i is not final_sequence_number):
++    #         current_starter = i *MAX_MSG_LEN
++    #         nextChunk = self.current_responce[current_starter:current_starter+MAX_MSG_LEN]
++
++    #         message = Message((current_responce), package_id, i, (len(current_responce)/MAX_MSG_LEN))
++
++    # this needs to be changed ASAP to reflect the message class so that there is RDT
++    def start_serving_computer(self):
++        i = 0
++        final_sequence_number = (len(self.current_responce) / MAX_MSG_LEN) - 1
++
++        while i is not final_sequence_number:
++            current_starter = i * MAX_MSG_LEN
++            nextChunk = self.current_responce[
++                current_starter : current_starter + MAX_MSG_LEN
++            ]
++            self.reply(nextChunk)
++            i += 1
++            time.sleep(DELAY)
++
++    def continue_serving(self, text: str):
++        """Prints the message one chunk at a time, this is intended for mesh users
++
++        Args:
++            self: This User instance
++            text: The message sent by the user
++        """
++        if text.lower() in ("menu", "stop", "exit"):
++            self.user_state = State.MENU
++            return
++
++        # something something index * message size to get next chunk
++        current_starter = self.responce_index * MAX_MSG_LEN
++        nextChunk = self.current_responce[
++            current_starter : current_starter + MAX_MSG_LEN
++        ]
++        self.reply(nextChunk)
++        self.responce_index += 1
+ 
+     def destroy(self) -> None:
+-        raise NotImplementedError
++        """Destroys the thread and unsubscribes
++
++        Args:
++            self: This User instance
++           
++        """
++        self.subscription.unsubscribe()
++        self.thread.join()
++
++    async def on_message(self, event: Event) -> None:
++        """Puts the recived message in the inbox queque
++
++        Args:
++            self: This User instance
++            event: the message recieved meshcore event
++        """
++        self.inbox.put(event.payload["text"])
++
++    def reply(self, text: str) -> None:
++        """Sends a message to the user
++
++        Args:
++            self: This User instance
++            text: The message to be sent to the user
++        """
++        print(f"Sending: {text}")
++        future = asyncio.run_coroutine_threadsafe(
++            self.device.commands.send_msg(self.contact, text), self.loop
++        )
++        future.result(timeout=30)
+Index: src/gateway/gateway.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\"\"\"\nMain Class that will handle most of the server side functionality.\n- Contains the clients and will accecpt connections and will spawn new connections\n- Will connect users to their desired APIs\n\n- Listen for new connections will create new threads for each client (Client object)\n\"\"\"\n\nfrom meshcore import MeshCore\n\n\nclass Gateway:\n    \"\"\"The client handler\"\"\"\n\n    device: MeshCore\n\n    def __init__(self, device: MeshCore) -> None:\n        self.device = device\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/gateway/gateway.py b/src/gateway/gateway.py
+--- a/src/gateway/gateway.py	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ b/src/gateway/gateway.py	(date 1793825167487)
+@@ -6,13 +6,66 @@
+ - Listen for new connections will create new threads for each client (Client object)
+ """
+ 
+-from meshcore import MeshCore
++from meshcore import EventType, MeshCore
++from .user import User
++from ..utils.UserType import UserType
++
++
++REGEX_THAT_MEANS_COMPUTER = "OwO"
+ 
+ 
+ class Gateway:
+     """The client handler"""
+ 
+     device: MeshCore
++    users: dict[str, User]
+ 
+     def __init__(self, device: MeshCore) -> None:
+         self.device = device
++        self.users = {}
++
++    async def run(self) -> None:
++        print("gateway started:")
++        self.device.subscribe(EventType.CONTACT_MSG_RECV, self.onMessage)
++        await self.device.start_auto_message_fetching()
++
++    async def onMessage(self, event: Event) -> None:
++        sender = event.payload["pubkey_prefix"]
++        text = event.payload["text"]
++        print(f"Message: {text}")
++        if sender in self.users:
++            print("Sender is already know, let its thread deal with it")
++            return
++
++        # so this is so that the thread handles its own message, it will have to pass the first message to the user
++        print("looking up contact")
++        contact = self.device.get_contact_by_key_prefix(sender)
++        if contact is None:
++            await self.device.ensure_contacts(follow=True)
++            await self.device.start_auto_message_fetching()
++            contact = self.device.get_contact_by_key_prefix(sender)
++            print("contact none?")
++        if contact is None:
++            print(f"Message from unknown contact {sender}, ignoring")
++            return
++        print("Found contact")
++
++        if text == REGEX_THAT_MEANS_COMPUTER:
++            user_state = UserType.COMPUTER_USER
++            print(f"User said: {text} which means computer")
++        else:
++            user_state = UserType.BASIC_MESH
++            print(f"User said: {text} which means basic mesh")
++
++        print("constructing user")
++        self.users[sender] = user = User(self.device, contact, user_state, text)
++        print("constructed")
++        # print("Attempting to create a new user")
++        # self.users[sender] = User(self.device, (self.device.get_contact_by_key_prefix(sender)),UserType.COMPUTER_USER,text)
++        # self.users[sender].run()
++
++    def remove_user(self, sender: str) -> None:
++        
++        user = self.users.pop(sender, None)
++        if user:
++            user.destroy()
+Index: benchmarking/src/Test.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\"\"\"The Test Super Class\"\"\"\n\nfrom abc import ABC, abstractmethod\nfrom time import perf_counter\n\nimport numpy as np\nfrom meshcore import EventType, MeshCore\n\nfrom .util.Device import Device\n\n\nclass Test(ABC):\n    \"\"\"Interface for Tests\"\"\"\n\n    num_rtts: int = 5  # How many rtts to do when rtt_time() is called\n    prop_min_time: float = (\n        0.9  # What proportion of the minimum rtt is considered small enough\n    )\n    prop_max_time: float = (\n        2.0  # What proportion of the maximum rtt is considered small enough\n    )\n    max_timeout: float = 10  # The maximum timeout on lost mesage possible\n\n    def get_frame_sizes(self, num_frame_sizes: int) -> np.ndarray:\n        \"\"\"Get the frame sizes from teh number of frame sizes\n\n        Args:\n            num_frame_sizese (int): The number of frame sizes\n\n        Returns:\n             frame_sizes (np.ndarray): Those frame sizes to test\n        \"\"\"\n        return np.linspace(\n            start=1,  # Sending message of minimum size 1\n            stop=150,\n            num=num_frame_sizes,\n            dtype=int,\n        )\n\n    async def round_trip_time(\n        self,\n        meshcore: MeshCore,\n        dst_key: dict,\n        message: str,\n        timeout: float = 5,  # TODO: expose this to top level API + add to metadata tracker\n    ) -> float:\n        \"\"\"Time a message's ACK\n\n        Args:\n            meshcore (MeshCore): The sending device\n            dst_key (dict): The contact of the device under test\n            message (str): The message to send\n\n        Returns:\n            rtt (float): The time elapsed from message sent and ACK recieved\n        \"\"\"\n        start = perf_counter()\n        # Send the message and get information about the sent message\n        sent_result = await meshcore.commands.send_msg(dst_key, message)\n\n        # Extract the expected acknowledgment code from the message sent event\n        if sent_result.type == EventType.ERROR:\n            return np.nan\n\n        expected_ack = sent_result.payload[\"expected_ack\"].hex()\n\n        # Wait specifically for this acknowledgment\n        result = await meshcore.wait_for_event(\n            EventType.ACK, attribute_filters={\"code\": expected_ack}, timeout=timeout\n        )\n        stop = perf_counter()\n\n        if result:\n            return stop - start\n        else:\n            # Timeout -> NaN\n            return np.nan\n\n    async def rtt_time(\n        self,\n        source: MeshCore | list[MeshCore],\n        dut: dict | list[dict],\n        frame_sizes: np.ndarray,\n    ) -> tuple[np.ndarray, np.ndarray]:\n        \"\"\"Find the minimum and maximum rtt for the given frame sizes\n\n        Args:\n            source (MeshCore | list[MeshCore]): The sending device(s)\n            dut (list[dict]): Contact info of device under test for each device\n            frame_sizezss (np.ndarray): The frame_sizes\n\n        Returns:\n             min_rtt (np.ndarray): The minimum round trip time per frame size\n             max_rtt (np.ndarray): The maximum round trip time per frame size\n        \"\"\"\n        # Ensure stuff is correct shape\n        if type(source) is MeshCore:\n            source = [source]\n        if type(dut) is dict:\n            dut = [dut]\n\n        min_rtt = np.full((frame_sizes.shape[0],), self.max_timeout)\n        max_rtt = np.zeros((frame_sizes.shape[0],))\n\n        for i, frame_size in enumerate(frame_sizes):\n            message = \"a\"\n            message *= frame_size\n            for j, meshcore in enumerate(source):\n                for k in range(self.num_rtts):\n                    rtt_time = await self.round_trip_time(\n                        meshcore=meshcore,\n                        dst_key=dut[j],\n                        message=message,\n                        timeout=self.max_timeout,  # TODO: expose this to top level API + add to metadata tracker\n                    )\n\n                    min_rtt[i] = min(min_rtt[i], rtt_time)\n                    max_rtt[i] = max(max_rtt[i], rtt_time)\n\n        return min_rtt, max_rtt\n\n    async def get_contacts(\n        self,\n        local_devices: MeshCore | list[MeshCore],\n        dut_name: str,\n    ) -> dict | list[dict]:\n        \"\"\"Get the contacts for each local device\n\n        Args:\n            local_device (MeshCore | list[MeshCore]): The local devices\n            dut_name (str): The name of the contact\n\n        Returns:\n             dut_contacts (dict | list[dict]): The contacts of the dut for each\n             device\n        \"\"\"\n        if type(local_devices) is MeshCore:\n            local_devices = [local_devices]\n\n        dut_contacts = []\n        for device in local_devices:\n            print(f\"source_dev: {device}\")\n            if device is None:\n                raise ValueError(f\"None source: {local_devices}\")\n            # Get your contacts\n            result = await device.commands.get_contacts()\n            contacts = result.payload\n            if contacts:\n                for contact in contacts.values():\n                    #                    print(f\"contact: {contact}\")\n                    if contact[\"adv_name\"] == dut_name:\n                        dut_contacts.append(contact)\n                        break\n\n        assert len(local_devices) == len(dut_contacts), (\n            f\"Source device does not have DUT in contacts: {dut_contacts}\"\n        )\n\n        if len(dut_contacts) == 1:\n            return dut_contacts[0]\n        return dut_contacts\n\n    @abstractmethod\n    async def run_test(\n        self,\n        source: MeshCore | list[MeshCore],\n        dut_name: str,\n        src_type: Device | list[Device],\n        dst_type: Device,\n        num_frame_sizes: int,\n        distance: float | list[float] | None,\n        notes: str | None,\n    ) -> int:\n        \"\"\"Run the test\n\n        Args:\n            source (list[Meshcore]): The devices which are do the messaging/\n            timing\n            dut (dict): The contact info of the device under test\n            srt_type (list[Device]): The device types of the sources\n            dst_type (Device): The device type of the dut\n            num_frame_sizes (int): The number of frame sizes\n            distance (list[float]): The distances from the sources to the DUT\n            notes (str): Anything of note about this test?\n\n        Returns:\n             test_id (int): The id of the test\n        \"\"\"\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/benchmarking/src/Test.py b/benchmarking/src/Test.py
+--- a/benchmarking/src/Test.py	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ b/benchmarking/src/Test.py	(date 1793825167485)
+@@ -134,12 +134,12 @@
+              dut_contacts (dict | list[dict]): The contacts of the dut for each
+              device
+         """
+-        if type(local_devices) is MeshCore:
++        was_list = type(local_devices) is list
++        if not was_list:
+             local_devices = [local_devices]
+ 
+         dut_contacts = []
+         for device in local_devices:
+-            print(f"source_dev: {device}")
+             if device is None:
+                 raise ValueError(f"None source: {local_devices}")
+             # Get your contacts
+@@ -156,9 +156,9 @@
+             f"Source device does not have DUT in contacts: {dut_contacts}"
+         )
+ 
+-        if len(dut_contacts) == 1:
+-            return dut_contacts[0]
+-        return dut_contacts
++        if was_list:
++            return dut_contacts
++        return dut_contacts[0]
+ 
+     @abstractmethod
+     async def run_test(
+Index: benchmarking/src/loss/Loss.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>\"\"\"The frame loss test\n\nResources:\n    https://docs.python.org/3/library/threading.html\n\"\"\"\n\nimport asyncio\nimport sys\nimport warnings\nfrom threading import Condition\n\nimport numpy as np\nfrom meshcore import EventType, MeshCore\nfrom meshcore.events import Event\n\nfrom ..Test import Test\nfrom ..util.constants import N_CHAR_PUB_KEY_PREFIX\nfrom ..util.Device import Device\nfrom ..util.MsgType import MsgType\nfrom .LossResults import LossResults\nfrom .Receiver import Receiver\nfrom .Sender import Sender\n\nTIMEOUT_BTWN_FRAME_SIZES = 5  # Timeout for five seconds between messages\n\n\nclass Loss(Test):\n    \"\"\"The latency test class\"\"\"\n\n    frames_sent: int\n    granularity: float\n    awaiting_success: bool\n    cv: Condition\n\n    def __init__(\n        self,\n        frames_sent: int,\n        granularity: float,\n        # TODO: default constructor in parent class\n        prop_min_time: float | None = None,\n        prop_max_time: float | None = None,\n        num_rtts: int | None = None,  # How many rtts to do when rtt_time() is called\n        max_timeout: float | None = None,  # The maximum timeout on lost mesage possible\n    ) -> None:\n        \"\"\"Initialize this Loss Test object\n\n        Args:\n            frames_sent (int): Number of frames for this test\n            granularity (float): Proportion to decrease frame rate per test\n            prop_min_time (float | None): The proportion of the min found time\n            (during warmup) that is considered minimum possible\n            prop_max_time (float | None): The proportion of the min found time\n            (during warmup) that is considered minimum possible\n        \"\"\"\n        self.frames_sent = frames_sent\n        self.granularity = granularity\n        self.awaiting_success = True\n        self.cv = Condition()\n        if prop_min_time:\n            assert prop_min_time < 1, f\"{prop_min_time} >= 1\"\n            self.prop_min_time = prop_min_time\n        if prop_max_time:\n            assert prop_max_time > 1, f\"{prop_max_time} <= 1\"\n            self.prop_max_time = prop_max_time\n        if num_rtts:\n            assert num_rtts >= 1, f\"{num_rtts} < 1\"\n            self.num_rtts = num_rtts\n        if max_timeout:\n            assert max_timeout >= 2, f\"{max_timeout} < 1\"\n            self.max_timeout = max_timeout\n\n    def get_timeouts(\n        self,\n        min_times: np.ndarray,\n    ) -> np.ndarray:\n        \"\"\"Get the timeout times\n\n        Args:\n            min_times (np.ndarray): The initial timeout times of the tests\n            num_frame_sizes (int): The number of frame sizes\n\n        Returns:\n             timeouts (np.ndarray): The timeout times for every frame size\n        \"\"\"\n        num_frame_sizes = min_times.shape[0]\n        init_timeouts = min_times * self.prop_min_time\n        max_fps = 1 / init_timeouts\n\n        percentages = np.arange(\n            1,  # max fps is 100%\n            self.granularity,  # min fps is granularity\n            -self.granularity,  # step size of granularity\n            dtype=float,\n        )\n        fpss = np.zeros((num_frame_sizes, percentages.shape[0]))\n        for i in range(num_frame_sizes):\n            fpss[i] = percentages * max_fps[i]\n\n        return 1 / fpss\n\n    def handshake_finish(\n        self,\n        received_msg: Event,\n        dut_key_pref: str,\n    ) -> None:\n        \"\"\"Continue the count!\n\n        Args:\n            recieved_msg (EventType): Message recieved o7\n        \"\"\"\n        print(received_msg.payload[\"text\"])\n        sys.stdout.flush()\n        if received_msg.payload[\"pubkey_prefix\"] == dut_key_pref:\n            with self.cv:\n                self.awaiting_success = False\n                self.cv.notify()\n\n    \"\"\"\n    async def run_test(\n        self,\n        source: MeshCore | list[MeshCore],\n        dut: dict,\n        src_type: Device | list[Device],\n        dst_type: Device,\n        num_frame_sizes: int,\n        distance: float | list[float] | None,\n        notes: str | None,\n    ) -> int:\n    \"\"\"\n\n    async def run_test(\n        self,\n        source: MeshCore | list[MeshCore],\n        dut_name: str,\n        src_type: Device | list[Device],\n        dst_type: Device,\n        num_frame_sizes: int,\n        distance: float | list[float] | None,\n        notes: str | None,\n    ) -> int:\n        \"\"\"Run the test\n\n        Args:\n            source (MeshCore | list[MeshCore]): The devices which are do the\n            messaging/timing\n            dut (str): The contact name of the device under test (must be same\n            for all devices)\n            srt_type (Device | list[Device]): The device types of the sources\n            dst_type (Device): The device type of the dut\n            num_frame_sizes (int): The number of frame sizes\n            distance (float | list[float]): The distances from the sources to\n            the DUT\n            notes (str): Anything of note about this test?\n\n        Returns:\n             test_id (int): The id of the test\n        \"\"\"\n        # Ensure correct input shape\n        assert type(source) is list, f\"need more than one source device: {type(source)}\"\n        assert type(src_type) is list, (\n            f\"need more than one source device: {type(src_type)}\"\n        )\n        assert distance is None or type(distance) is list, (\n            f\"need more than one source device: {type(distance)}\"\n        )\n        assert len(source) == len(src_type), f\"{len(source)} != {len(src_type)}\"\n        assert distance is None or len(source) == len(distance), (\n            f\"{len(source)} != {len(src_type)}\"\n        )\n        if len(source) % 2 != 0:\n            warnings.warn(f\"Odd number of source devices: {len(source)}\")\n\n        dut_contacts = await self.get_contacts(\n            local_devices=source,\n            dut_name=dut_name,\n        )\n\n        num_src = len(source) // 2\n        send_devs = source[:num_src]\n        recv_devs = source[num_src:]\n        senders: list[Sender] = []\n        receivers: list[Receiver] = []\n        needs_thread = False\n        frames_per_dev = self.frames_sent // num_src\n        actual_frames_sent = frames_per_dev * num_src\n\n        if len(send_devs) > 1:\n            # More than one sending device -> give 'em all a thread\n            needs_thread = True\n\n        for i in range(num_src):\n            new_sender = Sender(\n                sender=send_devs[i],\n                dut=dut_contacts[i],\n                frames_to_send=frames_per_dev,\n                needs_thread=needs_thread,\n            )\n            new_receiver = Receiver(\n                reciever=recv_devs[i],\n                dut_pub_key=dut_contacts[i][\"public_key\"],\n            )\n            senders.append(new_sender)\n            receivers.append(new_receiver)\n\n        frame_sizes = self.get_frame_sizes(num_frame_sizes=num_frame_sizes)\n\n        print(\"Measuring some rtts based on ACKs\")\n        min_times, max_times = await self.rtt_time(\n            source=send_devs,\n            dut=dut_contacts,\n            frame_sizes=frame_sizes,\n        )\n\n        print(\"Starting handshake\")\n        # A handshake of sorts: ensure the DUT knows who's sending & who's receiving\n        for i, device in enumerate(source):\n            connection_msg = None\n            if i < num_src:\n                # Half are senders\n                connection_msg = MsgType.SENDER.name\n            else:\n                # The rest are receivers\n                connection_msg = MsgType.RECEIVER.name\n\n            no_ack = True\n            while no_ack:\n                # Send the message and get information about the sent message\n                sent_result = await device.commands.send_msg(\n                    dut_contacts[i],\n                    connection_msg,\n                )\n                # Extract the expected acknowledgment code from the message sent event\n                if sent_result.type == EventType.ERROR:\n                    continue\n\n                expected_ack = sent_result.payload[\"expected_ack\"].hex()\n\n                # Wait specifically for this acknowledgment\n                result = await device.wait_for_event(\n                    EventType.ACK,\n                    attribute_filters={\"code\": expected_ack},\n                    timeout=max_times[-1],\n                )\n                if result:\n                    no_ack = False\n\n        for recv_dev in recv_devs:\n            await recv_dev.start_auto_message_fetching()\n            recv_dev.subscribe(\n                event_type=EventType.CONTACT_MSG_RECV,\n                callback=self.handshake_finish,  # TODO: handhsake confirmation failing\n                attribute_filters={\n                    # Only need 12 characters of the dut's pub key to confirm\n                    \"dut_key_pref\": dut_contacts[0][\"public_key\"][\n                        :N_CHAR_PUB_KEY_PREFIX\n                    ]\n                },\n            )\n\n        print(\"Waiting for handshake to finish\")\n        with self.cv:\n            # Wait for the DUT to setup\n            while self.awaiting_success:\n                self.cv.wait()\n\n        for recv_dev in recv_devs:\n            await recv_dev.stop_auto_message_fetching()\n\n        timeouts = self.get_timeouts(min_times)\n        frames_received = np.full(timeouts.shape, np.nan)\n\n        print(\"Starting Test!\")\n        # TODO: do test for various frame sizes, setting timeouts along the way\n        for i, frame_size in enumerate(frame_sizes):\n            print(f\"Loss Test: frame_size of {frame_size}\")\n            no_loss_prev = False\n            for j, timeout_time in enumerate(timeouts[i]):\n                # Start recievers first to track all messages\n                for receiver in receivers:\n                    await receiver.start()\n\n                # Start sending messages\n                for sender in senders:\n                    await sender.start(\n                        msg_size=frame_size,\n                        timeout=timeout_time,\n                    )\n\n                # Wait for sending to finish\n                for sender in senders:\n                    sender.stop()\n\n                # Sleep a bit to ensure everything has time to finish\n                await asyncio.sleep(max_times[i] * self.prop_max_time)\n\n                # Stop the count!\n                for reciever in receivers:\n                    frames_received[i, j] += await reciever.stop()\n\n                no_loss_curr = frames_received[i, j] == actual_frames_sent\n                if no_loss_prev and no_loss_curr:\n                    break\n                no_loss_prev = no_loss_curr\n\n        results = LossResults(\n            src_type=src_type,\n            dst_type=dst_type,\n            distance=distance,\n            num_frame_sizes=num_frame_sizes,\n            frames_sent=actual_frames_sent,\n            granularity=self.granularity,\n            num_send_nodes=len(send_devs),\n            num_recv_nodes=len(recv_devs),\n            notes=notes,\n            frame_sizes=frame_sizes,\n            min_timeouts=min_times * self.prop_min_time,\n            frames_recvd=frames_received,\n            timeout_times=timeouts,\n        )\n        file_id = results.save_results()\n\n        return file_id\n\n\n# TODO: TEST THIS BADDIE\nasync def main():\n    \"\"\"For testing purposes\"\"\"\n    contact_under_test = \"T114_0\"\n    frame_count = 5\n    granularity = 0.1  # 10% is maximum granularity\n    num_frame_sizes = 2  # 5 is minimum\n    prop_min_time = 0.9\n    prop_max_time = 2\n    n_rtts = 3\n    max_time = 2\n    source_type = [\n        Device.HELTEC_V3,\n        Device.HELTEC_V3,\n    ]\n    dst_type = Device.HELTEC_T114\n\n    file_id = 1\n\n    # Connect to your device\n    send_mesh = await MeshCore.create_serial(\"/dev/ttyUSB0\")\n    recv_mesh = await MeshCore.create_serial(\"/dev/ttyUSB1\")\n\n    source = [\n        send_mesh,\n        recv_mesh,\n    ]\n\n    # Get your contacts\n    result = await recv_mesh.commands.get_contacts()\n    contacts = result.payload\n\n    # Send a message to T114-j\n    if contacts:  # TODO: Is this necessary anymore?\n        for contact in contacts.values():\n            if contact[\"adv_name\"] == contact_under_test:\n                loss_test = Loss(\n                    frames_sent=frame_count,\n                    granularity=granularity,\n                    prop_min_time=prop_min_time,\n                    prop_max_time=prop_max_time,\n                    num_rtts=n_rtts,\n                    max_timeout=max_time,\n                )\n                file_id = await loss_test.run_test(\n                    source=source,\n                    dut_name=contact_under_test,\n                    src_type=source_type,\n                    dst_type=dst_type,\n                    num_frame_sizes=num_frame_sizes,\n                    distance=None,\n                    notes=\"testing thangs\",\n                )\n    await send_mesh.disconnect()\n    await recv_mesh.disconnect()\n\n    results = LossResults(file_name=file_id)\n    results.disp_results()\n\n\nif __name__ == \"__main__\":\n    \"\"\"Main for testing purposes\n    \"\"\"\n    asyncio.run(main())\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/benchmarking/src/loss/Loss.py b/benchmarking/src/loss/Loss.py
+--- a/benchmarking/src/loss/Loss.py	(revision 296ca61c3d78c0ebc5bd4bd9c8f31343820388eb)
++++ b/benchmarking/src/loss/Loss.py	(date 1793825167485)
+@@ -5,21 +5,20 @@
+ """
+ 
+ import asyncio
+-import sys
+-import warnings
+-from threading import Condition
++from threading import Condition  # TODO: replace with async Event
+ 
+ import numpy as np
+-from meshcore import EventType, MeshCore
+-from meshcore.events import Event
++from meshcore import MeshCore
++
++from src.loss.util.Handshaker import Handshaker
++from src.util.RDT import RDT
+ 
+ from ..Test import Test
+-from ..util.constants import N_CHAR_PUB_KEY_PREFIX
+ from ..util.Device import Device
+-from ..util.MsgType import MsgType
+ from .LossResults import LossResults
+ from .Receiver import Receiver
+ from .Sender import Sender
++from .util.MsgType import MsgType
+ 
+ TIMEOUT_BTWN_FRAME_SIZES = 5  # Timeout for five seconds between messages
+ 
+@@ -31,6 +30,7 @@
+     granularity: float
+     awaiting_success: bool
+     cv: Condition
++    handshaker: Handshaker
+ 
+     def __init__(
+         self,
+@@ -56,6 +56,7 @@
+         self.granularity = granularity
+         self.awaiting_success = True
+         self.cv = Condition()
++        self.handshaker = Handshaker(device_type=1)
+         if prop_min_time:
+             assert prop_min_time < 1, f"{prop_min_time} >= 1"
+             self.prop_min_time = prop_min_time
+@@ -69,7 +70,7 @@
+             assert max_timeout >= 2, f"{max_timeout} < 1"
+             self.max_timeout = max_timeout
+ 
+-    def get_timeouts(
++    def __calculate_timeouts(
+         self,
+         min_times: np.ndarray,
+     ) -> np.ndarray:
+@@ -98,36 +99,6 @@
+ 
+         return 1 / fpss
+ 
+-    def handshake_finish(
+-        self,
+-        received_msg: Event,
+-        dut_key_pref: str,
+-    ) -> None:
+-        """Continue the count!
+-
+-        Args:
+-            recieved_msg (EventType): Message recieved o7
+-        """
+-        print(received_msg.payload["text"])
+-        sys.stdout.flush()
+-        if received_msg.payload["pubkey_prefix"] == dut_key_pref:
+-            with self.cv:
+-                self.awaiting_success = False
+-                self.cv.notify()
+-
+-    """
+-    async def run_test(
+-        self,
+-        source: MeshCore | list[MeshCore],
+-        dut: dict,
+-        src_type: Device | list[Device],
+-        dst_type: Device,
+-        num_frame_sizes: int,
+-        distance: float | list[float] | None,
+-        notes: str | None,
+-    ) -> int:
+-    """
+-
+     async def run_test(
+         self,
+         source: MeshCore | list[MeshCore],
+@@ -167,108 +138,61 @@
+         assert distance is None or len(source) == len(distance), (
+             f"{len(source)} != {len(src_type)}"
+         )
+-        if len(source) % 2 != 0:
+-            warnings.warn(f"Odd number of source devices: {len(source)}")
+ 
+         dut_contacts = await self.get_contacts(
+             local_devices=source,
+             dut_name=dut_name,
+         )
++        assert type(dut_contacts) is list, "How do we have singular contact?"
++
++        frame_sizes = self.get_frame_sizes(num_frame_sizes=num_frame_sizes)
++
++        print("Measuring some rtts based on ACKs")
++        min_times, max_times = await self.rtt_time(
++            source=source,
++            dut=dut_contacts,
++            frame_sizes=frame_sizes,
++        )
++
++        # Handshake time
++        handshake_result = await self.handshaker.timekeeper_handshake(
++            devices=source,
++            contacts=dut_contacts,
++            timeout_time=max_times[-1],
++        )
+ 
+-        num_src = len(source) // 2
+-        send_devs = source[:num_src]
+-        recv_devs = source[num_src:]
+-        senders: list[Sender] = []
+-        receivers: list[Receiver] = []
++        send_devs, recv_devs, send_contacts, recv_contacts = handshake_result
++
+         needs_thread = False
+-        frames_per_dev = self.frames_sent // num_src
+-        actual_frames_sent = frames_per_dev * num_src
+-
+         if len(send_devs) > 1:
+             # More than one sending device -> give 'em all a thread
+             needs_thread = True
+ 
+-        for i in range(num_src):
++        frames_per_dev = self.frames_sent // len(send_devs)
++        actual_frames_sent = frames_per_dev * len(send_devs)
++
++        senders = []
++        receivers = []
++        for i, send_mesh in enumerate(send_devs):
+             new_sender = Sender(
+-                sender=send_devs[i],
+-                dut=dut_contacts[i],
++                sender=send_mesh,
++                dut=send_contacts[i],
+                 frames_to_send=frames_per_dev,
+                 needs_thread=needs_thread,
+             )
+-            new_receiver = Receiver(
+-                reciever=recv_devs[i],
+-                dut_pub_key=dut_contacts[i]["public_key"],
+-            )
+             senders.append(new_sender)
++        for i, recv_mesh in enumerate(recv_devs):
++            new_receiver = Receiver(
++                reciever=recv_mesh,
++                dut_pub_key=recv_contacts[i]["public_key"],
++            )
+             receivers.append(new_receiver)
+ 
+-        frame_sizes = self.get_frame_sizes(num_frame_sizes=num_frame_sizes)
+-
+-        print("Measuring some rtts based on ACKs")
+-        min_times, max_times = await self.rtt_time(
+-            source=send_devs,
+-            dut=dut_contacts,
+-            frame_sizes=frame_sizes,
+-        )
+-
+-        print("Starting handshake")
+-        # A handshake of sorts: ensure the DUT knows who's sending & who's receiving
+-        for i, device in enumerate(source):
+-            connection_msg = None
+-            if i < num_src:
+-                # Half are senders
+-                connection_msg = MsgType.SENDER.name
+-            else:
+-                # The rest are receivers
+-                connection_msg = MsgType.RECEIVER.name
+-
+-            no_ack = True
+-            while no_ack:
+-                # Send the message and get information about the sent message
+-                sent_result = await device.commands.send_msg(
+-                    dut_contacts[i],
+-                    connection_msg,
+-                )
+-                # Extract the expected acknowledgment code from the message sent event
+-                if sent_result.type == EventType.ERROR:
+-                    continue
+-
+-                expected_ack = sent_result.payload["expected_ack"].hex()
+-
+-                # Wait specifically for this acknowledgment
+-                result = await device.wait_for_event(
+-                    EventType.ACK,
+-                    attribute_filters={"code": expected_ack},
+-                    timeout=max_times[-1],
+-                )
+-                if result:
+-                    no_ack = False
+-
+-        for recv_dev in recv_devs:
+-            await recv_dev.start_auto_message_fetching()
+-            recv_dev.subscribe(
+-                event_type=EventType.CONTACT_MSG_RECV,
+-                callback=self.handshake_finish,  # TODO: handhsake confirmation failing
+-                attribute_filters={
+-                    # Only need 12 characters of the dut's pub key to confirm
+-                    "dut_key_pref": dut_contacts[0]["public_key"][
+-                        :N_CHAR_PUB_KEY_PREFIX
+-                    ]
+-                },
+-            )
+-
+-        print("Waiting for handshake to finish")
+-        with self.cv:
+-            # Wait for the DUT to setup
+-            while self.awaiting_success:
+-                self.cv.wait()
+-
+-        for recv_dev in recv_devs:
+-            await recv_dev.stop_auto_message_fetching()
+-
+-        timeouts = self.get_timeouts(min_times)
++        timeouts = self.__calculate_timeouts(min_times)
+         frames_received = np.full(timeouts.shape, np.nan)
+ 
++        await asyncio.sleep(max_times[-1] * 2)
++
+         print("Starting Test!")
+         # TODO: do test for various frame sizes, setting timeouts along the way
+         for i, frame_size in enumerate(frame_sizes):
+@@ -291,7 +215,7 @@
+                     sender.stop()
+ 
+                 # Sleep a bit to ensure everything has time to finish
+-                await asyncio.sleep(max_times[i] * self.prop_max_time)
++                await asyncio.sleep(max_times[i] * 2)
+ 
+                 # Stop the count!
+                 for reciever in receivers:
+@@ -302,6 +226,15 @@
+                     break
+                 no_loss_prev = no_loss_curr
+ 
++        print("Test done!")
++        rdt = RDT()
++        for i, device in enumerate(send_devs):
++            await rdt.send_msg(
++                device=device,
++                contact=send_contacts[i],
++                message=MsgType.DONE_WITH_TEST.name,
++                timeout_time=max_times[-1],
++            )
+         results = LossResults(
+             src_type=src_type,
+             dst_type=dst_type,
+@@ -322,9 +255,18 @@
+         return file_id
+ 
+ 
+-# TODO: TEST THIS BADDIE
+ async def main():
+     """For testing purposes"""
++    import os
++
++    from dotenv import load_dotenv
++
++    load_dotenv()
++    path_0 = os.getenv("MESH_PATH")
++    path_1 = os.getenv("MESH_PATH_2")
++    assert path_0 is not None
++    assert path_1 is not None
++
+     contact_under_test = "T114_0"
+     frame_count = 5
+     granularity = 0.1  # 10% is maximum granularity
+@@ -342,8 +284,8 @@
+     file_id = 1
+ 
+     # Connect to your device
+-    send_mesh = await MeshCore.create_serial("/dev/ttyUSB0")
+-    recv_mesh = await MeshCore.create_serial("/dev/ttyUSB1")
++    send_mesh = await MeshCore.create_serial(path_0)
++    recv_mesh = await MeshCore.create_serial(path_1)
+ 
+     source = [
+         send_mesh,
