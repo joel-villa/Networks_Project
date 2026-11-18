@@ -1,4 +1,3 @@
-
 import asyncio
 import os
 
@@ -23,7 +22,7 @@ async def main():
     # TODO: get this test to under 5 minutes for scaling to larger tests
     num_frame_sizes = 8  # 5 at minimum
     max_msgs = 1024
-    max_time = 1800 # 30 mins = 1800 seconds
+    max_time = 1800  # 30 mins = 1800 seconds
     src_type = Device.SEEED_WIO_TRACKER_L1_PRO
     dst_type = Device.SEEED_SENSECAP_SOLAR
     distance = None
