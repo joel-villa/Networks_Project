@@ -7,6 +7,7 @@ Repository of APIS
 
 import json
 import uuid
+import random
 import requests
 from collections.abc import Callable
 from typing import Any
@@ -18,6 +19,8 @@ from ddgs import DDGS
 
 DICT_VALUE = "api_keys"
 MAX_MSG_LEN = 130
+MIN_JOAPI = 10
+MAX_JOAPI = 1000
 
 
 class Service:
@@ -40,6 +43,7 @@ class Service:
             "weather": self.weather,
             "pokemon": self.pokemon,
             "nasa": self.nasa,
+            "joapi" : self.joapi
             # "country": self.country,
             "book": self.book,
             # TODO: add more here
@@ -132,6 +136,11 @@ class Service:
 
         print(wiki_text)
         return wiki_text
+
+    def joapi(self, string_to_be_queried: str) -> Any:
+        size = random.randint(MIN_JOAPI, MAX_JOAPI)
+        bunch_of_a = 'a' * MAX_MSG_LEN * size
+        return bunch_of_a
 
     def weather(self, latitude=35.0844, longitude=-106.6504):
         response = requests.get(
