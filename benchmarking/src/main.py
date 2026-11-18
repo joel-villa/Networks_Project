@@ -29,7 +29,6 @@ async def main_loss(
     max_time = 2 # Max timeout time (seconds)
     # Connect to your device
 
-    dut = DUT(dut_mesh)
     loss_test = Loss(
         frames_sent=frame_count,
         granularity=granularity,
@@ -39,12 +38,10 @@ async def main_loss(
         max_timeout=max_time,
     )
 
-    await dut.run_handshake(n_pairs=len(source) // 2)
     handshake_result = await loss_test.run_handshake(
         source=source,
         dut_name=name_under_test,
     )
-    await dut.run_test()
     file_id = await loss_test.run_test(
         handshake_result=handshake_result,
         src_type=source_type,
@@ -53,7 +50,6 @@ async def main_loss(
         distance=distance,
         notes="testing thangs",
     )
-    await dut.finish()
 
     results = LossResults(file_name=file_id)
     results.disp_results()
