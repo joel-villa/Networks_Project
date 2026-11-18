@@ -185,8 +185,8 @@ class User:
             self: This User instance
             text: The message sent by the user
         """
-        if text.lower() in ("menu", "stop", "exit"):
-            self.user_state = State.MENU
+        if text.lower() in ("menu", "stop", "exit") or self.responce_index*MAX_MSG_LEN >= len(self.current_responce):
+            self.handle_menu("menu")
             return
 
         # something something index * message size to get next chunk

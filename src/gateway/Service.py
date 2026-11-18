@@ -43,7 +43,7 @@ class Service:
             "weather": self.weather,
             "pokemon": self.pokemon,
             "nasa": self.nasa,
-            "joapi" : self.joapi
+            "joapi" : self.joapi,
             # "country": self.country,
             "book": self.book,
             # TODO: add more here
