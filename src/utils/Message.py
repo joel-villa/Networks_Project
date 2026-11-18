@@ -2,6 +2,7 @@
 
 from .UserType import UserType
 from math import ceil
+from typing import Any
 
 MAX_MSG_LEN = 130
 MAX_HEADER_LEN =20
