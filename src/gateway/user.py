@@ -167,12 +167,14 @@ class User:
     # this needs to be changed ASAP to reflect the message class so that there is RDT
     def start_serving_computer(self):
         message = Message((self.current_responce), self.package_id)
+        self.reply(message.to_string())
         responce = message.get_next_message()
         print(responce)
         while(responce is not None):
             self.reply(responce)
             time.sleep(DELAY)
             responce= message.get_next_message()
+        self.user_state = State.MENU
 
 
     # def start_serving_computer(self):

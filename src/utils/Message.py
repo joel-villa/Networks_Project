@@ -1,8 +1,11 @@
 """Message me up Scotty!"""
-from typing import Any
+
 from .UserType import UserType
+from math import ceil
 
 MAX_MSG_LEN = 130
+MAX_HEADER_LEN =20
+#print(len("こんにちは".encode("utf-8"))) is 15 bytes even though its just 5 chars
 # Due to the fact that meshnodes should recives slower and that for users, it would be confusing to add an id an message numbers
 # I think we should just use this for the computer
 class Message:
@@ -26,20 +29,30 @@ class Message:
         self.message = message
         self.id =id
         self.sequence_number = 0
-        self.final_sequence_number = len(message)/MAX_MSG_LEN
+        self.final_sequence_number = ceil(len(message)/MAX_MSG_LEN)
+
 
     def to_string(self) -> str:
-        return f"{id}:{sequence_number}:message"
+        return f"Packet id: {self.id} Expect: {self.final_sequence_number}"
     
-    def get_next_message(self) -> Any:
-        if(self.sequence_number is self.final_sequence_number):
-            return None
+
+    def build_message(self) ->  str:
         current_starter = self.sequence_number * MAX_MSG_LEN
         print(f"Sequence number: {self.sequence_number}, Current starter: {current_starter}")
         nextChunk = self.message[
                 current_starter : current_starter + MAX_MSG_LEN
-            ]
-        message = f"{self.id}:{self.sequence_number}:{nextChunk}"
+        ]
+        return nextChunk
+
+    def build_header(self) -> str:
+        header = f"{self.id}:{self.sequence_number}:"
+        
+        return header
+
+    def get_next_message(self) -> Any:
+        if(self.sequence_number >= self.final_sequence_number):
+            return None
+        message = self.build_header() + self.build_message()
         self.sequence_number+=1
         return message
 
