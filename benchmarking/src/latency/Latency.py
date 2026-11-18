@@ -1,6 +1,5 @@
 """The latency test class"""
 
-import asyncio
 from time import perf_counter
 
 import numpy as np

@@ -1,16 +1,14 @@
 """Tracks the distance between two mesh nodes"""
 
 import asyncio
+from asyncio.coroutines import os
 from functools import partial
 from warnings import warn
-from geopy import distance
 
-from asyncio.coroutines import os
 from dotenv import load_dotenv
+from geopy import distance
 from meshcore import EventType, MeshCore
 from meshcore.events import Event
-
-from src.loss.Receiver import N_CHAR_PUB_KEY_PREFIX
 
 
 class DistanceTracker:
@@ -20,6 +18,7 @@ class DistanceTracker:
         - Finding distance between two gps coordinates (lat, lon)
             https://geopy.readthedocs.io/en/stable/#module-geopy.distance
     """
+
     _src_dev: MeshCore
     _src_loc: tuple[float, float]
     _dut_loc: tuple[float, float]
@@ -33,7 +32,7 @@ class DistanceTracker:
 
         Args:
             src_dev (MeshCore): The device currently connected
-	    """
+        """
         self._src_dev = src_dev
         self._src_loc = (0, 0)
         self._dut_loc = (0, 0)
@@ -42,8 +41,8 @@ class DistanceTracker:
     async def __set_src_loc(self) -> None:
         """Set the source coordinates"""
         self_info = await self._src_dev.commands.send_appstart()
-        src_lat = self_info.payload['adv_lat']
-        src_lon = self_info.payload['adv_lon']
+        src_lat = self_info.payload["adv_lat"]
+        src_lon = self_info.payload["adv_lon"]
         self._src_loc = (src_lat, src_lon)
 
     @property
@@ -55,10 +54,9 @@ class DistanceTracker:
         Resources:
             - Read only properties in python:
                 https://www.pythonmorsels.com/making-read-only-attribute/
-	    """
+        """
         await self.__set_src_loc()
         return self._src_loc
-
 
     def __distance_in_meters(self) -> float:
         """Distance in meteres of two GPS locations (lat, long)
@@ -69,7 +67,7 @@ class DistanceTracker:
 
         Returns:
              distance (float): Distance between teh two locations in meters
-	    """
+        """
         if self._src_loc == (0, 0):
             warn(f"Source location is null island: {self._src_loc}")
         if self._dut_loc == (0, 0):
@@ -77,13 +75,12 @@ class DistanceTracker:
         print(f"src_loc: {self._src_loc}, dst_loc: {self._dut_loc}")
         return distance.distance(self._src_loc, self._dut_loc).meters
 
-
     async def __recv_msg(
         self,
         received_msg: Event,
         dut_pubkey: str,
     ) -> None:
-        """ receiving that dang message
+        """receiving that dang message
 
         Args:
             recieved_msg (EventType): Message recieved o7
@@ -122,7 +119,7 @@ class DistanceTracker:
 
         Returns:
              distance (float): Distance between the devices (in meters)
-	    """
+        """
         # Get contact
         await self._src_dev.start_auto_message_fetching()
         result = await self._src_dev.commands.get_contacts()
@@ -138,7 +135,7 @@ class DistanceTracker:
         # Handling an adertisement message type from dut
         callback_func = partial(
             self.__recv_msg,
-            dut_pubkey=dest_contact['public_key'],
+            dut_pubkey=dest_contact["public_key"],
         )
         subscription = self._src_dev.subscribe(
             event_type=EventType.ADVERTISEMENT,
@@ -155,6 +152,7 @@ class DistanceTracker:
         self._src_dev.unsubscribe(subscription)
 
         return self.__distance_in_meters()
+
 
 async def main():
     """For testing purposes"""
@@ -176,6 +174,7 @@ async def main():
     print(f"dist:{dist}")
 
     await meshcore.disconnect()
+
 
 if __name__ == "__main__":
     """Main for testing purposes
