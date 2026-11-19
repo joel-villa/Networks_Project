@@ -96,7 +96,7 @@ async def main() -> None:
     assert path_0 is not None
     assert path_1 is not None
 
-    name_under_test = "SenseCap_Solar_0"
+    name_under_test = "pro_0"
 
     print("Connecting devices")
     meshcore_0 = await MeshCore.create_serial(path_0)
