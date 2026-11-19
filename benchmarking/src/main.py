@@ -21,11 +21,11 @@ async def main_loss(
     source_type: list[Device],
     dst_type: Device,
 ) -> None:
-    frame_count = 64
-    granularity = 0.025  # 0.1 is maximum granularity
+    frame_count = 32
+    granularity = 0.1  # 0.1 is maximum granularity
     num_frame_sizes = 5  # 5 is minimum
-    prop_min_time = 0.75
-    prop_max_time = 2
+    prop_min_time = 3 / 8 # 1/2 is latency 3/4 * 1/2 = 3/8
+    prop_max_time = 1.5
     n_rtts = 5
     max_time = 2  # Max timeout time (seconds)
     # Connect to your device
@@ -64,14 +64,14 @@ async def main_latency(
     dst_type: Device,
 ) -> None:
     # TODO: get this test to under 5 minutes for scaling to larger tests
-    num_frame_sizes = 8  # 5 at minimum
-    max_msgs = 1024
-    max_time = 1800  # 30 mins = 1800 seconds
+    num_frame_sizes = 5  # 5 at minimum
+    max_msgs = 64
+    max_time = 5  # 30 mins = 1800 seconds
     notes = None
 
     lat_test = Latency(
-        max_msgs=max_msgs,
-        max_time=max_time,
+        max_msgs=max_msgs, # Max message per framesize
+        max_time=max_time, # Max time of entire test
     )
 
     file_id = await lat_test.run_test(
