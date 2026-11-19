@@ -111,8 +111,16 @@ async def main() -> None:
     ]
     dst_type = Device.SEEED_WIO_TRACKER_L1_PRO
 
-    distances = []
+    # Check contact path is one hop
+    for i, mesh in enumerate(meshcores):
+        result = await mesh.commands.get_contacts()
+        contacts = result.payload
+        if contacts:
+            for contact in contacts.values():
+                if contact["adv_name"] == name_under_test:
+                    print(f"Contact {i}: {contact}")
 
+    distances = []
     for mesh in meshcores:
         dist_tracker = DistanceTracker(
             src_dev=mesh,
