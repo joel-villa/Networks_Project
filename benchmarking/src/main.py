@@ -21,10 +21,10 @@ async def main_loss(
     source_type: list[Device],
     dst_type: Device,
 ) -> None:
-    frame_count = 32
+    frame_count = 16
     granularity = 0.1  # 0.1 is maximum granularity
-    num_frame_sizes = 5  # 5 is minimum
-    prop_min_time = 3 / 8 # 1/2 is latency 3/4 * 1/2 = 3/8
+    num_frame_sizes = 1  # 5 is minimum
+    prop_min_time = 7/16  # 1/2 is latency 7/8 * 1/2 = 7/16
     prop_max_time = 1.5
     n_rtts = 5
     max_time = 2  # Max timeout time (seconds)
@@ -65,8 +65,8 @@ async def main_latency(
 ) -> None:
     # TODO: get this test to under 5 minutes for scaling to larger tests
     num_frame_sizes = 5  # 5 at minimum
-    max_msgs = 64
-    max_time = 5  # 30 mins = 1800 seconds
+    max_msgs = 32
+    max_time = 600  # 30 mins = 1800 seconds, 5 mins = 300 seconds, 4 mins = 260 seconds
     notes = None
 
     lat_test = Latency(
@@ -107,7 +107,7 @@ async def main() -> None:
     ]
     src_types = [
         Device.HELTEC_T114,
-        Device.HELTEC_V3,
+        Device.HELTEC_T114,
     ]
     dst_type = Device.SEEED_WIO_TRACKER_L1_PRO
 
@@ -118,7 +118,8 @@ async def main() -> None:
         if contacts:
             for contact in contacts.values():
                 if contact["adv_name"] == name_under_test:
-                    print(f"Contact {i}: {contact}")
+                    assert contact['out_path'] == "", f"Not zero hop, out_path: {contact['out_path']}"
+                    print(f"Contact Path {i}: {contact["out_path"]} (type: {type(contact["out_path"])})")
 
     distances = []
     for mesh in meshcores:

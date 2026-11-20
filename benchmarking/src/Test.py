@@ -28,6 +28,8 @@ class Test(ABC):
         Returns:
              frame_sizes (np.ndarray): Those frame sizes to test
         """
+        if num_frame_sizes == 1:
+            return np.array([150])
         return np.linspace(
             start=1,  # Sending message of minimum size 1
             stop=150,

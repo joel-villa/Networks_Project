@@ -235,6 +235,8 @@ class Loss(Test):
         #            )
         #            await recv_dev.stop_auto_message_fetching()
         #
+
+        print("Loss Warmup")
         # A WARM UP
         for receiver in receivers:
             await receiver.start(frame_size=frame_sizes[0])
@@ -256,7 +258,7 @@ class Loss(Test):
         for reciever in receivers:
             await reciever.stop()
 
-        print("Starting Test!")
+        print("Starting Loss Test!")
         # TODO: do test for various frame sizes, setting timeouts along the way
         for i, frame_size in enumerate(frame_sizes):
             print(f"Loss Test: frame_size of {frame_size}")
