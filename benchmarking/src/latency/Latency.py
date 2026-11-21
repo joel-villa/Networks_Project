@@ -164,7 +164,15 @@ class Latency(Test):
 
         assert type(dut) is dict, f"{type(dut)}"
 
-        print("Starting test")
+        print("Latency Warmup")
+        for i in range(5):
+            await self.round_trip_time(
+                meshcore=source,
+                dst_key=dut,
+                message="a",
+            )
+
+        print("Starting Latency Test")
         frame_sizes, latencies = await self.get_latencies(
             meshcore=source,
             dst_key=dut,
