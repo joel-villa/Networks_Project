@@ -1,0 +1,5 @@
+geopy==2.5.0
+matplotlib==3.11.2
+meshcore==2.3.19
+numpy==2.5.5
+python-dotenv==1.2.4
