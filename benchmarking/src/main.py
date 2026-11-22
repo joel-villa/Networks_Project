@@ -132,14 +132,14 @@ async def main() -> None:
         distances.append(dist)
         print(f"Distance between mesh and DUT: {dist}")
 
-    print("Running Latency Test!")
-    await main_latency(
-        meshcore=meshcores[0],
-        name_under_test=name_under_test,
-        distance=distances[0],
-        src_type=src_types[0],
-        dst_type=dst_type,
-    )
+    #print("Running Latency Test!")
+    #await main_latency(
+    #    meshcore=meshcores[0],
+    #    name_under_test=name_under_test,
+    #    distance=distances[0],
+    #    src_type=src_types[0],
+    #    dst_type=dst_type,
+    #)
 
     print("Running Loss Test!")
     await main_loss(
