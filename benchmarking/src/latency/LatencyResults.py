@@ -165,7 +165,12 @@ class LatencyResults(Results):
         plt.show()
         plt.close()
 
-    def plot_latency_v_fsize(self) -> None:
+    def __hold_off(self) -> None:
+        """Display the loaded results!"""
+        plt.show()
+        plt.close()
+
+    def plot_latency_v_fsize(self, hold_on: bool = False) -> None:
         """Display the latencies as requested in the RFC
 
         Resources:
@@ -179,11 +184,18 @@ class LatencyResults(Results):
 
         plt.ylabel("Latency (s)")
         plt.xlabel("Frame Size (bytes)")
-        plt.show()
-        plt.close()
+        if not hold_on:
+            plt.show()
+            plt.close()
 
     def disp_results(self) -> None:
         """Display test results"""
+        if self._all_results:
+            for i in range(self.next_available_filename()):
+                self.load_results(i)
+                self.plot_latency_v_fsize(hold_on=False)
+            self.__hold_off()
+
         self.plot_latency_v_iter()
         self.plot_latency_v_fsize()
 
