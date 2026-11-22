@@ -132,11 +132,11 @@ class LossResults(Results):
             self._frames_recvd = frames_recvd
             self._timeout_times = timeout_times
 
-#        if (
-#            self._timeout_times.shape[0] != self._num_frame_sizes
-#            or self._timeout_times.shape[1] != self._frames_sent
-#        ):
-#            warn("Metadata and measured data do not coincide")
+    #        if (
+    #            self._timeout_times.shape[0] != self._num_frame_sizes
+    #            or self._timeout_times.shape[1] != self._frames_sent
+    #        ):
+    #            warn("Metadata and measured data do not coincide")
 
     def load_results(self, file_name: int) -> None:
         """Load the results from the provided file name
@@ -230,7 +230,9 @@ class LossResults(Results):
         plt.show()
         plt.close()
 
-    def __disp_results_verbose(self, is_rfc_based: bool = True, hold_on: bool = False) -> None:
+    def __disp_results_verbose(
+        self, is_rfc_based: bool = True, hold_on: bool = False
+    ) -> None:
         """Display the test results
 
         Args:
@@ -252,7 +254,9 @@ class LossResults(Results):
             dist = round(min(self._distance))
             for i, frame_size in enumerate(self._frame_sizes):
                 if frame_size != 150:
-                    warn(f"skipping frame size {frame_size}, since hold on is True, only displaying frame sizes of 150")
+                    warn(
+                        f"skipping frame size {frame_size}, since hold on is True, only displaying frame sizes of 150"
+                    )
                     continue
                 if is_rfc_based:
                     plt.plot(xs[i], ys[i], label=f"{dist} meters")

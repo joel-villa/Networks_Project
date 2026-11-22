@@ -22,6 +22,7 @@ async def main() -> None:
 
     await dut_mesh.disconnect()
 
+
 if __name__ == "__main__":
     """Main for testing purposes
     """

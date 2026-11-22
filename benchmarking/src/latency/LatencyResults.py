@@ -5,7 +5,6 @@ Resources:
     https://www.geeksforgeeks.org/python/method-and-constructor-overloading-in-python/
 """
 
-from cProfile import label
 import json
 from pathlib import Path
 from warnings import warn
@@ -128,20 +127,20 @@ class LatencyResults(Results):
         )  # Average latency per frame size
 
         if hold_on and self._distance is not None and self._distance < 100000:
-            plt.plot(self._frame_sizes, frame_lats, label=f"{round(self._distance)} meters")
+            plt.plot(
+                self._frame_sizes, frame_lats, label=f"{round(self._distance)} meters"
+            )
         else:
             if hold_on:
                 hold_on = False
                 warn("Switching to hold on, due to something not being set properly")
             plt.plot(self._frame_sizes, frame_lats)
 
-
         if not hold_on:
             plt.ylabel("Latency (s)")
             plt.xlabel("Frame Size (bytes)")
             plt.show()
             plt.close()
-
 
     def load_results(self, file_name: int) -> None:
         """Load the results from the provided file name
@@ -221,9 +220,9 @@ class LatencyResults(Results):
 
 def main() -> None:
     """display results from a loss test"""
-    #file_ids = range(1, 4)
+    # file_ids = range(1, 4)
 
-    #for file_id in file_ids:
+    # for file_id in file_ids:
     #    results = LatencyResults(file_name=file_id)
     #    results.disp_results()
     results = LatencyResults()

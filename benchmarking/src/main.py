@@ -24,7 +24,7 @@ async def main_loss(
     frame_count = 16
     granularity = 0.1  # 0.1 is maximum granularity
     num_frame_sizes = 1  # 5 is minimum
-    prop_min_time = 7/16  # 1/2 is latency 7/8 * 1/2 = 7/16
+    prop_min_time = 7 / 16  # 1/2 is latency 7/8 * 1/2 = 7/16
     prop_max_time = 1.5
     n_rtts = 5
     max_time = 2  # Max timeout time (seconds)
@@ -70,8 +70,8 @@ async def main_latency(
     notes = None
 
     lat_test = Latency(
-        max_msgs=max_msgs, # Max message per framesize
-        max_time=max_time, # Max time of entire test
+        max_msgs=max_msgs,  # Max message per framesize
+        max_time=max_time,  # Max time of entire test
     )
 
     file_id = await lat_test.run_test(
@@ -118,8 +118,12 @@ async def main() -> None:
         if contacts:
             for contact in contacts.values():
                 if contact["adv_name"] == name_under_test:
-                    assert contact['out_path'] == "", f"Not zero hop, out_path: {contact['out_path']}"
-                    print(f"Contact Path {i}: {contact["out_path"]} (type: {type(contact["out_path"])})")
+                    assert contact["out_path"] == "", (
+                        f"Not zero hop, out_path: {contact['out_path']}"
+                    )
+                    print(
+                        f"Contact Path {i}: {contact['out_path']} (type: {type(contact['out_path'])})"
+                    )
 
     distances = []
     for mesh in meshcores:
@@ -132,14 +136,14 @@ async def main() -> None:
         distances.append(dist)
         print(f"Distance between mesh and DUT: {dist}")
 
-    #print("Running Latency Test!")
-    #await main_latency(
+    # print("Running Latency Test!")
+    # await main_latency(
     #    meshcore=meshcores[0],
     #    name_under_test=name_under_test,
     #    distance=distances[0],
     #    src_type=src_types[0],
     #    dst_type=dst_type,
-    #)
+    # )
 
     print("Running Loss Test!")
     await main_loss(
