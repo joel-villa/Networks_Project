@@ -20,6 +20,7 @@ from ..util.Device import Device
 class LatencyResults(Results):
     """The metadata to track"""
 
+    _all_results: bool
     _src_type: Device
     _dst_type: Device
     _distance: float | None  # TODO: make this not optional
