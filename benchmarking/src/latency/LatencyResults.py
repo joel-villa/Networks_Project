@@ -127,8 +127,14 @@ class LatencyResults(Results):
             self._latencies, axis=1
         )  # Average latency per frame size
 
-        if self._distance is not None and self._distance < 100000:
+        if hold_on and self._distance is not None and self._distance < 100000:
             plt.plot(self._frame_sizes, frame_lats, label=f"{round(self._distance)} meters")
+        else:
+            if hold_on:
+                hold_on = False
+                warn("Switching to hold on, due to something not being set properly")
+            plt.plot(self._frame_sizes, frame_lats)
+
 
         if not hold_on:
             plt.ylabel("Latency (s)")
@@ -202,7 +208,8 @@ class LatencyResults(Results):
             for i in range(self.next_available_filename()):
                 try:
                     self.load_results(i)
-                    self.__plot_latency_v_fsize(hold_on=True)
+                    if self._distance is not None:
+                        self.__plot_latency_v_fsize(hold_on=True)
                 except FileNotFoundError:
                     pass
 
