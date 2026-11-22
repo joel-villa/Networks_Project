@@ -93,6 +93,43 @@ class LatencyResults(Results):
             self._frame_sizes = frame_sizes
             self._latencies = latencies
 
+    def __plot_latency_v_iter(self) -> None:
+        """Display the latencies"""
+        xs = range(self._latencies.shape[1])
+
+        for i, frame_size in enumerate(self._frame_sizes):
+            plt.plot(xs, self._latencies[i], label=f"{frame_size}")
+
+        plt.ylabel("Latency (s)")
+        plt.xlabel("Itteration")
+        plt.legend()
+        plt.show()
+        plt.close()
+
+    def __hold_off(self) -> None:
+        """Display the loaded results!"""
+        plt.show()
+        plt.close()
+
+    def __plot_latency_v_fsize(self, hold_on: bool = False) -> None:
+        """Display the latencies as requested in the RFC
+
+        Resources:
+            https://numpy.org/doc/2.1/reference/generated/numpy.nanmean.html
+        """
+        frame_lats = np.nanmean(
+            self._latencies, axis=1
+        )  # Average latency per frame size
+
+        plt.plot(self._frame_sizes, frame_lats)
+
+        plt.ylabel("Latency (s)")
+        plt.xlabel("Frame Size (bytes)")
+        if not hold_on:
+            plt.show()
+            plt.close()
+
+
     def load_results(self, file_name: int) -> None:
         """Load the results from the provided file name
 
@@ -152,52 +189,16 @@ class LatencyResults(Results):
 
         return save_file
 
-    def plot_latency_v_iter(self) -> None:
-        """Display the latencies"""
-        xs = range(self._latencies.shape[1])
-
-        for i, frame_size in enumerate(self._frame_sizes):
-            plt.plot(xs, self._latencies[i], label=f"{frame_size}")
-
-        plt.ylabel("Latency (s)")
-        plt.xlabel("Itteration")
-        plt.legend()
-        plt.show()
-        plt.close()
-
-    def __hold_off(self) -> None:
-        """Display the loaded results!"""
-        plt.show()
-        plt.close()
-
-    def plot_latency_v_fsize(self, hold_on: bool = False) -> None:
-        """Display the latencies as requested in the RFC
-
-        Resources:
-            https://numpy.org/doc/2.1/reference/generated/numpy.nanmean.html
-        """
-        frame_lats = np.nanmean(
-            self._latencies, axis=1
-        )  # Average latency per frame size
-
-        plt.plot(self._frame_sizes, frame_lats)
-
-        plt.ylabel("Latency (s)")
-        plt.xlabel("Frame Size (bytes)")
-        if not hold_on:
-            plt.show()
-            plt.close()
-
     def disp_results(self) -> None:
         """Display test results"""
         if self._all_results:
             for i in range(self.next_available_filename()):
                 self.load_results(i)
-                self.plot_latency_v_fsize(hold_on=False)
+                self.__plot_latency_v_fsize(hold_on=False)
             self.__hold_off()
-
-        self.plot_latency_v_iter()
-        self.plot_latency_v_fsize()
+        else:
+            self.__plot_latency_v_iter()
+            self.__plot_latency_v_fsize()
 
 
 def main() -> None:
