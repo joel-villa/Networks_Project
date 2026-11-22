@@ -19,32 +19,31 @@ from ..util.Device import Device
 class LossResults(Results):
     """The metadata to track"""
 
-    src_type: list[Device]
-    dst_type: Device
-    distance: list[float] | None  # TODO: make this not optional
-    num_frame_sizes: int
-    frames_sent: int
-    granularity: float  # TODO put this everywher
-    num_send_nodes: int
-    num_recv_nodes: int
+    _src_type: list[Device]
+    _dst_type: Device
+    _distance: list[float] | None  # TODO: make this not optional
+    _num_frame_sizes: int
+    _frames_sent: int
+    _granularity: float  # TODO put this everywher
+    _num_send_nodes: int
+    _num_recv_nodes: int
     # TODO add these guys
-    num_rtts: int  # How many rtts to do when rtt_time() is called # TODO: THESE THREE PUT EM ALL OVER
-    prop_min_time: (
+    _num_rtts: int  # How many rtts to do when rtt_time() is called # TODO: THESE THREE PUT EM ALL OVER
+    _prop_min_time: (
         float  # What proportion of the minimum rtt is considered small enough
     )
-    prop_max_time: (
+    _prop_max_time: (
         float  # What proportion of the maximum rtt is considered small enough
     )
-    max_timeout: float = 10  # The maximum timeout on lost mesage possible
-    notes: str | None
-    frame_sizes: np.ndarray
-    min_timeouts: np.ndarray  # one per frame size (what is minimum possible
+    _notes: str | None
+    _frame_sizes: np.ndarray
+    _min_timeouts: np.ndarray  # one per frame size (what is minimum possible
     # rate of message sending per frame size)
-    frames_recvd: np.ndarray  # a 2d array of ints with a row per frame size
-    timeout_times: np.ndarray  # has same dimensions as frames_recvd (this is
+    _frames_recvd: np.ndarray  # a 2d array of ints with a row per frame size
+    _timeout_times: np.ndarray  # has same dimensions as frames_recvd (this is
     # the inverse of the frame rate)
 
-    TEST_RESULTS_PATH: Path = Path("frame_loss_test_results/")
+    _TEST_RESULTS_PATH: Path = Path("frame_loss_test_results/")
 
     def __init__(
         self,
@@ -105,23 +104,23 @@ class LossResults(Results):
                 raise ValueError(
                     "if file_name is None, most other fields cannot be None"
                 )
-            self.src_type = src_type
-            self.dst_type = dst_type
-            self.distance = distance
-            self.num_frame_sizes = num_frame_sizes
-            self.frames_sent = frames_sent
-            self.granularity = granularity
-            self.num_send_nodes = num_send_nodes
-            self.num_recv_nodes = num_recv_nodes
-            self.notes = notes
-            self.frame_sizes = frame_sizes
-            self.min_timeouts = min_timeouts
-            self.frames_recvd = frames_recvd
-            self.timeout_times = timeout_times
+            self._src_type = src_type
+            self._dst_type = dst_type
+            self._distance = distance
+            self._num_frame_sizes = num_frame_sizes
+            self._frames_sent = frames_sent
+            self._granularity = granularity
+            self._num_send_nodes = num_send_nodes
+            self._num_recv_nodes = num_recv_nodes
+            self._notes = notes
+            self._frame_sizes = frame_sizes
+            self._min_timeouts = min_timeouts
+            self._frames_recvd = frames_recvd
+            self._timeout_times = timeout_times
 
         if (
-            self.timeout_times.shape[0] != self.num_frame_sizes
-            or self.timeout_times.shape[1] != self.frames_sent
+            self._timeout_times.shape[0] != self._num_frame_sizes
+            or self._timeout_times.shape[1] != self._frames_sent
         ):
             warn("Metadata and measured data do not coincide")
 
@@ -140,23 +139,23 @@ class LossResults(Results):
         with open(path_json) as json_file:
             metadata = json.load(json_file)
             src_types = metadata["src_type"]
-            self.src_type = []
+            self._src_type = []
             for dev_type in src_types:
-                self.src_type.append(Device(dev_type))
-            self.dst_type = Device(metadata["dst_type"])
-            self.distance = metadata["distance"]
-            self.num_frame_sizes = metadata["num_frame_sizes"]
-            self.frames_sent = metadata["frames_sent"]
-            self.granularity = metadata["granularity"]
-            self.num_send_nodes = metadata["num_send_nodes"]
-            self.num_recv_nodes = metadata["num_recv_nodes"]
-            self.notes = metadata["notes"]
+                self._src_type.append(Device(dev_type))
+            self._dst_type = Device(metadata["dst_type"])
+            self._distance = metadata["distance"]
+            self._num_frame_sizes = metadata["num_frame_sizes"]
+            self._frames_sent = metadata["frames_sent"]
+            self._granularity = metadata["granularity"]
+            self._num_send_nodes = metadata["num_send_nodes"]
+            self._num_recv_nodes = metadata["num_recv_nodes"]
+            self._notes = metadata["notes"]
 
         npzfile = np.load(path_npz)
-        self.frame_sizes = npzfile["frame_sizes"]
-        self.min_timeouts = npzfile["min_timeouts"]
-        self.frames_recvd = npzfile["frames_recvd"]
-        self.timeout_times = npzfile["timeout_times"]
+        self._frame_sizes = npzfile["frame_sizes"]
+        self._min_timeouts = npzfile["min_timeouts"]
+        self._frames_recvd = npzfile["frames_recvd"]
+        self._timeout_times = npzfile["timeout_times"]
 
     def save_results(self) -> int:
         """Save results to npz file and metadata to a json file
@@ -176,25 +175,25 @@ class LossResults(Results):
         path_json, path_npz = self.get_paths(save_file)
 
         metadata = {
-            "src_type": self.src_type,
-            "dst_type": self.dst_type,
-            "distance": self.distance,
-            "num_frame_sizes": self.num_frame_sizes,
-            "frames_sent": self.frames_sent,
-            "granularity": self.granularity,
-            "num_send_nodes": self.num_send_nodes,
-            "num_recv_nodes": self.num_recv_nodes,
-            "notes": self.notes,
+            "src_type": self._src_type,
+            "dst_type": self._dst_type,
+            "distance": self._distance,
+            "num_frame_sizes": self._num_frame_sizes,
+            "frames_sent": self._frames_sent,
+            "granularity": self._granularity,
+            "num_send_nodes": self._num_send_nodes,
+            "num_recv_nodes": self._num_recv_nodes,
+            "notes": self._notes,
         }
         with open(path_json, "w") as json_file:
             json.dump(metadata, json_file, indent=4)
 
         np.savez(
             path_npz,
-            frame_sizes=self.frame_sizes,
-            min_timeouts=self.min_timeouts,
-            frames_recvd=self.frames_recvd,
-            timeout_times=self.timeout_times,
+            frame_sizes=self._frame_sizes,
+            min_timeouts=self._min_timeouts,
+            frames_recvd=self._frames_recvd,
+            timeout_times=self._timeout_times,
         )
 
         return save_file
@@ -206,7 +205,7 @@ class LossResults(Results):
             is_rfc_based (bool): True -> x axis is percentage, false -> x axis
             is time
         """
-        xs = 1 / self.timeout_times
+        xs = 1 / self._timeout_times
 
         for i in range(xs.shape[0]):
             max_frame_rate = np.max(xs[i])
@@ -215,13 +214,13 @@ class LossResults(Results):
             if not np.isclose(np.max(xs[i]), 100):
                 warn("Expected max frame rate to be 100%")
 
-        ys = ((self.frames_sent - self.frames_recvd) / self.frames_sent) * 100
+        ys = ((self._frames_sent - self._frames_recvd) / self._frames_sent) * 100
 
-        for i, frame_size in enumerate(self.frame_sizes):
+        for i, frame_size in enumerate(self._frame_sizes):
             if is_rfc_based:
                 plt.plot(xs[i], ys[i], label=f"{frame_size}")
             else:
-                plt.plot(self.timeout_times[i], ys[i], label=f"{frame_size}")
+                plt.plot(self._timeout_times[i], ys[i], label=f"{frame_size}")
 
         plt.ylabel("Frame Loss (%)")
         if is_rfc_based:
