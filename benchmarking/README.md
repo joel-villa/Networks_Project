@@ -1,5 +1,11 @@
 # Benchmarking Taksks
 
+## Loading requirements.txt
+
+```
+pip install -r requirements.txt
+```
+
 ## Latency Test
 
 To visualize the latency test results:
