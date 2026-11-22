@@ -5,6 +5,7 @@ Resources:
     https://www.geeksforgeeks.org/python/method-and-constructor-overloading-in-python/
 """
 
+from cProfile import label
 import json
 from pathlib import Path
 from warnings import warn
@@ -108,6 +109,10 @@ class LatencyResults(Results):
 
     def __hold_off(self) -> None:
         """Display the loaded results!"""
+        plt.title("MeshCore Latency")
+        plt.legend()
+        plt.ylabel("Latency (s)")
+        plt.xlabel("Frame Size (bytes)")
         plt.show()
         plt.close()
 
@@ -121,11 +126,12 @@ class LatencyResults(Results):
             self._latencies, axis=1
         )  # Average latency per frame size
 
-        plt.plot(self._frame_sizes, frame_lats)
+        if self._distance is not None and self._distance < 100000:
+            plt.plot(self._frame_sizes, frame_lats, label=f"{round(self._distance)} meters")
 
-        plt.ylabel("Latency (s)")
-        plt.xlabel("Frame Size (bytes)")
         if not hold_on:
+            plt.ylabel("Latency (s)")
+            plt.xlabel("Frame Size (bytes)")
             plt.show()
             plt.close()
 
@@ -193,8 +199,12 @@ class LatencyResults(Results):
         """Display test results"""
         if self._all_results:
             for i in range(self.next_available_filename()):
-                self.load_results(i)
-                self.__plot_latency_v_fsize(hold_on=False)
+                try:
+                    self.load_results(i)
+                    self.__plot_latency_v_fsize(hold_on=True)
+                except FileNotFoundError:
+                    pass
+
             self.__hold_off()
         else:
             self.__plot_latency_v_iter()
@@ -203,11 +213,13 @@ class LatencyResults(Results):
 
 def main() -> None:
     """display results from a loss test"""
-    file_ids = range(1, 4)
+    #file_ids = range(1, 4)
 
-    for file_id in file_ids:
-        results = LatencyResults(file_name=file_id)
-        results.disp_results()
+    #for file_id in file_ids:
+    #    results = LatencyResults(file_name=file_id)
+    #    results.disp_results()
+    results = LatencyResults()
+    results.disp_results()
 
 
 if __name__ == "__main__":
