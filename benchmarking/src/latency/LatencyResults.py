@@ -7,6 +7,7 @@ Resources:
 
 import json
 from pathlib import Path
+from warnings import warn
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -58,24 +59,30 @@ class LatencyResults(Results):
             latencies (np.ndarray | None): The measured latencies (RTT divided
             by 2)
         """
+        self._all_results = False
         if file_name:
             self.load_results(file_name)
-
-        else:
-            if (
+        elif(
+            src_type is None
+            or dst_type is None
+            or num_frame_sizes is None
+            or max_msgs is None
+            or max_time is None
+            or frame_sizes is None
+            or latencies is None
+        ):
+            if not (
                 src_type is None
-                or dst_type is None
-                or num_frame_sizes is None
-                or max_msgs is None
-                or max_time is None
-                or frame_sizes is None
-                or latencies is None
+                and dst_type is None
+                and num_frame_sizes is None
+                and max_msgs is None
+                and max_time is None
+                and frame_sizes is None
+                and latencies is None
             ):
-                raise ValueError(
-                    "if file_name is None, all other fields "
-                    "all other fields besides notes and distance cannot be "
-                    "None"
-                )
+                warn("Not all necessaray data given, defaulting to existing results")
+            self._all_results = True
+        else:
             self.src_type = src_type
             self.dst_type = dst_type
             self.distance = distance
