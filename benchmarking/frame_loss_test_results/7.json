@@ -1,0 +1,17 @@
+{
+    "src_type": [
+        "heltec_t114",
+        "heltec_t114"
+    ],
+    "dst_type": "seeed_wio_tracker_l1_pro",
+    "distance": [
+        37.24685534364553,
+        39.086009869547844
+    ],
+    "num_frame_sizes": 1,
+    "frames_sent": 16,
+    "granularity": 0.1,
+    "num_send_nodes": 1,
+    "num_recv_nodes": 1,
+    "notes": "testing thangs"
+}

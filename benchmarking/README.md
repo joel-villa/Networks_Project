@@ -1,5 +1,11 @@
 # Benchmarking Taksks
 
+## Loading requirements.txt
+
+```
+pip install -r requirements.txt
+```
+
 ## Latency Test
 
 To visualize the latency test results:
@@ -21,8 +27,7 @@ contacts and able to send messages. Then...
 
 ## Loss Test
 
-To visualize
-To visualize results of test 5 run the following from root.
+To visualize loss test results:
 
 ```linux
 cd benchmarking

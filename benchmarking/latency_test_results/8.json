@@ -1,0 +1,9 @@
+{
+    "src_type": "HELTEC_T114",
+    "dst_type": "SEEED_WIO_TRACKER_L1_PRO",
+    "distance": 146.36318910652903,
+    "num_frame_sizes": 5,
+    "max_msgs": 32,
+    "max_time": 600,
+    "notes": null
+}

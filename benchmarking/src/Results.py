@@ -12,7 +12,7 @@ from pathlib import Path
 class Results(ABC):
     """Interface for Metadata"""
 
-    TEST_RESULTS_PATH: Path
+    _TEST_RESULTS_PATH: Path
 
     def get_paths(self, file_name: int) -> tuple[Path, Path]:
         """Get the paths to the file name in test_results directory
@@ -25,8 +25,8 @@ class Results(ABC):
             path_json (Path): The path to the json file
             path_npz (Path): The path to the npz file
         """
-        path_json = self.TEST_RESULTS_PATH / f"{file_name}.json"
-        path_npz = self.TEST_RESULTS_PATH / f"{file_name}.npz"
+        path_json = self._TEST_RESULTS_PATH / f"{file_name}.json"
+        path_npz = self._TEST_RESULTS_PATH / f"{file_name}.npz"
         return path_json, path_npz
 
     def next_available_filename(self) -> int:
@@ -39,7 +39,7 @@ class Results(ABC):
              maximum (int): The maximum file number currently
         """
         curr_max = 0
-        for root, dirs, files in os.walk(self.TEST_RESULTS_PATH):
+        for root, dirs, files in os.walk(self._TEST_RESULTS_PATH):
             for file in files:
                 if file.endswith(".json"):
                     curr_file = int(file[:-5])
