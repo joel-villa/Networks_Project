@@ -108,8 +108,14 @@ class LatencyResults(Results):
         plt.close()
 
     def __hold_off(self) -> None:
-        """Display the loaded results!"""
-        plt.title(f"MeshCore Latency ({self._dst_type})")
+        """Display the loaded results!
+
+        Resources:
+            - String parsing:
+                https://www.w3schools.com/python/ref_string_title.asp
+                https://www.w3schools.com/python/ref_string_replace.asp
+        """
+        plt.title(f"MeshCore Latency ({str(self._dst_type).replace("_", " ").title()})")
         plt.legend()
         plt.ylabel("Latency (s)")
         plt.xlabel("Frame Size (bytes)")
@@ -222,11 +228,13 @@ def main() -> None:
 
 def main_1() -> None:
     """display results from repeater and t114 test"""
-    results = LatencyResults(file_name=1)
-    results.disp_results()
     results = LatencyResults(file_name=2)
     results.disp_results()
+    results = LatencyResults(file_name=3)
+    results.disp_results()
+
 
 if __name__ == "__main__":
     """Python main"""
+    main_1()
     main()
