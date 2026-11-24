@@ -217,7 +217,7 @@ class LatencyResults(Results):
 
             self.__hold_off()
         else:
-            # self.__plot_latency_v_iter()
+            self.__plot_latency_v_iter()
             self.__plot_latency_v_fsize()
 
 
