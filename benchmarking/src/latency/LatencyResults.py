@@ -109,7 +109,7 @@ class LatencyResults(Results):
 
     def __hold_off(self) -> None:
         """Display the loaded results!"""
-        plt.title("MeshCore Latency")
+        plt.title(f"MeshCore Latency ({self._dst_type})")
         plt.legend()
         plt.ylabel("Latency (s)")
         plt.xlabel("Frame Size (bytes)")
@@ -137,10 +137,7 @@ class LatencyResults(Results):
             plt.plot(self._frame_sizes, frame_lats)
 
         if not hold_on:
-            plt.ylabel("Latency (s)")
-            plt.xlabel("Frame Size (bytes)")
-            plt.show()
-            plt.close()
+            self.__hold_off()
 
     def load_results(self, file_name: int) -> None:
         """Load the results from the provided file name
@@ -214,20 +211,21 @@ class LatencyResults(Results):
 
             self.__hold_off()
         else:
-            self.__plot_latency_v_iter()
+            # self.__plot_latency_v_iter()
             self.__plot_latency_v_fsize()
 
 
 def main() -> None:
     """display results from a loss test"""
-    # file_ids = range(1, 4)
-
-    # for file_id in file_ids:
-    #    results = LatencyResults(file_name=file_id)
-    #    results.disp_results()
     results = LatencyResults()
     results.disp_results()
 
+def main_1() -> None:
+    """display results from repeater and t114 test"""
+    results = LatencyResults(file_name=1)
+    results.disp_results()
+    results = LatencyResults(file_name=2)
+    results.disp_results()
 
 if __name__ == "__main__":
     """Python main"""
