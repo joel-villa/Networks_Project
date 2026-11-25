@@ -164,7 +164,7 @@ class User:
 
     
 
-    # this needs to be changed ASAP to reflect the message class so that there is RDT
+
     def start_serving_computer(self):
         message = Message((self.current_responce), self.package_id)
         self.reply(message.to_string())
@@ -190,6 +190,7 @@ class User:
             return
 
         # something something index * message size to get next chunk
+        #check the trace branch for whats in the demo, seperate by spaces and send 2 at a time
         current_starter = self.responce_index * MAX_MSG_LEN
         nextChunk = self.current_responce[
             current_starter : current_starter + MAX_MSG_LEN
