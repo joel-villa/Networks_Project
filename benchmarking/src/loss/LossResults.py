@@ -282,6 +282,7 @@ class LossResults(Results):
             self.__hold_off()
 
     def disp_results(self) -> None:
+        plt.rcParams.update({'font.size': 32})
         if self._all_results:
             for i in range(self.next_available_filename()):
                 try:
