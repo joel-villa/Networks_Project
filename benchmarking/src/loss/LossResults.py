@@ -219,7 +219,7 @@ class LossResults(Results):
             is_rfc_based (bool): not rfc_based -> x axis is percentage,
             is_rfc_based -> x-axis is percentage
         """
-        plt.title("MeshCore Loss")
+        plt.title(f"MeshCore Loss ({str(self._dst_type).replace("_", " ").title()})")
         plt.ylabel("Frame Loss (%)")
         if is_rfc_based:
             plt.xlabel("Frame Rate (%)")
@@ -269,7 +269,12 @@ class LossResults(Results):
 
             for i, frame_size in enumerate(self._frame_sizes):
                 if is_rfc_based:
-                    plt.plot(xs[i], ys[i], label=f"{frame_size}")
+                    lbl = str(frame_size)
+                    if frame_size == 1:
+                        lbl = f"{lbl} byte"
+                    else:
+                        lbl = f"{lbl} bytes"
+                    plt.plot(xs[i], ys[i], label=lbl)
                 else:
                     plt.plot(self._timeout_times[i], ys[i], label=f"{frame_size}")
 
@@ -277,6 +282,7 @@ class LossResults(Results):
             self.__hold_off()
 
     def disp_results(self) -> None:
+        plt.rcParams.update({'font.size': 32})
         if self._all_results:
             for i in range(self.next_available_filename()):
                 try:
@@ -294,6 +300,10 @@ class LossResults(Results):
 
 def main() -> None:
     """display results from a loss test"""
+
+    results = LossResults(file_name=5)
+    results.disp_results()
+
     results = LossResults()
     results.disp_results()
 

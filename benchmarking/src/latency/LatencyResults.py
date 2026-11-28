@@ -107,16 +107,25 @@ class LatencyResults(Results):
         plt.show()
         plt.close()
 
-    def __hold_off(self) -> None:
-        """Display the loaded results!"""
-        plt.title("MeshCore Latency")
+    def __hold_off(self, in_ms: bool = True) -> None:
+        """Display the loaded results!
+
+        Resources:
+            - String parsing:
+                https://www.w3schools.com/python/ref_string_title.asp
+                https://www.w3schools.com/python/ref_string_replace.asp
+        """
+        plt.title(f"MeshCore Latency ({str(self._dst_type).replace("_", " ").title()})")
         plt.legend()
-        plt.ylabel("Latency (s)")
+        if in_ms:
+            plt.ylabel("Latency (ms)")
+        else:
+            plt.ylabel("Latency (s)")
         plt.xlabel("Frame Size (bytes)")
         plt.show()
         plt.close()
 
-    def __plot_latency_v_fsize(self, hold_on: bool = False) -> None:
+    def __plot_latency_v_fsize(self, hold_on: bool = False, in_ms: bool = True) -> None:
         """Display the latencies as requested in the RFC
 
         Resources:
@@ -125,6 +134,8 @@ class LatencyResults(Results):
         frame_lats = np.nanmean(
             self._latencies, axis=1
         )  # Average latency per frame size
+        if in_ms:
+            frame_lats *= 1000 # 1000 ms = 1s
 
         if hold_on and self._distance is not None and self._distance < 100000:
             plt.plot(
@@ -137,10 +148,7 @@ class LatencyResults(Results):
             plt.plot(self._frame_sizes, frame_lats)
 
         if not hold_on:
-            plt.ylabel("Latency (s)")
-            plt.xlabel("Frame Size (bytes)")
-            plt.show()
-            plt.close()
+            self.__hold_off(in_ms=in_ms)
 
     def load_results(self, file_name: int) -> None:
         """Load the results from the provided file name
@@ -202,7 +210,13 @@ class LatencyResults(Results):
         return save_file
 
     def disp_results(self) -> None:
-        """Display test results"""
+        """Display test results
+
+        Resources:
+            - matplot lib font sizes:
+                https://www.geeksforgeeks.org/python/change-font-size-in-matplotlib/
+        """
+        plt.rcParams.update({'font.size': 32})
         if self._all_results:
             for i in range(self.next_available_filename()):
                 try:
@@ -220,15 +234,18 @@ class LatencyResults(Results):
 
 def main() -> None:
     """display results from a loss test"""
-    # file_ids = range(1, 4)
-
-    # for file_id in file_ids:
-    #    results = LatencyResults(file_name=file_id)
-    #    results.disp_results()
     results = LatencyResults()
+    results.disp_results()
+
+def main_1() -> None:
+    """display results from repeater and t114 test"""
+    results = LatencyResults(file_name=2)
+    results.disp_results()
+    results = LatencyResults(file_name=3)
     results.disp_results()
 
 
 if __name__ == "__main__":
     """Python main"""
+    main_1()
     main()
